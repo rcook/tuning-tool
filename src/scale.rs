@@ -24,6 +24,11 @@ impl Scale {
     }
 
     #[must_use]
+    pub(crate) const fn step_count(&self) -> usize {
+        self.note_count - 1
+    }
+
+    #[must_use]
     pub(crate) const fn note_count(&self) -> usize {
         self.note_count
     }

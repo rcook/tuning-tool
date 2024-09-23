@@ -40,7 +40,8 @@ fn main() -> anyhow::Result<()> {
             description = scale.description()
         );
 
-        println!("Notes: {note_count}", note_count = scale.note_count() - 1);
+        println!("Steps: {step_count}", step_count = scale.step_count());
+        println!("Notes: {note_count}", note_count = scale.note_count());
 
         for (i, note) in scale.notes().enumerate() {
             match note.cents() {
