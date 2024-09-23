@@ -101,3 +101,48 @@ impl FromStr for Tuning {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::tuning::Tuning;
+    use anyhow::Result;
+    use include_dir::{include_dir, Dir};
+    use std::{borrow::Borrow, ffi::OsStr};
+
+    static PROJECT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/scl");
+
+    #[test]
+    fn scala_archive() -> Result<()> {
+        fn test_scl(s: &str) -> Result<()> {
+            let tuning = s.parse::<Tuning>()?;
+
+            let file_name = tuning.file_name();
+            assert!(file_name.is_some() || file_name.is_none());
+
+            let _ = tuning.description();
+
+            let step_count = tuning.step_count();
+
+            let note_count = tuning.note_count();
+            assert_eq!(note_count, step_count + 1);
+
+            let notes = tuning.notes().collect::<Vec<_>>();
+            assert_eq!(note_count, notes.len());
+            Ok(())
+        }
+
+        let extension = Some(OsStr::new("scl"));
+        let files = PROJECT_DIR
+            .files()
+            .filter(|f| f.path().extension() == extension)
+            .collect::<Vec<_>>();
+        assert!(files.len() > 5000);
+
+        for file in files {
+            let s = String::from_utf8_lossy(file.contents());
+            test_scl(s.borrow())?;
+        }
+
+        Ok(())
+    }
+}
