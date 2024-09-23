@@ -9,23 +9,11 @@ mod tuning;
 fn main() -> anyhow::Result<()> {
     use crate::args::Args;
     use crate::scala::read_scala_file;
-    use anyhow::Result;
+    use anyhow::{bail, Result};
     use clap::Parser;
     use std::ffi::OsStr;
     use std::fs::read_dir;
     use std::path::Path;
-
-    fn test_dir(start_dir: &Path) -> Result<()> {
-        let extension = Some(OsStr::new("scl"));
-        for e in read_dir(start_dir)? {
-            let e = e?;
-            let path = start_dir.join(e.file_name());
-            if path.extension() == extension {
-                test_file(&path)?;
-            }
-        }
-        Ok(())
-    }
 
     fn test_file(scl_path: &Path) -> Result<()> {
         println!("Testing {}", scl_path.display());
@@ -53,7 +41,23 @@ fn main() -> anyhow::Result<()> {
     }
 
     let args = Args::parse();
-    test_dir(&args.start_dir)?;
+    if args.start_path.is_file() {
+        test_file(&args.start_path)?;
+    } else if args.start_path.is_dir() {
+        let extension = Some(OsStr::new("scl"));
+        for e in read_dir(&args.start_path)? {
+            let e = e?;
+            let path = args.start_path.join(e.file_name());
+            if path.extension() == extension {
+                test_file(&path)?;
+            }
+        }
+    } else {
+        bail!(
+            "Cannot determine what {start_path} is supposed to be",
+            start_path = args.start_path.display()
+        )
+    }
 
     Ok(())
 }
