@@ -1,10 +1,12 @@
+mod args;
 mod note;
 mod scale;
 
 fn main() -> anyhow::Result<()> {
+    use crate::args::Args;
     use crate::scale::Scale;
     use anyhow::Result;
-    use std::env::current_dir;
+    use clap::Parser;
     use std::ffi::OsStr;
     use std::fs::{read_dir, File};
     use std::io::Read;
@@ -39,7 +41,8 @@ fn main() -> anyhow::Result<()> {
         Ok(())
     }
 
-    test_dir(&current_dir()?)?;
+    let args = Args::parse();
+    test_dir(&args.start_dir)?;
 
     Ok(())
 }
