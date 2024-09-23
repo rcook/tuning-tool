@@ -30,6 +30,18 @@ fn main() -> anyhow::Result<()> {
     fn test_file(scl_path: &Path) -> Result<()> {
         println!("Testing {}", scl_path.display());
         let scale = read_scala_file(scl_path)?;
+
+        if let Some(file_name) = scale.file_name() {
+            println!("File name: {file_name}");
+        }
+
+        println!(
+            "Description: {description}",
+            description = scale.description()
+        );
+
+        println!("Notes: {note_count}", note_count = scale.note_count() - 1);
+
         for (i, note) in scale.notes().enumerate() {
             match note.cents() {
                 Some(cents) => println!("(step {i}): {cents}"),

@@ -8,23 +8,26 @@ use std::str::FromStr;
 pub(crate) struct Scale {
     file_name: Option<String>,
     description: String,
+    note_count: usize,
     notes: Vec<Note>,
 }
 
 impl Scale {
-    #[allow(unused)]
     #[must_use]
     pub(crate) const fn file_name(&self) -> &Option<String> {
         &self.file_name
     }
 
-    #[allow(unused)]
     #[must_use]
     pub(crate) fn description(&self) -> &str {
         self.description.as_str()
     }
 
-    #[allow(unused)]
+    #[must_use]
+    pub(crate) const fn note_count(&self) -> usize {
+        self.note_count
+    }
+
     #[must_use]
     pub(crate) fn notes(&self) -> Notes {
         Notes::new(self.notes.iter())
@@ -72,22 +75,23 @@ impl FromStr for Scale {
             bail!("No note count found")
         };
 
-        let count = count_str.parse::<usize>()?;
+        let note_count = count_str.parse::<usize>()? + 1;
 
-        let mut notes = Vec::with_capacity(count + 1);
+        let mut notes = Vec::with_capacity(note_count);
         notes.push(Note::unison());
 
         for line in lines {
             notes.push(line.parse()?);
         }
 
-        if notes.len() != count + 1 {
+        if notes.len() != note_count {
             bail!("Incorrect number of notes")
         }
 
         Ok(Self {
             file_name,
             description: String::from(description),
+            note_count,
             notes,
         })
     }
