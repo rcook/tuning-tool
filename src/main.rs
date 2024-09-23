@@ -1,23 +1,17 @@
 mod args;
+mod fs;
 mod note;
+mod scala;
 mod scale;
 
 fn main() -> anyhow::Result<()> {
     use crate::args::Args;
-    use crate::scale::Scale;
+    use crate::scala::read_scala_file;
     use anyhow::Result;
     use clap::Parser;
     use std::ffi::OsStr;
-    use std::fs::{read_dir, File};
-    use std::io::Read;
+    use std::fs::read_dir;
     use std::path::Path;
-
-    fn read_to_string_lossy(path: &std::path::Path) -> anyhow::Result<String> {
-        let mut file = File::open(path)?;
-        let mut buffer = vec![];
-        file.read_to_end(&mut buffer)?;
-        Ok(String::from_utf8_lossy(&buffer).to_string())
-    }
 
     fn test_dir(start_dir: &Path) -> Result<()> {
         let extension = Some(OsStr::new("scl"));
@@ -33,8 +27,7 @@ fn main() -> anyhow::Result<()> {
 
     fn test_file(scl_path: &Path) -> Result<()> {
         println!("Testing {}", scl_path.display());
-        let s = read_to_string_lossy(scl_path)?;
-        let scale = s.parse::<Scale>()?;
+        let scale = read_scala_file(scl_path)?;
         for (i, note) in scale.notes().into_iter().enumerate() {
             match note.cents() {
                 Some(cents) => println!("(step {i}): {cents}"),
