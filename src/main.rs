@@ -45,8 +45,8 @@ fn main() -> anyhow::Result<()> {
 
         for (i, note) in scale.notes().enumerate() {
             match note.cents() {
-                Some(cents) => println!("(step {i}): {cents}"),
-                None => println!("(step {i}): (could not calculate cents)"),
+                Some(cents) => println!("(note {i}): {cents}"),
+                None => println!("(note {i}): (could not calculate cents)"),
             }
         }
         Ok(())
