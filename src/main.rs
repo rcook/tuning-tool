@@ -29,7 +29,7 @@ fn main() -> anyhow::Result<()> {
     fn test_file(scl_path: &Path) -> Result<()> {
         println!("Testing {}", scl_path.display());
         let scale = read_scala_file(scl_path)?;
-        for (i, note) in scale.notes().into_iter().enumerate() {
+        for (i, note) in scale.notes().iter().enumerate() {
             match note.cents() {
                 Some(cents) => println!("(step {i}): {cents}"),
                 None => println!("(step {i}): (could not calculate cents)"),

@@ -20,7 +20,7 @@ impl Scale {
     #[allow(unused)]
     #[must_use]
     pub(crate) fn description(&self) -> &str {
-        &self.description.as_str()
+        self.description.as_str()
     }
 
     #[allow(unused)]

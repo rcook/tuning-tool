@@ -27,7 +27,7 @@ impl FromStr for Note {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
-        let Some(temp) = s.trim().split_whitespace().next() else {
+        let Some(temp) = s.split_whitespace().next() else {
             bail!("Invalid note specification {s}")
         };
 
