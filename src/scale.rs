@@ -1,4 +1,5 @@
 use crate::note::Note;
+use crate::notes::Notes;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;
@@ -25,8 +26,8 @@ impl Scale {
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn notes(&self) -> &Vec<Note> {
-        &self.notes
+    pub(crate) fn notes(&self) -> Notes {
+        Notes::new(self.notes.iter())
     }
 }
 
