@@ -4,7 +4,7 @@ mod fs;
 mod note;
 mod notes;
 mod scala;
-mod scale;
+mod tuning;
 
 fn main() -> anyhow::Result<()> {
     use crate::args::Args;
@@ -29,21 +29,21 @@ fn main() -> anyhow::Result<()> {
 
     fn test_file(scl_path: &Path) -> Result<()> {
         println!("Testing {}", scl_path.display());
-        let scale = read_scala_file(scl_path)?;
+        let tuning = read_scala_file(scl_path)?;
 
-        if let Some(file_name) = scale.file_name() {
+        if let Some(file_name) = tuning.file_name() {
             println!("File name: {file_name}");
         }
 
         println!(
             "Description: {description}",
-            description = scale.description()
+            description = tuning.description()
         );
 
-        println!("Steps: {step_count}", step_count = scale.step_count());
-        println!("Notes: {note_count}", note_count = scale.note_count());
+        println!("Steps: {step_count}", step_count = tuning.step_count());
+        println!("Notes: {note_count}", note_count = tuning.note_count());
 
-        for (i, note) in scale.notes().enumerate() {
+        for (i, note) in tuning.notes().enumerate() {
             match note.cents() {
                 Some(cents) => println!("(note {i}): {cents}"),
                 None => println!("(note {i}): (could not calculate cents)"),

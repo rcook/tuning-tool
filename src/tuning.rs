@@ -5,14 +5,14 @@ use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Debug)]
-pub(crate) struct Scale {
+pub(crate) struct Tuning {
     file_name: Option<String>,
     description: String,
     note_count: usize,
     notes: Vec<Note>,
 }
 
-impl Scale {
+impl Tuning {
     #[must_use]
     pub(crate) const fn file_name(&self) -> &Option<String> {
         &self.file_name
@@ -39,7 +39,7 @@ impl Scale {
     }
 }
 
-impl FromStr for Scale {
+impl FromStr for Tuning {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
@@ -56,7 +56,7 @@ impl FromStr for Scale {
             .peekable();
 
         let Some(line) = lines.peek() else {
-            bail!("Invalid scale string")
+            bail!("Invalid tuning string")
         };
 
         let file_name = match line.strip_prefix("!") {
