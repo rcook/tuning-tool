@@ -36,7 +36,10 @@ fn main() -> anyhow::Result<()> {
         let s = read_to_string_lossy(scl_path)?;
         let scale = s.parse::<Scale>()?;
         for (i, note) in scale.notes().into_iter().enumerate() {
-            println!("(step {i}): {cents}", cents = note.cents());
+            match note.cents() {
+                Some(cents) => println!("(step {i}): {cents}"),
+                None => println!("(step {i}): (could not calculate cents)"),
+            }
         }
         Ok(())
     }

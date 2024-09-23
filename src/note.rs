@@ -1,11 +1,12 @@
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
+use rust_decimal::Decimal;
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Debug)]
 pub(crate) enum Note {
-    Cents(f64),
+    Cents(Decimal),
     Ratio(BigRational),
 }
 
@@ -14,10 +15,10 @@ impl Note {
         Self::Ratio(BigRational::one())
     }
 
-    pub(crate) fn cents(&self) -> f64 {
+    pub(crate) fn cents(&self) -> Option<f64> {
         match self {
-            &Self::Cents(value) => value,
-            Self::Ratio(value) => 1200f64 * value.to_f64().expect("TBD").log2(),
+            &Self::Cents(value) => value.to_f64(),
+            Self::Ratio(value) => value.to_f64().map(|x| 1200f64 * x.log2()),
         }
     }
 }
