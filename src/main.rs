@@ -1,4 +1,5 @@
 mod args;
+mod cli;
 mod fs;
 mod note;
 mod scala;

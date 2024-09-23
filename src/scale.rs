@@ -1,8 +1,7 @@
+use crate::note::Note;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;
-
-use crate::note::Note;
 
 #[derive(Debug)]
 pub(crate) struct Scale {
