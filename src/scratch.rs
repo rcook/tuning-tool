@@ -13,7 +13,9 @@ fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) {
     let zz = semitones_14bit - 0x80 * yy; // i.e. 30
 
     // Single Note Tuning Change Real-Time message
-    let mut data = Vec::new();
+    const LL: u8 = 1;
+    let length = 8 + LL * 4;
+    let mut data = Vec::with_capacity(length as usize);
 
     // Universal Real-Time SysEx header
     data.push(0xF0);
@@ -32,7 +34,7 @@ fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) {
     data.push(program_number);
 
     // Number of changes
-    data.push(0x01);
+    data.push(LL);
 
     // MIDI key number
     data.push(kk);
@@ -44,6 +46,8 @@ fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) {
 
     // End
     data.push(0xf7);
+
+    assert!(data.len() == length as usize);
 
     let hex_dump = data
         .iter()
