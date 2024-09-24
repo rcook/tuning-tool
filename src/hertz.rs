@@ -1,4 +1,6 @@
+use anyhow::{bail, Error};
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
 
 pub(crate) struct Hertz(f64);
 
@@ -17,5 +19,17 @@ impl Hertz {
 impl Display for Hertz {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{value} Hz", value = self.0)
+    }
+}
+
+impl TryFrom<f64> for Hertz {
+    type Error = Error;
+
+    fn try_from(value: f64) -> StdResult<Self, Self::Error> {
+        if value < 0f64 {
+            bail!("Invalid frequency {value}")
+        }
+
+        Ok(Self(value))
     }
 }
