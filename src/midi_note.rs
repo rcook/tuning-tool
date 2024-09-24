@@ -1,7 +1,6 @@
-use crate::hertz::Hertz;
+use crate::frequency::Frequency;
 use crate::midi_notes::MidiNotes;
 use anyhow::{bail, Error};
-use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 
@@ -12,31 +11,29 @@ impl MidiNote {
         MidiNotes::all()
     }
 
-    pub(crate) fn nearest_below(frequency: Hertz) -> (MidiNote, Hertz) {
-        Self::nearest_below_with_reference(frequency, Hertz::concert_a())
+    pub(crate) fn nearest_below(frequency: Frequency) -> (MidiNote, Frequency) {
+        Self::nearest_below_with_reference(frequency, Frequency::concert_a())
     }
 
     pub(crate) fn nearest_below_with_reference(
-        frequency: Hertz,
-        reference: Hertz,
-    ) -> (MidiNote, Hertz) {
+        frequency: Frequency,
+        reference: Frequency,
+    ) -> (MidiNote, Frequency) {
         let frequency = frequency.to_f64();
         let value = (12f64 * (frequency / reference.to_f64()).log2() + 69f64) as i8;
         let midi_note = Self(value);
-        let rem = (frequency - midi_note.to_hertz_with_reference(reference).to_f64())
-            .try_into()
-            .expect("TBD");
+        let rem = (frequency - midi_note.frequency_with_reference(reference).to_f64()).into();
         (midi_note, rem)
     }
 
-    pub(crate) fn to_hertz(&self) -> Hertz {
-        self.to_hertz_with_reference(Hertz::concert_a())
+    pub(crate) fn frequency(&self) -> Frequency {
+        self.frequency_with_reference(Frequency::concert_a())
     }
 
-    pub(crate) fn to_hertz_with_reference(&self, reference: Hertz) -> Hertz {
-        let value = (reference.to_f64() / 32f64) * 2f64.powf((self.0 as f64 - 9f64) / 12f64);
-        let result: Hertz = value.try_into().expect("Must succeed");
-        result
+    pub(crate) fn frequency_with_reference(&self, reference: Frequency) -> Frequency {
+        Into::<Frequency>::into(
+            (reference.to_f64() / 32f64) * 2f64.powf((self.0 as f64 - 9f64) / 12f64),
+        )
     }
 }
 

@@ -33,8 +33,8 @@ pub(crate) fn run() -> Result<()> {
         )
     }
 
-    let (midi_note, rem) = MidiNote::nearest_below(440f64.try_into().expect("TBD"));
-    println!("{freq} {rem}", freq = midi_note.to_hertz());
+    let (midi_note, rem) = MidiNote::nearest_below(440f64.into());
+    println!("{freq} {rem}", freq = midi_note.frequency());
 
     Ok(())
 }
