@@ -7,7 +7,7 @@ use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::Path;
 
-pub(crate) fn run() -> anyhow::Result<()> {
+pub(crate) fn run() -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
             Some("scl") => dump_scala_file(&path),
@@ -31,6 +31,5 @@ pub(crate) fn run() -> anyhow::Result<()> {
             start_path = args.start_path.display()
         )
     }
-
     Ok(())
 }
