@@ -5,6 +5,7 @@ use crate::midi_note::MidiNote;
 use crate::scratch::foo;
 use anyhow::{bail, Result};
 use clap::Parser;
+use midir::{Ignore, MidiInput};
 use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::Path;
@@ -34,8 +35,16 @@ pub(crate) fn run() -> Result<()> {
         )
     }
 
-    foo();
+    let mut midi_input = MidiInput::new("Test input")?;
+    midi_input.ignore(Ignore::None);
+
+    for (i, p) in midi_input.ports().iter().enumerate() {
+        println!("{i}: {}", midi_input.port_name(p)?);
+    }
+
     todo!();
+
+    foo();
 
     let (midi_note, rem) = MidiNote::nearest_below(440f64.into());
     println!("{freq} {rem}", freq = midi_note.frequency());
