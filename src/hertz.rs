@@ -5,9 +5,8 @@ use std::result::Result as StdResult;
 pub(crate) struct Hertz(f64);
 
 impl Hertz {
-    #[must_use]
-    pub(crate) const fn new(value: f64) -> Self {
-        Self(value)
+    pub(crate) const fn concert_a() -> Self {
+        Self(440f64)
     }
 
     #[must_use]

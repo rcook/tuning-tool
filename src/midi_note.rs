@@ -5,8 +5,6 @@ use std::convert::TryFrom;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 
-pub(crate) const CONCERT_A: Hertz = Hertz::new(440f64);
-
 pub(crate) struct MidiNote(i8);
 
 impl MidiNote {
@@ -15,7 +13,7 @@ impl MidiNote {
     }
 
     pub(crate) fn nearest_below(frequency: Hertz) -> (MidiNote, Hertz) {
-        Self::nearest_below_with_reference(frequency, CONCERT_A)
+        Self::nearest_below_with_reference(frequency, Hertz::concert_a())
     }
 
     pub(crate) fn nearest_below_with_reference(
@@ -32,10 +30,13 @@ impl MidiNote {
     }
 
     pub(crate) fn to_hertz(&self) -> Hertz {
-        self.to_hertz_with_reference(CONCERT_A)
+        self.to_hertz_with_reference(Hertz::concert_a())
     }
+
     pub(crate) fn to_hertz_with_reference(&self, reference: Hertz) -> Hertz {
-        Hertz::new((reference.to_f64() / 32f64) * 2f64.powf((self.0 as f64 - 9f64) / 12f64))
+        let value = (reference.to_f64() / 32f64) * 2f64.powf((self.0 as f64 - 9f64) / 12f64);
+        let result: Hertz = value.try_into().expect("Must succeed");
+        result
     }
 }
 
