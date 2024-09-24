@@ -13,6 +13,7 @@ mod note;
 mod notes;
 mod run;
 mod scala;
+mod scratch;
 mod tuning;
 
 fn main() -> anyhow::Result<()> {

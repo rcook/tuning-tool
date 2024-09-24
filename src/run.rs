@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::midi_note::MidiNote;
+use crate::scratch::foo;
 use anyhow::{bail, Result};
 use clap::Parser;
 use std::ffi::OsStr;
@@ -32,6 +33,9 @@ pub(crate) fn run() -> Result<()> {
             start_path = args.start_path.display()
         )
     }
+
+    foo();
+    todo!();
 
     let (midi_note, rem) = MidiNote::nearest_below(440f64.into());
     println!("{freq} {rem}", freq = midi_note.frequency());
