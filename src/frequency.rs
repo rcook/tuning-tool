@@ -1,4 +1,4 @@
-use crate::temp::semitone::Semitone;
+use crate::semitone::Semitone;
 
 pub(crate) type Frequency = f64;
 
@@ -9,9 +9,9 @@ pub(crate) fn frequency_to_semitone(frequency: Frequency, base_frequency: Freque
 
 #[cfg(test)]
 mod tests {
+    use crate::frequency::{frequency_to_semitone, Frequency};
     use crate::num::ApproxEq;
-    use crate::temp::frequency::{frequency_to_semitone, Frequency};
-    use crate::temp::semitone::Semitone;
+    use crate::semitone::Semitone;
     use rstest::rstest;
 
     #[rstest]

@@ -1,5 +1,5 @@
-use crate::temp::frequency::Frequency;
-use crate::temp::midi_note::MidiNote;
+use crate::frequency::Frequency;
+use crate::midi_note::MidiNote;
 
 #[allow(unused)]
 pub(crate) const BASE_FREQUENCY: Frequency = 440f64;

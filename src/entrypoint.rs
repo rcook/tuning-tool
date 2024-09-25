@@ -1,4 +1,4 @@
-use crate::temp::midi_note::MidiNote;
+use crate::midi_note::MidiNote;
 use anyhow::Result;
 
 pub(crate) fn run() -> Result<()> {

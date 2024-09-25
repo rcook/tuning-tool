@@ -1,8 +1,8 @@
 use crate::args::Args;
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
+use crate::midi_note::MidiNote;
 use crate::scratch::foo;
-use crate::temp::midi_note::MidiNote;
 use anyhow::{bail, Result};
 use clap::Parser;
 use midir::{Ignore, MidiInput};

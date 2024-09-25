@@ -9,7 +9,7 @@ fn main() -> anyhow::Result<()> {
     const BASE_FREQUENCY: f64 = 440f64;
     const BASE_NOTE_NUMBER: i8 = 69;
     const MIDI_NOTE_COUNT: usize = 128;
-    const MIDI_NOTE_TYPE_NAME: &str = "crate::temp::midi_note::MidiNote";
+    const MIDI_NOTE_TYPE_NAME: &str = "crate::midi_note::MidiNote";
 
     fn make_note_name(note_line: &[char], note_number: i8) -> String {
         let octave = note_number / 12 - 1;

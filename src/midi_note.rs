@@ -1,5 +1,5 @@
-use crate::temp::frequency::Frequency;
-use crate::temp::note_number::NoteNumber;
+use crate::frequency::Frequency;
+use crate::note_number::NoteNumber;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_consts.rs"));
