@@ -1,4 +1,4 @@
-use crate::scala::read_scala_file;
+use crate::scala::fs::read_scala_file;
 use anyhow::Result;
 use std::path::Path;
 

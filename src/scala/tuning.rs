@@ -1,5 +1,5 @@
-use crate::note::Note;
-use crate::notes::Notes;
+use crate::scala::note::Note;
+use crate::scala::notes::Notes;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;

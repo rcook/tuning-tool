@@ -1,4 +1,4 @@
-use crate::note::Note;
+use crate::scala::note::Note;
 use core::slice::Iter;
 
 pub(crate) struct Notes<'a>(Iter<'a, Note>);

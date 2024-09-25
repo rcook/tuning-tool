@@ -1,5 +1,5 @@
 use crate::fs::read_to_string_lossy;
-use crate::tuning::Tuning;
+use crate::scala::tuning::Tuning;
 use anyhow::Result;
 use std::path::Path;
 
