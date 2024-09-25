@@ -1,8 +1,7 @@
+use crate::temp::midi_note::MidiNote;
 use anyhow::Result;
 
 pub(crate) fn run() -> Result<()> {
-    use crate::midi_note::MidiNote;
-
     for midi_note in MidiNote::ALL {
         println!(
             "{note_number}: {name}",

@@ -1,4 +1,4 @@
-use crate::semitone::Semitone;
+use crate::temp::semitone::Semitone;
 
 pub(crate) type Frequency = f64;
 
@@ -9,8 +9,8 @@ pub(crate) fn frequency_to_semitone(frequency: Frequency, base_frequency: Freque
 
 #[cfg(test)]
 mod tests {
-    use crate::frequency::{frequency_to_semitone, Frequency};
-    use crate::semitone::Semitone;
+    use crate::temp::frequency::{frequency_to_semitone, Frequency};
+    use crate::temp::semitone::Semitone;
     use rstest::rstest;
 
     fn epsilon_eq(a: f64, b: f64, epsilon: Option<f64>) -> bool {

@@ -13,8 +13,8 @@ use std::path::Path;
 pub(crate) fn run() -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
-            Some("scl") => dump_scala_file(&path),
-            Some("syx") => dump_sysex_file(&path),
+            Some("scl") => dump_scala_file(path),
+            Some("syx") => dump_sysex_file(path),
             _ => Ok(()),
         }
     }

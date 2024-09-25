@@ -8,6 +8,11 @@ anyhow = "1.0.89"
 clap = { version = "4.5.18", features = ["derive"] }
 include_dir = "0.7.4"
 midir = "0.10.0"
+midly = "0.5.3"
 num = "0.4.3"
 path-absolutize = "3.1.1"
+rstest = "0.22.0"
 rust_decimal = "1.36.0"
+
+[build-dependencies]
+anyhow = "1.0.89"
