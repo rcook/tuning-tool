@@ -11,6 +11,7 @@ mod midi_notes;
 mod midi_tuning_bulk_dump_reply;
 mod note;
 mod notes;
+mod num;
 mod run;
 mod scala;
 mod scratch;
