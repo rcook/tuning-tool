@@ -104,7 +104,7 @@ impl FromStr for Tuning {
 
 #[cfg(test)]
 mod tests {
-    use crate::tuning::Tuning;
+    use crate::scala::tuning::Tuning;
     use anyhow::Result;
     use include_dir::{include_dir, Dir};
     use std::{borrow::Borrow, ffi::OsStr};
