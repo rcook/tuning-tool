@@ -6,8 +6,6 @@ mod dump_scala_file;
 mod dump_sysex_file;
 mod frequency;
 mod fs;
-mod midi_note;
-mod midi_notes;
 mod midi_tuning_bulk_dump_reply;
 mod note;
 mod notes;

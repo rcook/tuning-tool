@@ -16,12 +16,15 @@ impl MidiNote {
     pub(crate) const ALL: [MidiNote; 128] = ALL_MIDI_NOTES;
 
     #[allow(unused)]
-    pub(crate) fn nearest_below_or_equal(frequency: Frequency) -> MidiNote {
+    pub(crate) fn nearest_below_or_equal(frequency: Frequency) -> (MidiNote, Frequency) {
         let mut i = 127;
         while i > 0 && ALL_MIDI_NOTES[i].frequency() > frequency {
             i -= 1;
         }
-        ALL_MIDI_NOTES[i]
+
+        let midi_note = ALL_MIDI_NOTES[i];
+        let delta = frequency - midi_note.frequency();
+        (midi_note, delta)
     }
 
     #[must_use]
