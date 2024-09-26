@@ -281,6 +281,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
         let nearest_note_number = (octave * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
         let delta = cents.rem(100f64);
         show_message(0x7f, 0x08, midi_key, nearest_note_number, delta);
+        //println!("{midi_key}: {cents}");
     }
 
     Ok(())
