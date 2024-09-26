@@ -8,11 +8,13 @@ use crate::sysex_event::SysExEvent;
 use anyhow::{bail, Result};
 use clap::Parser;
 use include_dir::{include_dir, Dir};
-use midir::MidiOutput;
+use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::Path;
+use std::thread::sleep;
+use std::time::Duration;
 
 static RESOURCE_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/resources");
 
@@ -143,13 +145,40 @@ pub(crate) fn misc() {
 
 #[allow(unused)]
 pub(crate) fn enumerate_midi_outputs() -> Result<()> {
-    let mut midi_output = MidiOutput::new("MIDI output")?;
-    for (i, p) in midi_output.ports().iter().enumerate() {
-        println!(
-            "{index}: {name}",
-            index = i + 1,
-            name = midi_output.port_name(p)?
-        );
+    fn get_midi_output_port_by_name<'a>(
+        midi_output: &MidiOutput,
+        name: &str,
+    ) -> Result<Option<MidiOutputPort>> {
+        for p in midi_output.ports() {
+            let n = midi_output.port_name(&p)?;
+            if n == name {
+                return Ok(Some(p));
+            }
+        }
+        Ok(None)
     }
-    todo!()
+
+    fn play_note(
+        conn: &mut MidiOutputConnection,
+        note_number: u8,
+        duration: Duration,
+    ) -> Result<()> {
+        const NOTE_ON: u8 = 0x90;
+        const NOTE_OFF: u8 = 0x80;
+        const VELOCITY: u8 = 0x64;
+        conn.send(&[NOTE_ON, note_number, VELOCITY])?;
+        sleep(duration);
+        conn.send(&[NOTE_OFF, note_number, VELOCITY])?;
+        Ok(())
+    }
+
+    let midi_output = MidiOutput::new("MIDI output")?;
+    let Some(port) = get_midi_output_port_by_name(&midi_output, "loopMIDI Port")? else {
+        bail!("Couldn't find port with specified name")
+    };
+
+    let mut conn = midi_output.connect(&port, "tuning-tool")?;
+    play_note(&mut conn, 60, Duration::from_millis(1000))?;
+
+    Ok(())
 }
