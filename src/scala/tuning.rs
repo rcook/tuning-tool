@@ -1,5 +1,7 @@
-use crate::scala::note::Note;
-use crate::scala::notes::Notes;
+use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
+use crate::num::ApproxEq;
+use crate::scala::scale_note::ScaleNote;
+use crate::scala::scale_notes::ScaleNotes;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;
@@ -9,7 +11,7 @@ pub(crate) struct Tuning {
     file_name: Option<String>,
     description: String,
     note_count: usize,
-    notes: Vec<Note>,
+    notes: Vec<ScaleNote>,
 }
 
 impl Tuning {
@@ -34,8 +36,37 @@ impl Tuning {
     }
 
     #[must_use]
-    pub(crate) fn notes(&self) -> Notes {
-        Notes::new(self.notes.iter())
+    pub(crate) fn notes(&self) -> ScaleNotes {
+        ScaleNotes::new(self.notes.iter())
+    }
+
+    #[must_use]
+    pub(crate) fn is_octave_repeating(&self) -> bool {
+        let Some(first_note) = self.notes.first() else {
+            return false;
+        };
+
+        let Some(cents) = first_note.cents() else {
+            return false;
+        };
+
+        if !cents.approx_eq_with_epsilon(UNISON_CENTS, DEFAULT_CENTS_EPSILON) {
+            return false;
+        }
+
+        let Some(last_note) = self.notes.last() else {
+            return false;
+        };
+
+        let Some(cents) = last_note.cents() else {
+            return false;
+        };
+
+        if !cents.approx_eq_with_epsilon(OCTAVE_CENTS, DEFAULT_CENTS_EPSILON) {
+            return false;
+        }
+
+        true
     }
 }
 
@@ -83,7 +114,7 @@ impl FromStr for Tuning {
         let note_count = count_str.parse::<usize>()? + 1;
 
         let mut notes = Vec::with_capacity(note_count);
-        notes.push(Note::unison());
+        notes.push(ScaleNote::unison());
 
         for line in lines {
             notes.push(line.parse()?);

@@ -5,6 +5,7 @@ use crate::dump_sysex_file::dump_sysex_file;
 use crate::midi_note::MidiNote;
 use crate::num::ApproxEq;
 use crate::resources::RESOURCE_DIR;
+use crate::scala::tuning::Tuning;
 use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
@@ -12,6 +13,8 @@ use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
+use std::iter::zip;
+use std::ops::Rem;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -195,6 +198,34 @@ pub(crate) fn play_note() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn send_tuning() -> Result<()> {
-    todo!();
+pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
+    let scl_dir = RESOURCE_DIR
+        .get_dir("scl")
+        .ok_or_else(|| anyhow!("Could not get scl directory"))?;
+    let scl_file = scl_dir
+        .get_file("scl/carlos_super.scl")
+        .ok_or_else(|| anyhow!("Could not get scl file"))?;
+    let s = scl_file
+        .contents_utf8()
+        .ok_or_else(|| anyhow!("Could not convert to string"))?;
+    let tuning = s.parse::<Tuning>()?;
+
+    if !tuning.is_octave_repeating() {
+        bail!("Scale is not octave-repeating");
+    }
+
+    let step_count = tuning.step_count();
+    for (midi_note, scale_note) in zip(MidiNote::ALL, tuning.notes().take(step_count).cycle()) {
+        let cents = scale_note.cents().expect("Must succeed");
+        let octave = (midi_note.note_number() as usize) / step_count;
+        let nearest_note_number = octave * 12 + (cents / 100f64) as usize;
+        let delta = cents.rem(100f64);
+        println!(
+            "tune {midi_key} to {xx} + {delta}",
+            midi_key = midi_note.note_number(),
+            xx = nearest_note_number
+        );
+    }
+
+    Ok(())
 }
