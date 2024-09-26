@@ -94,4 +94,17 @@ mod tests {
         assert!(rem.approx_eq_with_epsilon(67456.15f64, 0.01));
         assert_eq!(MidiNote::ALL[127], midi_note);
     }
+
+    #[test]
+    fn frequencies() {
+        for i in 0..128 {
+            let note_number = i as i8;
+            let frequency = 440f64 * 2f64.powf(((note_number - 69) as f64) / 12f64);
+            let midi_note = MidiNote::ALL[i];
+            assert_eq!(note_number, midi_note.note_number());
+
+            // This must be an exact match
+            assert_eq!(frequency, midi_note.frequency());
+        }
+    }
 }
