@@ -145,13 +145,9 @@ pub(crate) fn misc() {
 
 #[allow(unused)]
 pub(crate) fn enumerate_midi_outputs() -> Result<()> {
-    fn get_midi_output_port_by_name<'a>(
-        midi_output: &MidiOutput,
-        name: &str,
-    ) -> Result<Option<MidiOutputPort>> {
+    fn get_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
         for p in midi_output.ports() {
-            let n = midi_output.port_name(&p)?;
-            if n == name {
+            if midi_output.port_name(&p)? == name {
                 return Ok(Some(p));
             }
         }
@@ -173,7 +169,7 @@ pub(crate) fn enumerate_midi_outputs() -> Result<()> {
     }
 
     let midi_output = MidiOutput::new("MIDI output")?;
-    let Some(port) = get_midi_output_port_by_name(&midi_output, "loopMIDI Port")? else {
+    let Some(port) = get_output_port(&midi_output, "MidiView")? else {
         bail!("Couldn't find port with specified name")
     };
 
