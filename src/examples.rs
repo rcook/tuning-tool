@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE};
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
+use crate::midi_bulk_tuning_dump_reply::MidiBulkTuningDumpReply;
 use crate::midi_note::MidiNote;
 use crate::midi_note_number::MidiNoteNumber;
 use crate::num::ApproxEq;
@@ -14,6 +15,7 @@ use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
+use std::io::Read;
 use std::iter::zip;
 use std::ops::Rem;
 use std::path::Path;
@@ -284,5 +286,11 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
         //println!("{midi_key}: {cents}");
     }
 
+    let bytes = RESOURCE_DIR
+        .get_file("syx/carlos_super.syx")
+        .ok_or_else(|| anyhow!("Could not load tuning dump"))?
+        .contents();
+    let reply = MidiBulkTuningDumpReply::from_bytes(bytes.bytes())?;
+    todo!("{reply:?}");
     Ok(())
 }

@@ -2,13 +2,7 @@ use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
 
-const NON_REAL_TIME_SYSEX: u8 = 0x7e;
-
-const MIDI_TUNING: u8 = 0x08;
-
-const BULK_DUMP_REPLY: u8 = 0x01;
-
-const EOX: u8 = 0xf7;
+use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
 
 macro_rules! pull {
     ($iter: expr) => {
@@ -64,7 +58,7 @@ impl<'a> SysExEvent<'a> {
     pub(crate) fn decode(&self) {
         let mut iter = self.data.iter();
 
-        if pull!(iter) == NON_REAL_TIME_SYSEX {
+        if pull!(iter) == UNIVERSAL_NON_REAL_TIME {
             Self::decode_non_real_time_sysex(iter)
         } else {
             todo!()
