@@ -1,12 +1,12 @@
 use crate::frequency::Frequency;
-use crate::note_number::NoteNumber;
+use crate::midi_note_number::MidiNoteNumber;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_consts.rs"));
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct MidiNote {
-    note_number: NoteNumber,
+    note_number: MidiNoteNumber,
     name: &'static str,
     frequency: Frequency,
 }
@@ -30,7 +30,7 @@ impl MidiNote {
     }
 
     #[must_use]
-    pub(crate) const fn note_number(&self) -> NoteNumber {
+    pub(crate) const fn note_number(&self) -> MidiNoteNumber {
         self.note_number
     }
 
@@ -44,7 +44,7 @@ impl MidiNote {
         self.frequency
     }
 
-    const fn new(note_number: NoteNumber, name: &'static str, frequency: Frequency) -> Self {
+    const fn new(note_number: MidiNoteNumber, name: &'static str, frequency: Frequency) -> Self {
         Self {
             note_number,
             name,

@@ -21,6 +21,11 @@ impl ScaleNote {
             Self::Ratio(value) => value.to_f64().map(|x| 1200f64 * x.log2()),
         }
     }
+
+    #[allow(unused)]
+    pub(crate) fn semitones(&self) -> Option<f64> {
+        self.cents().map(|c| c / 100f64)
+    }
 }
 
 impl FromStr for ScaleNote {
