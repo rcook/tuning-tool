@@ -25,14 +25,11 @@ macro_rules! require {
 
 #[derive(Debug)]
 pub(crate) struct SysExEvent<'a> {
-    #[allow(unused)]
     delta: u28,
-
     data: &'a [u8],
 }
 
 impl<'a> SysExEvent<'a> {
-    #[allow(unused)]
     pub(crate) fn find_all<'b>(smf: &'b Smf) -> Vec<SysExEvent<'b>> {
         let mut events = Vec::new();
         for track in &smf.tracks {
@@ -49,7 +46,6 @@ impl<'a> SysExEvent<'a> {
         events
     }
 
-    #[allow(unused)]
     pub(crate) fn dump(&self) {
         println!("SysEx: delta {delta:08X}", delta = u32::from(self.delta));
         let mut i = 0;
@@ -65,7 +61,6 @@ impl<'a> SysExEvent<'a> {
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn decode(&self) {
         let mut iter = self.data.iter();
 

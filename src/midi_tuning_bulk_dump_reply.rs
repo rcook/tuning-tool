@@ -24,8 +24,10 @@ macro_rules! read {
 pub(crate) struct Record {
     #[allow(unused)]
     xx: u8,
+
     #[allow(unused)]
     yy: u8,
+
     #[allow(unused)]
     zz: u8,
 }
@@ -34,10 +36,13 @@ pub(crate) struct Record {
 pub(crate) struct MidiTuningBulkDumpReply {
     #[allow(unused)]
     device_id: u8,
+
     #[allow(unused)]
     program_number: u8,
+
     #[allow(unused)]
     name: String,
+
     #[allow(unused)]
     records: Vec<Record>,
 }

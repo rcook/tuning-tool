@@ -2,7 +2,6 @@ use crate::scala::fs::read_scala_file;
 use anyhow::Result;
 use std::path::Path;
 
-#[allow(unused)]
 pub(crate) fn dump_scala_file(scl_path: &Path) -> Result<()> {
     println!("Testing {}", scl_path.display());
     let tuning = read_scala_file(scl_path)?;

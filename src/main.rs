@@ -1,11 +1,9 @@
-#![allow(unused)]
-
 mod args;
 mod cli;
 mod consts;
 mod dump_scala_file;
 mod dump_sysex_file;
-mod entrypoint;
+mod examples;
 mod frequency;
 mod fs;
 mod midi_note;
@@ -14,8 +12,6 @@ mod note_number;
 mod num;
 mod run;
 mod scala;
-mod scratch;
-mod semitone;
 mod sysex_event;
 
 fn main() -> anyhow::Result<()> {
