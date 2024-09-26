@@ -104,12 +104,10 @@ impl FromStr for Tuning {
 
 #[cfg(test)]
 mod tests {
+    use crate::resources::RESOURCE_DIR;
     use crate::scala::tuning::Tuning;
-    use anyhow::Result;
-    use include_dir::{include_dir, Dir};
+    use anyhow::{anyhow, Result};
     use std::{borrow::Borrow, ffi::OsStr};
-
-    static PROJECT_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/scl");
 
     #[test]
     fn scala_archive() -> Result<()> {
@@ -131,8 +129,12 @@ mod tests {
             Ok(())
         }
 
+        let scl_dir = RESOURCE_DIR
+            .get_dir("scl")
+            .ok_or_else(|| anyhow!("Could not get scl directory"))?;
+
         let extension = Some(OsStr::new("scl"));
-        let files = PROJECT_DIR
+        let files = scl_dir
             .files()
             .filter(|f| f.path().extension() == extension)
             .collect::<Vec<_>>();

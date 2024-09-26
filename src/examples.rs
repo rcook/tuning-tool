@@ -4,10 +4,10 @@ use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::midi_note::MidiNote;
 use crate::num::ApproxEq;
+use crate::resources::RESOURCE_DIR;
 use crate::sysex_event::SysExEvent;
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use clap::Parser;
-use include_dir::{include_dir, Dir};
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
@@ -15,8 +15,6 @@ use std::fs::read_dir;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-
-static RESOURCE_DIR: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/resources");
 
 #[allow(unused)]
 pub(crate) fn show_all_midi_notes() {
@@ -38,7 +36,10 @@ pub(crate) fn nearest_below_or_equal() {
 
 #[allow(unused)]
 pub(crate) fn decode_sysex_events() -> Result<()> {
-    for f in RESOURCE_DIR.files() {
+    let mid_dir = RESOURCE_DIR
+        .get_dir("mid")
+        .ok_or_else(|| anyhow!("Could not get mid directory"))?;
+    for f in mid_dir.files() {
         println!("{}:", f.path().display());
         let bytes = f.contents();
         let smf = Smf::parse(bytes)?;
@@ -191,4 +192,9 @@ pub(crate) fn play_note() -> Result<()> {
     play_note(&mut conn, 60, Duration::from_millis(1000))?;
 
     Ok(())
+}
+
+#[allow(unused)]
+pub(crate) fn send_tuning() -> Result<()> {
+    todo!();
 }

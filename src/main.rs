@@ -10,6 +10,7 @@ mod midi_note;
 mod midi_tuning_bulk_dump_reply;
 mod note_number;
 mod num;
+mod resources;
 mod run;
 mod scala;
 mod sysex_event;
