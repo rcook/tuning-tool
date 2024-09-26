@@ -8,6 +8,7 @@ use crate::sysex_event::SysExEvent;
 use anyhow::{bail, Result};
 use clap::Parser;
 use include_dir::{include_dir, Dir};
+use midir::MidiOutput;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
@@ -138,4 +139,17 @@ pub(crate) fn misc() {
     println!("{}", BASE_FREQUENCY);
     println!("{}", BASE_MIDI_NOTE);
     println!("{:?}", 0.1f64.approx_eq(0.2f64));
+}
+
+#[allow(unused)]
+pub(crate) fn enumerate_midi_outputs() -> Result<()> {
+    let mut midi_output = MidiOutput::new("MIDI output")?;
+    for (i, p) in midi_output.ports().iter().enumerate() {
+        println!(
+            "{index}: {name}",
+            index = i + 1,
+            name = midi_output.port_name(p)?
+        );
+    }
+    todo!()
 }
