@@ -32,7 +32,7 @@ pub(crate) fn show_all_midi_notes() {
 
 #[allow(unused)]
 pub(crate) fn nearest_below_or_equal() {
-    let (midi_note, rem) = MidiNote::nearest_below_or_equal(880f64);
+    let (midi_note, rem) = MidiNote::nearest_below_or_equal(880f64).expect("Must succeed");
     println!("{name} + {rem} Hz", name = midi_note.name());
 }
 

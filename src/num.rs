@@ -12,3 +12,19 @@ impl ApproxEq for f64 {
         (self - other).abs() < epsilon
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::num::ApproxEq;
+
+    #[test]
+    fn basics() {
+        assert!(0f64.approx_eq(0f64));
+        assert!(!0.0001f64.approx_eq(0f64));
+        assert!(!0.0001f64.approx_eq_with_epsilon(0f64, 0.00001f64));
+        assert!(!0.0001f64.approx_eq_with_epsilon(0f64, 0.0001f64));
+        assert!(0.0001f64.approx_eq_with_epsilon(0f64, 0.001f64));
+        assert!(0.0001f64.approx_eq_with_epsilon(0f64, 0.01f64));
+        assert!(0.0001f64.approx_eq_with_epsilon(0f64, 0.1f64));
+    }
+}
