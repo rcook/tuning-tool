@@ -17,7 +17,10 @@ pub(crate) struct MidiFrequency {
 
 impl MidiFrequency {
     // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
-    pub(crate) fn from_note_number(note_number: MidiNoteNumber, delta_cents: f64) -> Result<Self> {
+    pub(crate) fn from_note_number(
+        note_number: MidiNoteNumber,
+        delta_cents: Cents,
+    ) -> Result<Self> {
         let xx = note_number;
         let semitones = delta_cents / 100f64;
         let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
