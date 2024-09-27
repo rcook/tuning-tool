@@ -38,7 +38,7 @@ fn main() -> anyhow::Result<()> {
             BASE_FREQUENCY * 2f64.powf(((note_number - BASE_NOTE_NUMBER) as f64) / 12f64);
         writeln!(
             f,
-            "  {MIDI_NOTE_TYPE_NAME}::new({note_number}i8, \"{note_name}\", {frequency}f64),"
+            "  {MIDI_NOTE_TYPE_NAME}::new(crate::u7::u7!({note_number}u8), \"{note_name}\", {frequency}f64),"
         )?;
     }
 

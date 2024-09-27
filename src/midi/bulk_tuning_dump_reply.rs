@@ -4,15 +4,13 @@ use crate::midi::consts::{
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::midi::midi_frequency::MidiFrequency;
-use crate::num::is_u7;
+use crate::u7::U7;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
 macro_rules! read_u7 {
     ($iter: expr) => {{
-        let b: u8 = read_u8!($iter);
-        assert!(crate::num::is_u7(b));
-        b
+        std::convert::TryInto::<crate::u7::U7>::try_into(read_u8!($iter))?
     }};
     ($iter: expr, $count: expr) => {{
         let mut result = Vec::with_capacity($count);
@@ -27,7 +25,7 @@ macro_rules! read_u8 {
     ($iter: expr) => {{
         let b: u8 = $iter
             .next()
-            .ok_or_else(|| ::anyhow::anyhow!("Failed to read u7"))?;
+            .ok_or_else(|| ::anyhow::anyhow!("Failed to read byte"))?;
         b
     }};
     ($iter: expr, $count: expr) => {{
@@ -42,10 +40,10 @@ macro_rules! read_u8 {
 #[derive(Debug)]
 pub(crate) struct BulkTuningDumpReply {
     #[allow(unused)]
-    device_id: u8,
+    device_id: U7,
 
     #[allow(unused)]
-    preset: u8,
+    preset: U7,
 
     #[allow(unused)]
     name: String,
@@ -56,17 +54,11 @@ pub(crate) struct BulkTuningDumpReply {
 
 impl BulkTuningDumpReply {
     pub(crate) fn new(
-        device_id: u8,
-        preset: u8,
+        device_id: U7,
+        preset: U7,
         name: &str,
         frequencies: [MidiFrequency; 128],
     ) -> Result<Self> {
-        if !is_u7(device_id) {
-            bail!("Invalid device ID");
-        }
-        if !is_u7(preset) {
-            bail!("Invalid preset");
-        }
         if name.len() > 16 {
             bail!("Invalid name");
         }
@@ -81,13 +73,13 @@ impl BulkTuningDumpReply {
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn device_id(&self) -> u8 {
+    pub(crate) const fn device_id(&self) -> U7 {
         self.device_id
     }
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn preset(&self) -> u8 {
+    pub(crate) const fn preset(&self) -> U7 {
         self.preset
     }
 
@@ -107,7 +99,7 @@ impl BulkTuningDumpReply {
 impl BulkTuningDumpReply {
     // https://midi.org/midi-tuning-updated-specification
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
-        let mut calc = ChecksumCalculator::new(0xff);
+        let mut calc = ChecksumCalculator::new();
 
         let mut iter = bytes.filter_map(Result::<_, _>::ok).peekable();
 
@@ -131,13 +123,13 @@ impl BulkTuningDumpReply {
 
         let preset = calc.update(read_u7!(iter));
 
-        let name_bytes = read_u7!(iter, 16);
+        let name_values = read_u7!(iter, 16);
 
-        for b in &name_bytes {
-            _ = calc.update(*b)
+        for value in &name_values {
+            _ = calc.update(*value)
         }
 
-        let name = String::from(String::from_utf8(name_bytes)?.trim());
+        let name = String::from(U7::to_utf8_lossy(&name_values).trim());
 
         let frequencies: [MidiFrequency; 128] = (0..128)
             .map(|_| {
@@ -151,7 +143,7 @@ impl BulkTuningDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for f in &frequencies {
-            _ = calc.update(f.xx());
+            _ = calc.update(f.note_number());
             _ = calc.update(f.yy());
             _ = calc.update(f.zz());
         }
@@ -174,14 +166,14 @@ impl BulkTuningDumpReply {
 
     #[allow(unused)]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        let mut calc = ChecksumCalculator::new(0xff);
+        let mut calc = ChecksumCalculator::new();
         let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);
         bytes.push(SYSEX);
-        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME));
-        bytes.push(calc.update(self.device_id));
-        bytes.push(calc.update(MIDI_TUNING));
-        bytes.push(calc.update(BULK_DUMP_REPLY));
-        bytes.push(calc.update(self.preset));
+        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME).as_u8());
+        bytes.push(calc.update(self.device_id).as_u8());
+        bytes.push(calc.update(MIDI_TUNING).as_u8());
+        bytes.push(calc.update(BULK_DUMP_REPLY).as_u8());
+        bytes.push(calc.update(self.preset).as_u8());
 
         let name_bytes = self.name.as_bytes();
         let name_bytes_len = name_bytes.len();
@@ -190,20 +182,20 @@ impl BulkTuningDumpReply {
         }
 
         for b in name_bytes {
-            bytes.push(calc.update(*b));
+            bytes.push(calc.update((*b).try_into()?).as_u8());
         }
 
         for _ in 0..(16 - name_bytes_len) {
-            bytes.push(calc.update(0x00));
+            bytes.push(calc.update(U7::ZERO).as_u8());
         }
 
         for f in &self.frequencies {
-            bytes.push(calc.update(f.xx()));
-            bytes.push(calc.update(f.yy()));
-            bytes.push(calc.update(f.zz()));
+            bytes.push(calc.update(f.note_number()).as_u8());
+            bytes.push(calc.update(f.yy()).as_u8());
+            bytes.push(calc.update(f.zz()).as_u8());
         }
 
-        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
+        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.as_u8());
         bytes.push(EOX);
 
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());

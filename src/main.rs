@@ -12,6 +12,7 @@ mod run;
 mod scala;
 mod sysex_event;
 mod types;
+mod u7;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

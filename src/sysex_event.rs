@@ -1,18 +1,19 @@
 use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
+use crate::u7::U7;
 use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
 
-macro_rules! pull {
-    ($iter: expr) => {
-        $iter.next().cloned().expect("TBD")
-    };
+macro_rules! pull_u7 {
+    ($iter: expr) => {{
+        std::convert::TryInto::<crate::u7::U7>::try_into(pull_u8!($iter)).expect("TBD")
+    }};
 }
 
-macro_rules! require {
-    ($iter: expr, $value: expr) => {{
-        let byte = $iter.next().cloned().expect("TBD");
-        assert_eq!($value, byte);
+macro_rules! pull_u8 {
+    ($iter: expr) => {{
+        let value: u8 = $iter.next().cloned().expect("TBD");
+        value
     }};
 }
 
@@ -57,7 +58,7 @@ impl<'a> SysExEvent<'a> {
     pub(crate) fn decode(&self) {
         let mut iter = self.data.iter();
 
-        if pull!(iter) == UNIVERSAL_NON_REAL_TIME {
+        if pull_u7!(iter) == UNIVERSAL_NON_REAL_TIME {
             Self::decode_non_real_time_sysex(iter)
         } else {
             todo!()
@@ -65,10 +66,10 @@ impl<'a> SysExEvent<'a> {
     }
 
     fn decode_non_real_time_sysex(mut iter: Iter<'_, u8>) {
-        let device_id = pull!(iter);
-        println!("Device ID: {device_id:02X}");
+        let device_id = pull_u7!(iter);
+        println!("Device ID: {device_id}");
 
-        if pull!(iter) == MIDI_TUNING {
+        if pull_u7!(iter) == MIDI_TUNING {
             Self::decode_midi_tuning(iter);
         } else {
             todo!()
@@ -76,38 +77,38 @@ impl<'a> SysExEvent<'a> {
     }
 
     fn decode_midi_tuning(mut iter: Iter<'_, u8>) {
-        if pull!(iter) == BULK_DUMP_REPLY {
+        if pull_u7!(iter) == BULK_DUMP_REPLY {
             Self::decode_bulk_dump_reply(iter)
         }
     }
 
     fn decode_bulk_dump_reply(mut iter: Iter<'_, u8>) {
-        let program_number = pull!(iter);
-        println!("Program number: {program_number:02X}");
+        let program_number = pull_u7!(iter);
+        println!("Program number: {program_number}");
 
         let name = Self::read_str(&mut iter, 16);
         println!("Name: {name}");
 
         for i in 0..128 {
-            let xx = pull!(iter);
-            let yy = pull!(iter);
-            let zz = pull!(iter);
-            println!("Note {i}: {xx:02X} {yy:02X} {zz:02X}")
+            let xx = pull_u7!(iter);
+            let yy = pull_u7!(iter);
+            let zz = pull_u7!(iter);
+            println!("Note {i}: {xx} {yy} {zz}")
         }
 
-        let checksum = pull!(iter);
-        println!("Checksum: {checksum:02X}");
+        let checksum = pull_u7!(iter);
+        println!("Checksum: {checksum}");
 
-        require!(iter, EOX);
+        assert_eq!(EOX, pull_u8!(iter));
         assert!(iter.next().is_none());
     }
 
     fn read_str(iter: &mut Iter<'_, u8>, len: usize) -> String {
-        let mut bytes = Vec::with_capacity(len);
+        let mut values = Vec::with_capacity(len);
         for _ in 0..len {
-            bytes.push(pull!(iter));
+            values.push(pull_u7!(iter));
         }
-        String::from_utf8_lossy(&bytes).into_owned()
+        U7::to_utf8_lossy(&values)
     }
 
     /*

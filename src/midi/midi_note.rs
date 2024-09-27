@@ -62,7 +62,10 @@ impl Display for MidiNote {
 #[cfg(test)]
 mod tests {
     use crate::midi::midi_note::MidiNote;
+    use crate::midi::midi_note_number::MidiNoteNumber;
     use crate::num::ApproxEq;
+    use crate::u7::u7;
+    use anyhow::Result;
 
     #[test]
     fn basics() {
@@ -74,7 +77,7 @@ mod tests {
         let (midi_note, rem) = MidiNote::nearest_below_or_equal(450f64).expect("Must succeed");
         assert!(rem.approx_eq_with_epsilon(10f64, 0.01));
 
-        assert_eq!(69, midi_note.note_number());
+        assert_eq!(u7!(69), midi_note.note_number());
         assert_eq!("A4", midi_note.name());
         assert!(midi_note.frequency().approx_eq_with_epsilon(440f64, 0.001));
 
@@ -96,15 +99,16 @@ mod tests {
     }
 
     #[test]
-    fn frequencies() {
+    fn frequencies() -> Result<()> {
         for i in 0..128 {
-            let note_number = i as i8;
-            let frequency = 440f64 * 2f64.powf(((note_number - 69) as f64) / 12f64);
+            let note_number: MidiNoteNumber = i.try_into()?;
+            let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
             let midi_note = MidiNote::ALL[i];
             assert_eq!(note_number, midi_note.note_number());
 
             // This must be an exact match
             assert_eq!(frequency, midi_note.frequency());
         }
+        Ok(())
     }
 }

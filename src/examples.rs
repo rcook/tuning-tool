@@ -10,6 +10,7 @@ use crate::num::ApproxEq;
 use crate::resources::RESOURCE_DIR;
 use crate::scala::tuning::Tuning;
 use crate::sysex_event::SysExEvent;
+use crate::u7::{u7, U7};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
@@ -229,7 +230,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
         .try_into()
         .expect("Must have exactly 128 elements");
 
-    let reply = BulkTuningDumpReply::new(0, 8, "carlos_super.mid", frequencies)?;
+    let reply = BulkTuningDumpReply::new(U7::ZERO, u7!(8), "carlos_super.mid", frequencies)?;
 
     let ref_bytes = RESOURCE_DIR
         .get_file("syx/carlos_super.syx")
