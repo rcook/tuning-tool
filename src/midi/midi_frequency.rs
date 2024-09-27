@@ -1,4 +1,5 @@
 use crate::midi::midi_note_number::MidiNoteNumber;
+use crate::num::is_u7;
 use crate::types::{Cents, Octave};
 use anyhow::{bail, Result};
 use std::fmt::{Display, Formatter, Result as FmtResult};
@@ -38,7 +39,7 @@ impl MidiFrequency {
     }
 
     pub(crate) fn new(xx: u8, yy: u8, zz: u8) -> Result<Self> {
-        if xx > 127 || yy > 127 || zz > 127 {
+        if !is_u7(xx) || !is_u7(yy) || !is_u7(zz) {
             bail!("Invalid values for xx, yy, zz")
         }
 
