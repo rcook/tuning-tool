@@ -1,9 +1,10 @@
-use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME};
+use crate::midi::checksum_calculator::ChecksumCalculator;
+use crate::midi::consts::{
+    BULK_DUMP_REPLY, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
+};
 use crate::midi::midi_frequency::MidiFrequency;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
-
-use super::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
 
 macro_rules! read {
     ($iter: expr) => {
@@ -22,41 +23,6 @@ macro_rules! read {
         }
         result
     }};
-}
-
-struct ChecksumCalculator {
-    count: usize,
-    value: u8,
-}
-
-impl ChecksumCalculator {
-    fn new(value: u8) -> Self {
-        Self { count: 0, value }
-    }
-
-    #[must_use]
-    fn update(&mut self, value: u8) -> u8 {
-        self.count += 1;
-        self.value ^= value;
-        value
-    }
-
-    fn verify(self, expected_checksum: u8, expected_count: Option<usize>) -> Result<()> {
-        let checksum = self.finalize(expected_count)?;
-        if checksum != expected_checksum {
-            bail!("Checksum validation failed")
-        }
-        Ok(())
-    }
-
-    fn finalize(self, expected_count: Option<usize>) -> Result<u8> {
-        if let Some(expected_count) = expected_count {
-            if expected_count != self.count {
-                bail!("Checksum item count was incorrect")
-            }
-        }
-        Ok(self.value & 0x7f)
-    }
 }
 
 #[derive(Debug)]
