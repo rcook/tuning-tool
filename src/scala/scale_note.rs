@@ -1,3 +1,4 @@
+use crate::types::{Cents, Semitones};
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
 use rust_decimal::Decimal;
@@ -15,7 +16,7 @@ impl ScaleNote {
         Self::Ratio(BigRational::one())
     }
 
-    pub(crate) fn cents(&self) -> Option<f64> {
+    pub(crate) fn cents(&self) -> Option<Cents> {
         match self {
             &Self::Cents(value) => value.to_f64(),
             Self::Ratio(value) => value.to_f64().map(|x| 1200f64 * x.log2()),
@@ -23,7 +24,7 @@ impl ScaleNote {
     }
 
     #[allow(unused)]
-    pub(crate) fn semitones(&self) -> Option<f64> {
+    pub(crate) fn semitones(&self) -> Option<Semitones> {
         self.cents().map(|c| c / 100f64)
     }
 }

@@ -1,5 +1,5 @@
-use crate::frequency::Frequency;
 use crate::midi::midi_note_number::MidiNoteNumber;
+use crate::types::Frequency;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));

@@ -6,7 +6,6 @@ use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::midi::consts::BASE_MIDI_NOTE;
 use crate::midi::midi_frequency::MidiFrequency;
 use crate::midi::midi_note::MidiNote;
-use crate::midi::midi_note_number::MidiNoteNumber;
 use crate::num::ApproxEq;
 use crate::resources::RESOURCE_DIR;
 use crate::scala::tuning::Tuning;
@@ -18,7 +17,6 @@ use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::iter::zip;
-use std::ops::Rem;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -220,18 +218,18 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
 
     let step_count = tuning.step_count();
 
-    let frequencies = zip(MidiNote::ALL, tuning.notes().take(step_count).cycle())
-        .map(|(midi_note, scale_note)| {
-            let cents = scale_note.cents().expect("Must succeed");
-            let octave = (midi_note.note_number() as usize) / step_count;
-            let nearest_note_number = (octave * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
-            let delta_cents = cents.rem(100f64);
-            let frequency = MidiFrequency::compute(nearest_note_number, delta_cents)?;
-            Ok(frequency)
-        })
-        .collect::<Result<Vec<_>>>()?
-        .try_into()
-        .expect("Must have exactly 128 elements");
+    let frequencies = zip(
+        MidiNote::ALL.iter(),
+        tuning.notes().take(step_count).cycle(),
+    )
+    .map(|(midi_note, scale_note)| {
+        let octave = ((midi_note.note_number() as usize) / step_count).try_into()?;
+        let cents = scale_note.cents().expect("Must succeed");
+        MidiFrequency::from_cents(octave, cents)
+    })
+    .collect::<Result<Vec<_>>>()?
+    .try_into()
+    .expect("Must have exactly 128 elements");
 
     let reply = BulkTuningDumpReply::new(0, 0, "HELLO", frequencies)?;
     let bytes = reply.to_bytes()?;

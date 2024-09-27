@@ -1,4 +1,4 @@
-use crate::frequency::Frequency;
+use crate::types::Frequency;
 
 pub(crate) const BASE_FREQUENCY: Frequency = 440f64;
 pub(crate) const UNISON_CENTS: f64 = 0f64;
