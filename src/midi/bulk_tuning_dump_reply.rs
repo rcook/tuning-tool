@@ -206,9 +206,8 @@ impl BulkTuningDumpReply {
 
 #[cfg(test)]
 mod tests {
-    use crate::midi::{
-        bulk_tuning_dump_reply::BulkTuningDumpReply, consts::BULK_DUMP_REPLY_MESSAGE_SIZE,
-    };
+    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::midi::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
     use crate::resources::RESOURCE_DIR;
     use anyhow::{anyhow, Result};
     use std::io::Read;
