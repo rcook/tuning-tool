@@ -15,7 +15,7 @@ impl ApproxEq for f64 {
 
 #[cfg(test)]
 mod tests {
-    use crate::num::ApproxEq;
+    use crate::approx_eq::ApproxEq;
 
     #[test]
     fn basics() {

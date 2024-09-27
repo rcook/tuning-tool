@@ -1,3 +1,4 @@
+use crate::approx_eq::ApproxEq;
 use crate::args::Args;
 use crate::consts::BASE_FREQUENCY;
 use crate::dump_scala_file::dump_scala_file;
@@ -6,7 +7,6 @@ use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::midi::consts::BASE_MIDI_NOTE;
 use crate::midi::midi_frequency::MidiFrequency;
 use crate::midi::midi_note::MidiNote;
-use crate::num::ApproxEq;
 use crate::resources::RESOURCE_DIR;
 use crate::scala::tuning::Tuning;
 use crate::sysex_event::SysExEvent;

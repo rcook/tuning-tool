@@ -1,5 +1,5 @@
+use crate::approx_eq::ApproxEq;
 use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
-use crate::num::ApproxEq;
 use crate::scala::scale_note::ScaleNote;
 use crate::scala::scale_notes::ScaleNotes;
 use anyhow::{bail, Error};

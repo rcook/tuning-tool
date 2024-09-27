@@ -47,7 +47,7 @@ impl FromStr for ScaleNote {
 
 #[cfg(test)]
 mod tests {
-    use crate::num::ApproxEq;
+    use crate::approx_eq::ApproxEq;
     use crate::scala::scale_note::ScaleNote;
     use anyhow::Result;
     use num::{BigRational, One};
