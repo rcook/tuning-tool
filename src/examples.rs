@@ -231,7 +231,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
     .try_into()
     .expect("Must have exactly 128 elements");
 
-    let reply = BulkTuningDumpReply::new(0, 0, "HELLO", frequencies)?;
+    let reply = BulkTuningDumpReply::new(0, 8, "carlos_super.mid", frequencies)?;
     let bytes = reply.to_bytes()?;
 
     let ref_bytes = RESOURCE_DIR
