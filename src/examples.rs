@@ -17,7 +17,6 @@ use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
-use std::io::Read;
 use std::iter::zip;
 use std::ops::Rem;
 use std::path::Path;
@@ -236,13 +235,22 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
 
     let reply = BulkTuningDumpReply::new(0, 0, "HELLO", frequencies)?;
     let bytes = reply.to_bytes()?;
-    todo!("{bytes:?}");
 
-    let bytes = RESOURCE_DIR
+    let ref_bytes = RESOURCE_DIR
         .get_file("syx/carlos_super.syx")
         .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-        .contents();
-    let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
-    todo!("{reply:?}");
+        .contents()
+        .to_vec();
+
+    assert_eq!(ref_bytes.len(), bytes.len());
+
+    for (a, b) in zip(ref_bytes, bytes) {
+        if a == b {
+            println!("{a:02X}")
+        } else {
+            println!("{a:02X} vs {b:02X}")
+        }
+    }
+
     Ok(())
 }
