@@ -2,7 +2,7 @@ use crate::frequency::Frequency;
 use crate::midi::midi_note_number::MidiNoteNumber;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-include!(concat!(env!("OUT_DIR"), "/midi_note_consts.rs"));
+include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct MidiNote {

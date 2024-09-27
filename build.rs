@@ -24,7 +24,7 @@ fn main() -> anyhow::Result<()> {
 
     let note_line = NOTES.chars().collect::<Vec<_>>();
 
-    let mut f = File::create(Path::new(&var("OUT_DIR")?).join("midi_note_consts.rs"))?;
+    let mut f = File::create(Path::new(&var("OUT_DIR")?).join("midi_note_generated.rs"))?;
 
     writeln!(
         f,
