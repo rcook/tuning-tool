@@ -1,9 +1,10 @@
 use crate::midi::midi_note_number::MidiNoteNumber;
 use crate::types::{Cents, Octave};
 use anyhow::{bail, Result};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::ops::Rem;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub(crate) struct MidiFrequency {
     #[allow(unused)]
     xx: u8,
@@ -57,5 +58,17 @@ impl MidiFrequency {
     #[must_use]
     pub(crate) const fn zz(&self) -> u8 {
         self.zz
+    }
+}
+
+impl Display for MidiFrequency {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(
+            f,
+            "{xx:02X} {yy:02X} {zz:02X}",
+            xx = self.xx,
+            yy = self.yy,
+            zz = self.zz
+        )
     }
 }

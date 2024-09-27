@@ -45,7 +45,7 @@ pub(crate) struct BulkTuningDumpReply {
     device_id: u8,
 
     #[allow(unused)]
-    program_number: u8,
+    preset: u8,
 
     #[allow(unused)]
     name: String,
@@ -57,15 +57,15 @@ pub(crate) struct BulkTuningDumpReply {
 impl BulkTuningDumpReply {
     pub(crate) fn new(
         device_id: u8,
-        program_number: u8,
+        preset: u8,
         name: &str,
         frequencies: [MidiFrequency; 128],
     ) -> Result<Self> {
         if !is_u7(device_id) {
             bail!("Invalid device ID");
         }
-        if !is_u7(program_number) {
-            bail!("Invalid program number");
+        if !is_u7(preset) {
+            bail!("Invalid preset");
         }
         if name.len() > 16 {
             bail!("Invalid name");
@@ -73,7 +73,7 @@ impl BulkTuningDumpReply {
 
         Ok(Self {
             device_id,
-            program_number,
+            preset,
             name: String::from(name),
             frequencies,
         })
@@ -87,8 +87,20 @@ impl BulkTuningDumpReply {
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn program_number(&self) -> u8 {
-        self.program_number
+    pub(crate) const fn preset(&self) -> u8 {
+        self.preset
+    }
+
+    #[allow(unused)]
+    #[must_use]
+    pub(crate) fn name(&self) -> &str {
+        self.name.as_str()
+    }
+
+    #[allow(unused)]
+    #[must_use]
+    pub(crate) fn frequencies(&self) -> &[MidiFrequency; 128] {
+        &self.frequencies
     }
 }
 
@@ -117,7 +129,7 @@ impl BulkTuningDumpReply {
             bail!("Expected Bulk Dump reply")
         }
 
-        let program_number = calc.update(read_u7!(iter));
+        let preset = calc.update(read_u7!(iter));
 
         let name_bytes = read_u7!(iter, 16);
 
@@ -154,7 +166,7 @@ impl BulkTuningDumpReply {
 
         Ok(Self {
             device_id,
-            program_number,
+            preset,
             name,
             frequencies,
         })
@@ -169,7 +181,7 @@ impl BulkTuningDumpReply {
         bytes.push(calc.update(self.device_id));
         bytes.push(calc.update(MIDI_TUNING));
         bytes.push(calc.update(BULK_DUMP_REPLY));
-        bytes.push(calc.update(self.program_number));
+        bytes.push(calc.update(self.preset));
 
         let name_bytes = self.name.as_bytes();
         let name_bytes_len = name_bytes.len();

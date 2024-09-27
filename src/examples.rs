@@ -16,6 +16,7 @@ use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
+use std::io::Read;
 use std::iter::zip;
 use std::path::Path;
 use std::thread::sleep;
@@ -232,21 +233,22 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
     .expect("Must have exactly 128 elements");
 
     let reply = BulkTuningDumpReply::new(0, 8, "carlos_super.mid", frequencies)?;
-    let bytes = reply.to_bytes()?;
 
     let ref_bytes = RESOURCE_DIR
         .get_file("syx/carlos_super.syx")
         .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-        .contents()
-        .to_vec();
+        .contents();
+    let ref_reply = BulkTuningDumpReply::from_bytes(ref_bytes.bytes())?;
 
-    assert_eq!(ref_bytes.len(), bytes.len());
+    assert_eq!(ref_reply.device_id(), reply.device_id());
+    assert_eq!(ref_reply.preset(), reply.preset());
+    assert_eq!(ref_reply.name(), reply.name());
 
-    for (a, b) in zip(ref_bytes, bytes) {
+    for (a, b) in zip(ref_reply.frequencies(), reply.frequencies()) {
         if a == b {
-            println!("{a:02X}")
+            println!("{a}")
         } else {
-            println!("{a:02X} vs {b:02X}")
+            println!("{a} vs {b}")
         }
     }
 
