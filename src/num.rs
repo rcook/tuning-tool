@@ -1,3 +1,7 @@
+pub(crate) fn is_u7(b: u8) -> bool {
+    b < 128
+}
+
 pub(crate) trait ApproxEq {
     fn approx_eq(&self, other: Self) -> bool;
     fn approx_eq_with_epsilon(&self, other: Self, epsilon: Self) -> bool;
