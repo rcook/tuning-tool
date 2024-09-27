@@ -37,7 +37,7 @@ pub(crate) struct BulkTuningDumpReply {
     name: String,
 
     #[allow(unused)]
-    frequencies: Vec<MidiFrequency>,
+    frequencies: [MidiFrequency; 128],
 }
 
 impl BulkTuningDumpReply {
@@ -89,14 +89,16 @@ impl BulkTuningDumpReply {
 
         let name = String::from(String::from_utf8(name_bytes)?.trim());
 
-        let frequencies = (0..128)
+        let frequencies: [MidiFrequency; 128] = (0..128)
             .map(|_| {
                 let xx = read!(iter);
                 let yy = read!(iter);
                 let zz = read!(iter);
                 Ok(MidiFrequency::new(xx, yy, zz)?)
             })
-            .collect::<Result<Vec<_>>>()?;
+            .collect::<Result<Vec<_>>>()?
+            .try_into()
+            .expect("Vector must have exactly 128 elements");
 
         for f in &frequencies {
             _ = calc.update(f.xx());
