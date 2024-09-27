@@ -3,6 +3,8 @@ use crate::midi::midi_frequency::MidiFrequency;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
+use super::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+
 macro_rules! read {
     ($iter: expr) => {
         $iter
@@ -23,7 +25,7 @@ macro_rules! read {
 }
 
 struct ChecksumCalculator {
-    count: i32,
+    count: usize,
     value: u8,
 }
 
@@ -39,7 +41,15 @@ impl ChecksumCalculator {
         value
     }
 
-    fn finalize(self, expected_count: Option<i32>) -> Result<u8> {
+    fn verify(self, expected_checksum: u8, expected_count: Option<usize>) -> Result<()> {
+        let checksum = self.finalize(expected_count)?;
+        if checksum != expected_checksum {
+            bail!("Checksum validation failed")
+        }
+        Ok(())
+    }
+
+    fn finalize(self, expected_count: Option<usize>) -> Result<u8> {
         if let Some(expected_count) = expected_count {
             if expected_count != self.count {
                 bail!("Checksum item count was incorrect")
@@ -62,9 +72,6 @@ pub(crate) struct BulkTuningDumpReply {
 
     #[allow(unused)]
     frequencies: Vec<MidiFrequency>,
-
-    #[allow(unused)]
-    checksum: u8,
 }
 
 impl BulkTuningDumpReply {
@@ -137,29 +144,26 @@ impl BulkTuningDumpReply {
             bail!("EOX not found");
         }
 
-        let actual_checksum = calc.finalize(Some(405))?;
-        if actual_checksum != checksum {
-            bail!("Checksum validation failed")
-        }
+        calc.verify(checksum, Some(BULK_DUMP_REPLY_MESSAGE_SIZE))?;
 
         Ok(Self {
             device_id,
             program_number,
             name,
             frequencies,
-            checksum,
         })
     }
 
     #[allow(unused)]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        let mut calc = ChecksumCalculator::new(0xff);
         let mut bytes = Vec::new();
         bytes.push(SYSEX);
-        bytes.push(UNIVERSAL_NON_REAL_TIME);
-        bytes.push(self.device_id);
-        bytes.push(MIDI_TUNING);
-        bytes.push(BULK_DUMP_REPLY);
-        bytes.push(self.program_number);
+        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME));
+        bytes.push(calc.update(self.device_id));
+        bytes.push(calc.update(MIDI_TUNING));
+        bytes.push(calc.update(BULK_DUMP_REPLY));
+        bytes.push(calc.update(self.program_number));
 
         let name_bytes = self.name.as_bytes();
         let name_bytes_len = name_bytes.len();
@@ -172,17 +176,21 @@ impl BulkTuningDumpReply {
             bytes.push(0x00);
         }
 
+        for b in name_bytes {
+            _ = calc.update(*b)
+        }
+
         if self.frequencies.len() != 128 {
             bail!("Invalid number of records");
         }
 
         for record in &self.frequencies {
-            bytes.push(record.xx());
-            bytes.push(record.yy());
-            bytes.push(record.zz());
+            bytes.push(calc.update(record.xx()));
+            bytes.push(calc.update(record.yy()));
+            bytes.push(calc.update(record.zz()));
         }
 
-        bytes.push(self.checksum);
+        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_MESSAGE_SIZE))?);
         bytes.push(EOX);
 
         Ok(bytes)
