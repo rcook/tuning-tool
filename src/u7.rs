@@ -10,6 +10,21 @@ macro_rules! u7 {
 }
 pub(crate) use u7;
 
+macro_rules! get {
+    ($obj: expr) => {{
+        assert!($obj.0 < 128);
+        $obj.0
+    }};
+}
+
+macro_rules! set {
+    ($obj: expr, $value: expr) => {{
+        assert!($obj.0 < 128);
+        $obj.0 = $value;
+        assert!($obj.0 < 128);
+    }};
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct U7(u8);
 
@@ -18,7 +33,7 @@ impl U7 {
     pub(crate) const MAX: Self = u7!(0x7f);
 
     pub(crate) fn to_utf8_lossy(values: &[Self]) -> String {
-        let bytes = values.iter().map(|x| x.0).collect::<Vec<_>>();
+        let bytes = values.iter().map(|x| get!(x)).collect::<Vec<_>>();
         String::from_utf8_lossy(&bytes).into_owned()
     }
 
@@ -28,13 +43,13 @@ impl U7 {
 
     #[must_use]
     pub(crate) const fn as_u8(&self) -> u8 {
-        self.0
+        get!(self)
     }
 }
 
 impl Display for U7 {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{value:02X}", value = self.0)
+        write!(f, "{value:02X}", value = get!(self))
     }
 }
 
@@ -100,6 +115,6 @@ impl TryFrom<usize> for U7 {
 
 impl BitXorAssign for U7 {
     fn bitxor_assign(&mut self, rhs: Self) {
-        self.0 ^= rhs.0
+        set!(self, get!(self) ^ get!(rhs))
     }
 }
