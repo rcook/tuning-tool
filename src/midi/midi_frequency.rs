@@ -19,7 +19,7 @@ impl MidiFrequency {
         let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
         let yy = semitones_14bit / 0x80; // i.e. 42
         let zz = semitones_14bit - 0x80 * yy; // i.e. 30
-        Self::new(note_number, yy.try_into()?, zz.try_into()?)
+        Ok(Self::new(note_number, yy.try_into()?, zz.try_into()?))
     }
 
     pub(crate) fn from_cents(octave: Octave, cents: Cents) -> Result<Self> {
@@ -28,12 +28,12 @@ impl MidiFrequency {
         Self::from_note_number(note_number, delta_cents)
     }
 
-    pub(crate) fn new(note_number: NoteNumber, yy: U7, zz: U7) -> Result<Self> {
-        Ok(Self {
+    pub(crate) const fn new(note_number: NoteNumber, yy: U7, zz: U7) -> Self {
+        Self {
             note_number,
             yy,
             zz,
-        })
+        }
     }
 
     #[must_use]

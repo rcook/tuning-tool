@@ -136,7 +136,7 @@ impl BulkTuningDumpReply {
                 let xx = read_u7!(iter);
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
-                MidiFrequency::new(xx, yy, zz)
+                Ok(MidiFrequency::new(xx, yy, zz))
             })
             .collect::<Result<Vec<_>>>()?
             .try_into()
