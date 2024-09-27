@@ -3,25 +3,22 @@ use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::ops::BitXorAssign;
 use std::result::Result as StdResult;
 
-macro_rules! u7 {
+macro_rules! u7_lossy {
     ($value: expr) => {
-        crate::u7::U7::__unchecked_new__($value)
+        crate::u7::U7::new_lossy($value)
     };
 }
-pub(crate) use u7;
+pub(crate) use u7_lossy;
 
 macro_rules! get {
     ($obj: expr) => {{
-        assert!($obj.0 < 128);
         $obj.0
     }};
 }
 
 macro_rules! set {
     ($obj: expr, $value: expr) => {{
-        assert!($obj.0 < 128);
-        $obj.0 = $value;
-        assert!($obj.0 < 128);
+        $obj.0 = $value
     }};
 }
 
@@ -29,16 +26,16 @@ macro_rules! set {
 pub(crate) struct U7(u8);
 
 impl U7 {
-    pub(crate) const ZERO: Self = u7!(0x00);
-    pub(crate) const MAX: Self = u7!(0x7f);
+    pub(crate) const ZERO: Self = u7_lossy!(0x00);
+    pub(crate) const MAX: Self = u7_lossy!(0x7f);
 
     pub(crate) fn to_utf8_lossy(values: &[Self]) -> String {
         let bytes = values.iter().map(|x| get!(x)).collect::<Vec<_>>();
         String::from_utf8_lossy(&bytes).into_owned()
     }
 
-    pub(crate) const fn __unchecked_new__(value: u8) -> Self {
-        Self(value)
+    pub(crate) const fn new_lossy(value: u8) -> Self {
+        Self(value & 0x7f)
     }
 
     #[must_use]

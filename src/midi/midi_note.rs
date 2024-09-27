@@ -64,7 +64,7 @@ mod tests {
     use crate::midi::midi_note::MidiNote;
     use crate::midi::note_number::NoteNumber;
     use crate::num::ApproxEq;
-    use crate::u7::u7;
+    use crate::u7::u7_lossy;
     use anyhow::Result;
 
     #[test]
@@ -77,7 +77,7 @@ mod tests {
         let (midi_note, rem) = MidiNote::nearest_below_or_equal(450f64).expect("Must succeed");
         assert!(rem.approx_eq_with_epsilon(10f64, 0.01));
 
-        assert_eq!(u7!(69), midi_note.note_number());
+        assert_eq!(u7_lossy!(69), midi_note.note_number());
         assert_eq!("A4", midi_note.name());
         assert!(midi_note.frequency().approx_eq_with_epsilon(440f64, 0.001));
 
