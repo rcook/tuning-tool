@@ -1,6 +1,7 @@
 use crate::midi::checksum_calculator::ChecksumCalculator;
 use crate::midi::consts::{
-    BULK_DUMP_REPLY, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
+    BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
+    MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::midi::midi_frequency::MidiFrequency;
 use crate::num::is_u7;
@@ -131,7 +132,7 @@ impl BulkTuningDumpReply {
                 let xx = read_u7!(iter);
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
-                Ok(MidiFrequency::new(xx, yy, zz)?)
+                MidiFrequency::new(xx, yy, zz)
             })
             .collect::<Result<Vec<_>>>()?
             .try_into()
@@ -149,7 +150,7 @@ impl BulkTuningDumpReply {
             bail!("EOX not found");
         }
 
-        calc.verify(checksum, Some(BULK_DUMP_REPLY_MESSAGE_SIZE))?;
+        calc.verify(checksum, Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?;
 
         Ok(Self {
             device_id,
@@ -162,7 +163,7 @@ impl BulkTuningDumpReply {
     #[allow(unused)]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
         let mut calc = ChecksumCalculator::new(0xff);
-        let mut bytes = Vec::new();
+        let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);
         bytes.push(SYSEX);
         bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME));
         bytes.push(calc.update(self.device_id));
@@ -190,8 +191,10 @@ impl BulkTuningDumpReply {
             bytes.push(calc.update(f.zz()));
         }
 
-        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_MESSAGE_SIZE))?);
+        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
         bytes.push(EOX);
+
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
 
         Ok(bytes)
     }
@@ -199,7 +202,9 @@ impl BulkTuningDumpReply {
 
 #[cfg(test)]
 mod tests {
-    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::midi::{
+        bulk_tuning_dump_reply::BulkTuningDumpReply, consts::BULK_DUMP_REPLY_MESSAGE_SIZE,
+    };
     use crate::resources::RESOURCE_DIR;
     use anyhow::{anyhow, Result};
     use std::io::Read;
@@ -210,10 +215,10 @@ mod tests {
             .get_file("syx/carlos_super.syx")
             .ok_or_else(|| anyhow!("Could not load tuning dump"))?
             .contents();
-        assert_eq!(408, bytes.len());
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
         let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes()?;
-        assert_eq!(408, output.len());
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, output.len());
         assert_eq!(bytes, output);
         Ok(())
     }
