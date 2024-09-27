@@ -5,9 +5,9 @@ use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
 
 macro_rules! pull_u7 {
-    ($iter: expr) => {{
+    ($iter: expr) => {
         std::convert::TryInto::<crate::u7::u7>::try_into(pull_u8!($iter)).expect("TBD")
-    }};
+    };
 }
 
 macro_rules! pull_u8 {

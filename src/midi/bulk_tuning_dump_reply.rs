@@ -9,9 +9,9 @@ use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
 macro_rules! read_u7 {
-    ($iter: expr) => {{
+    ($iter: expr) => {
         std::convert::TryInto::<crate::u7::u7>::try_into(read_u8!($iter))?
-    }};
+    };
     ($iter: expr, $count: expr) => {{
         let mut result = Vec::with_capacity($count);
         for _ in 0..$count {
