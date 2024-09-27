@@ -5,7 +5,7 @@ use std::result::Result as StdResult;
 
 macro_rules! u7_lossy {
     ($value: expr) => {
-        crate::u7::U7::new_lossy($value)
+        crate::u7::u7::new_lossy($value)
     };
 }
 pub(crate) use u7_lossy;
@@ -22,10 +22,11 @@ macro_rules! set {
     }};
 }
 
+#[allow(non_camel_case_types)]
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub(crate) struct U7(u8);
+pub(crate) struct u7(u8);
 
-impl U7 {
+impl u7 {
     pub(crate) const ZERO: Self = u7_lossy!(0x00);
     pub(crate) const MAX: Self = u7_lossy!(0x7f);
 
@@ -44,13 +45,13 @@ impl U7 {
     }
 }
 
-impl Display for U7 {
+impl Display for u7 {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(f, "{value:02X}", value = get!(self))
     }
 }
 
-impl TryFrom<u8> for U7 {
+impl TryFrom<u8> for u7 {
     type Error = Error;
 
     fn try_from(value: u8) -> StdResult<Self, Self::Error> {
@@ -62,7 +63,7 @@ impl TryFrom<u8> for U7 {
     }
 }
 
-impl TryFrom<u16> for U7 {
+impl TryFrom<u16> for u7 {
     type Error = Error;
 
     fn try_from(value: u16) -> StdResult<Self, Self::Error> {
@@ -74,7 +75,7 @@ impl TryFrom<u16> for U7 {
     }
 }
 
-impl TryFrom<u32> for U7 {
+impl TryFrom<u32> for u7 {
     type Error = Error;
 
     fn try_from(value: u32) -> StdResult<Self, Self::Error> {
@@ -86,7 +87,7 @@ impl TryFrom<u32> for U7 {
     }
 }
 
-impl TryFrom<u64> for U7 {
+impl TryFrom<u64> for u7 {
     type Error = Error;
 
     fn try_from(value: u64) -> StdResult<Self, Self::Error> {
@@ -98,7 +99,7 @@ impl TryFrom<u64> for U7 {
     }
 }
 
-impl TryFrom<usize> for U7 {
+impl TryFrom<usize> for u7 {
     type Error = Error;
 
     fn try_from(value: usize) -> StdResult<Self, Self::Error> {
@@ -110,7 +111,7 @@ impl TryFrom<usize> for U7 {
     }
 }
 
-impl BitXorAssign for U7 {
+impl BitXorAssign for u7 {
     fn bitxor_assign(&mut self, rhs: Self) {
         set!(self, get!(self) ^ get!(rhs))
     }

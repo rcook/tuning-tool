@@ -4,13 +4,13 @@ use crate::midi::consts::{
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::midi::midi_frequency::MidiFrequency;
-use crate::u7::U7;
+use crate::u7::u7;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
 macro_rules! read_u7 {
     ($iter: expr) => {{
-        std::convert::TryInto::<crate::u7::U7>::try_into(read_u8!($iter))?
+        std::convert::TryInto::<crate::u7::u7>::try_into(read_u8!($iter))?
     }};
     ($iter: expr, $count: expr) => {{
         let mut result = Vec::with_capacity($count);
@@ -40,10 +40,10 @@ macro_rules! read_u8 {
 #[derive(Debug)]
 pub(crate) struct BulkTuningDumpReply {
     #[allow(unused)]
-    device_id: U7,
+    device_id: u7,
 
     #[allow(unused)]
-    preset: U7,
+    preset: u7,
 
     #[allow(unused)]
     name: String,
@@ -54,8 +54,8 @@ pub(crate) struct BulkTuningDumpReply {
 
 impl BulkTuningDumpReply {
     pub(crate) fn new(
-        device_id: U7,
-        preset: U7,
+        device_id: u7,
+        preset: u7,
         name: &str,
         frequencies: [MidiFrequency; 128],
     ) -> Result<Self> {
@@ -73,13 +73,13 @@ impl BulkTuningDumpReply {
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn device_id(&self) -> U7 {
+    pub(crate) const fn device_id(&self) -> u7 {
         self.device_id
     }
 
     #[allow(unused)]
     #[must_use]
-    pub(crate) const fn preset(&self) -> U7 {
+    pub(crate) const fn preset(&self) -> u7 {
         self.preset
     }
 
@@ -129,7 +129,7 @@ impl BulkTuningDumpReply {
             _ = calc.update(*value)
         }
 
-        let name = String::from(U7::to_utf8_lossy(&name_values).trim());
+        let name = String::from(u7::to_utf8_lossy(&name_values).trim());
 
         let frequencies: [MidiFrequency; 128] = (0..128)
             .map(|_| {
@@ -186,7 +186,7 @@ impl BulkTuningDumpReply {
         }
 
         for _ in 0..(16 - name_bytes_len) {
-            bytes.push(calc.update(U7::ZERO).as_u8());
+            bytes.push(calc.update(u7::ZERO).as_u8());
         }
 
         for f in &self.frequencies {

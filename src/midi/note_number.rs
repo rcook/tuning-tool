@@ -1,3 +1,3 @@
-use crate::u7::U7;
+use crate::u7::u7;
 
-pub(crate) type NoteNumber = U7;
+pub(crate) type NoteNumber = u7;

@@ -1,12 +1,12 @@
 use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
-use crate::u7::U7;
+use crate::u7::u7;
 use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
 
 macro_rules! pull_u7 {
     ($iter: expr) => {{
-        std::convert::TryInto::<crate::u7::U7>::try_into(pull_u8!($iter)).expect("TBD")
+        std::convert::TryInto::<crate::u7::u7>::try_into(pull_u8!($iter)).expect("TBD")
     }};
 }
 
@@ -108,7 +108,7 @@ impl<'a> SysExEvent<'a> {
         for _ in 0..len {
             values.push(pull_u7!(iter));
         }
-        U7::to_utf8_lossy(&values)
+        u7::to_utf8_lossy(&values)
     }
 
     /*

@@ -1,6 +1,6 @@
 use crate::midi::note_number::NoteNumber;
 use crate::types::{Cents, Octave};
-use crate::u7::U7;
+use crate::u7::u7;
 use anyhow::Result;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::ops::Rem;
@@ -8,8 +8,8 @@ use std::ops::Rem;
 #[derive(Debug, PartialEq)]
 pub(crate) struct MidiFrequency {
     note_number: NoteNumber,
-    yy: U7,
-    zz: U7,
+    yy: u7,
+    zz: u7,
 }
 
 impl MidiFrequency {
@@ -28,7 +28,7 @@ impl MidiFrequency {
         Self::from_note_number(note_number, delta_cents)
     }
 
-    pub(crate) const fn new(note_number: NoteNumber, yy: U7, zz: U7) -> Self {
+    pub(crate) const fn new(note_number: NoteNumber, yy: u7, zz: u7) -> Self {
         Self {
             note_number,
             yy,
@@ -42,12 +42,12 @@ impl MidiFrequency {
     }
 
     #[must_use]
-    pub(crate) const fn yy(&self) -> U7 {
+    pub(crate) const fn yy(&self) -> u7 {
         self.yy
     }
 
     #[must_use]
-    pub(crate) const fn zz(&self) -> U7 {
+    pub(crate) const fn zz(&self) -> u7 {
         self.zz
     }
 }
