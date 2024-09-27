@@ -1,5 +1,5 @@
 use crate::frequency::Frequency;
-use crate::midi_note_number::MidiNoteNumber;
+use crate::midi::midi_note_number::MidiNoteNumber;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_consts.rs"));
@@ -61,7 +61,7 @@ impl Display for MidiNote {
 
 #[cfg(test)]
 mod tests {
-    use crate::midi_note::MidiNote;
+    use crate::midi::midi_note::MidiNote;
     use crate::num::ApproxEq;
 
     #[test]

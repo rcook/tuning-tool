@@ -1,8 +1,7 @@
+use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
 use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
-
-use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
 
 macro_rules! pull {
     ($iter: expr) => {

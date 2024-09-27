@@ -1,10 +1,12 @@
 use crate::args::Args;
-use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE};
+use crate::consts::BASE_FREQUENCY;
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
-use crate::midi_bulk_tuning_dump_reply::MidiBulkTuningDumpReply;
-use crate::midi_note::MidiNote;
-use crate::midi_note_number::MidiNoteNumber;
+use crate::midi::consts::BASE_MIDI_NOTE;
+use crate::midi::midi_bulk_tuning_dump_reply::MidiBulkTuningDumpReply;
+use crate::midi::midi_frequency::FrequencyRecord;
+use crate::midi::midi_note::MidiNote;
+use crate::midi::midi_note_number::MidiNoteNumber;
 use crate::num::ApproxEq;
 use crate::resources::RESOURCE_DIR;
 use crate::scala::tuning::Tuning;
@@ -202,64 +204,6 @@ pub(crate) fn play_note() -> Result<()> {
 
 #[allow(unused)]
 pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
-    // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
-    fn show_message(
-        device_id: u8,
-        program_number: u8,
-        midi_key: MidiNoteNumber,
-        xx: MidiNoteNumber,
-        delta: f64,
-    ) {
-        let semitones = delta / 100f64;
-        let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
-        let yy = semitones_14bit / 0x80; // i.e. 42
-        let zz = semitones_14bit - 0x80 * yy; // i.e. 30
-
-        // Single Note Tuning Change Real-Time message
-        const LL: u8 = 1;
-        let length = 8 + LL * 4;
-        let mut data = Vec::with_capacity(length as usize);
-
-        // Universal Real-Time SysEx header
-        data.push(0xF0);
-        data.push(0x7f);
-
-        // Device ID
-        data.push(device_id);
-
-        // MIDI Tuning
-        data.push(0x08);
-
-        // Note Change
-        data.push(0x02);
-
-        // Tuning program number
-        data.push(program_number);
-
-        // Number of changes
-        data.push(LL);
-
-        // MIDI key number
-        data.push(midi_key as u8);
-
-        // Frequency data
-        data.push(xx as u8);
-        data.push(yy as u8);
-        data.push(zz as u8);
-
-        // End
-        data.push(0xf7);
-
-        assert!(data.len() == length as usize);
-
-        let hex_dump = data
-            .iter()
-            .map(|x| format!("{x:02X}"))
-            .collect::<Vec<_>>()
-            .join(" ");
-        println!("{hex_dump}");
-    }
-
     let scl_dir = RESOURCE_DIR
         .get_dir("scl")
         .ok_or_else(|| anyhow!("Could not get scl directory"))?;
@@ -277,13 +221,12 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
 
     let step_count = tuning.step_count();
     for (midi_note, scale_note) in zip(MidiNote::ALL, tuning.notes().take(step_count).cycle()) {
-        let midi_key = midi_note.note_number();
         let cents = scale_note.cents().expect("Must succeed");
         let octave = (midi_note.note_number() as usize) / step_count;
         let nearest_note_number = (octave * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
-        let delta = cents.rem(100f64);
-        show_message(0x7f, 0x08, midi_key, nearest_note_number, delta);
-        //println!("{midi_key}: {cents}");
+        let delta_cents = cents.rem(100f64);
+        let frequency = FrequencyRecord::compute(nearest_note_number, delta_cents)?;
+        todo!("{frequency:?}")
     }
 
     let bytes = RESOURCE_DIR

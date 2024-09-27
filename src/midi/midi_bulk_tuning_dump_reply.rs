@@ -1,4 +1,5 @@
-use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME};
+use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME};
+use crate::midi::midi_frequency::FrequencyRecord;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
@@ -22,18 +23,6 @@ macro_rules! read {
 }
 
 #[derive(Debug)]
-pub(crate) struct Record {
-    #[allow(unused)]
-    xx: u8,
-
-    #[allow(unused)]
-    yy: u8,
-
-    #[allow(unused)]
-    zz: u8,
-}
-
-#[derive(Debug)]
 pub(crate) struct MidiBulkTuningDumpReply {
     #[allow(unused)]
     device_id: u8,
@@ -45,7 +34,7 @@ pub(crate) struct MidiBulkTuningDumpReply {
     name: String,
 
     #[allow(unused)]
-    records: Vec<Record>,
+    frequencies: Vec<FrequencyRecord>,
 
     #[allow(unused)]
     checksum: u8,
@@ -98,7 +87,7 @@ impl MidiBulkTuningDumpReply {
                 let xx = read!(iter);
                 let yy = read!(iter);
                 let zz = read!(iter);
-                Ok(Record { xx, yy, zz })
+                Ok(FrequencyRecord::new(xx, yy, zz)?)
             })
             .collect::<Result<Vec<_>>>()?;
 
@@ -112,7 +101,7 @@ impl MidiBulkTuningDumpReply {
             device_id,
             program_number,
             name,
-            records,
+            frequencies: records,
             checksum,
         })
     }
@@ -138,14 +127,14 @@ impl MidiBulkTuningDumpReply {
             bytes.push(0x00);
         }
 
-        if self.records.len() != 128 {
+        if self.frequencies.len() != 128 {
             bail!("Invalid number of records");
         }
 
-        for record in &self.records {
-            bytes.push(record.xx);
-            bytes.push(record.yy);
-            bytes.push(record.zz);
+        for record in &self.frequencies {
+            bytes.push(record.xx());
+            bytes.push(record.yy());
+            bytes.push(record.zz());
         }
 
         bytes.push(self.checksum);
