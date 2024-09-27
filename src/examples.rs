@@ -2,9 +2,9 @@ use crate::args::Args;
 use crate::consts::BASE_FREQUENCY;
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
+use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::midi::consts::BASE_MIDI_NOTE;
-use crate::midi::midi_bulk_tuning_dump_reply::MidiBulkTuningDumpReply;
-use crate::midi::midi_frequency::FrequencyRecord;
+use crate::midi::midi_frequency::MidiFrequency;
 use crate::midi::midi_note::MidiNote;
 use crate::midi::midi_note_number::MidiNoteNumber;
 use crate::num::ApproxEq;
@@ -225,7 +225,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
         let octave = (midi_note.note_number() as usize) / step_count;
         let nearest_note_number = (octave * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
         let delta_cents = cents.rem(100f64);
-        let frequency = FrequencyRecord::compute(nearest_note_number, delta_cents)?;
+        let frequency = MidiFrequency::compute(nearest_note_number, delta_cents)?;
         todo!("{frequency:?}")
     }
 
@@ -233,7 +233,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
         .get_file("syx/carlos_super.syx")
         .ok_or_else(|| anyhow!("Could not load tuning dump"))?
         .contents();
-    let reply = MidiBulkTuningDumpReply::from_bytes(bytes.bytes())?;
+    let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
     todo!("{reply:?}");
     Ok(())
 }

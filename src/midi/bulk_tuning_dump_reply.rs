@@ -1,5 +1,5 @@
 use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME};
-use crate::midi::midi_frequency::FrequencyRecord;
+use crate::midi::midi_frequency::MidiFrequency;
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
@@ -23,7 +23,7 @@ macro_rules! read {
 }
 
 #[derive(Debug)]
-pub(crate) struct MidiBulkTuningDumpReply {
+pub(crate) struct BulkTuningDumpReply {
     #[allow(unused)]
     device_id: u8,
 
@@ -34,13 +34,13 @@ pub(crate) struct MidiBulkTuningDumpReply {
     name: String,
 
     #[allow(unused)]
-    frequencies: Vec<FrequencyRecord>,
+    frequencies: Vec<MidiFrequency>,
 
     #[allow(unused)]
     checksum: u8,
 }
 
-impl MidiBulkTuningDumpReply {
+impl BulkTuningDumpReply {
     #[allow(unused)]
     #[must_use]
     pub(crate) const fn device_id(&self) -> u8 {
@@ -54,7 +54,7 @@ impl MidiBulkTuningDumpReply {
     }
 }
 
-impl MidiBulkTuningDumpReply {
+impl BulkTuningDumpReply {
     // https://midi.org/midi-tuning-updated-specification
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
         let mut iter = bytes.filter_map(Result::<_, _>::ok).peekable();
@@ -87,7 +87,7 @@ impl MidiBulkTuningDumpReply {
                 let xx = read!(iter);
                 let yy = read!(iter);
                 let zz = read!(iter);
-                Ok(FrequencyRecord::new(xx, yy, zz)?)
+                Ok(MidiFrequency::new(xx, yy, zz)?)
             })
             .collect::<Result<Vec<_>>>()?;
 

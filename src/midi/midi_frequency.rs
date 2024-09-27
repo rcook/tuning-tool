@@ -2,7 +2,7 @@ use crate::midi::midi_note_number::MidiNoteNumber;
 use anyhow::{bail, Result};
 
 #[derive(Debug)]
-pub(crate) struct FrequencyRecord {
+pub(crate) struct MidiFrequency {
     #[allow(unused)]
     xx: u8,
 
@@ -13,7 +13,7 @@ pub(crate) struct FrequencyRecord {
     zz: u8,
 }
 
-impl FrequencyRecord {
+impl MidiFrequency {
     // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
     pub(crate) fn compute(note_number: MidiNoteNumber, delta_cents: f64) -> Result<Self> {
         let xx = note_number;
