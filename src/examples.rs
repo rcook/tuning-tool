@@ -219,18 +219,15 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
 
     let step_count = tuning.step_count();
 
-    let frequencies = zip(
-        MidiNote::ALL.iter(),
-        tuning.notes().take(step_count).cycle(),
-    )
-    .map(|(midi_note, scale_note)| {
-        let octave = ((midi_note.note_number() as usize) / step_count).try_into()?;
-        let cents = scale_note.cents().expect("Must succeed");
-        MidiFrequency::from_cents(octave, cents)
-    })
-    .collect::<Result<Vec<_>>>()?
-    .try_into()
-    .expect("Must have exactly 128 elements");
+    let frequencies = zip(0..=127, tuning.notes().take(step_count).cycle())
+        .map(|(note_number, scale_note)| {
+            let octave = (note_number as usize / step_count).try_into()?;
+            let cents = scale_note.cents();
+            MidiFrequency::from_cents(octave, cents)
+        })
+        .collect::<Result<Vec<_>>>()?
+        .try_into()
+        .expect("Must have exactly 128 elements");
 
     let reply = BulkTuningDumpReply::new(0, 8, "carlos_super.mid", frequencies)?;
 

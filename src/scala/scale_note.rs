@@ -16,16 +16,16 @@ impl ScaleNote {
         Self::Ratio(BigRational::one())
     }
 
-    pub(crate) fn cents(&self) -> Option<Cents> {
+    pub(crate) fn cents(&self) -> Cents {
         match self {
-            &Self::Cents(value) => value.to_f64(),
-            Self::Ratio(value) => value.to_f64().map(|x| 1200f64 * x.log2()),
+            &Self::Cents(value) => value.to_f64().expect("Must be f64"),
+            Self::Ratio(value) => value.to_f64().expect("Must be f64").log2() * 1200f64,
         }
     }
 
     #[allow(unused)]
-    pub(crate) fn semitones(&self) -> Option<Semitones> {
-        self.cents().map(|c| c / 100f64)
+    pub(crate) fn semitones(&self) -> Semitones {
+        self.cents() / 100f64
     }
 }
 
@@ -59,20 +59,14 @@ mod tests {
 
         let note = "150.5".parse::<ScaleNote>()?;
         assert_eq!(ScaleNote::Cents(dec!(150.5)), note);
-        assert!(note
-            .cents()
-            .expect("Must succeed")
-            .approx_eq_with_epsilon(150.50, 0.01));
+        assert!(note.cents().approx_eq_with_epsilon(150.50, 0.01));
 
         let note = "19/17".parse::<ScaleNote>()?;
         assert_eq!(
             ScaleNote::Ratio(BigRational::new(19.into(), 17.into())),
             note
         );
-        assert!(note
-            .cents()
-            .expect("Must succeed")
-            .approx_eq_with_epsilon(192.56, 0.01));
+        assert!(note.cents().approx_eq_with_epsilon(192.56, 0.01));
 
         Ok(())
     }

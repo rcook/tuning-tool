@@ -19,10 +19,8 @@ pub(crate) fn dump_scala_file(scl_path: &Path) -> Result<()> {
     println!("Notes: {note_count}", note_count = tuning.note_count());
 
     for (i, note) in tuning.notes().enumerate() {
-        match note.cents() {
-            Some(cents) => println!("(note {i}): {cents}"),
-            None => println!("(note {i}): (could not calculate cents)"),
-        }
+        println!("(note {i}): {cents}", cents = note.cents());
     }
+
     Ok(())
 }

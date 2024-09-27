@@ -32,10 +32,9 @@ impl MidiFrequency {
     }
 
     pub(crate) fn from_cents(octave: Octave, cents: Cents) -> Result<Self> {
-        let nearest_note_number =
-            (octave as usize * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
+        let note_number = (octave as usize * 12 + (cents / 100f64) as usize) as MidiNoteNumber;
         let delta_cents = cents.rem(100f64);
-        Self::from_note_number(nearest_note_number, delta_cents)
+        Self::from_note_number(note_number, delta_cents)
     }
 
     pub(crate) fn new(xx: u8, yy: u8, zz: u8) -> Result<Self> {

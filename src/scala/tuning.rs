@@ -46,11 +46,10 @@ impl Tuning {
             return false;
         };
 
-        let Some(cents) = first_note.cents() else {
-            return false;
-        };
-
-        if !cents.approx_eq_with_epsilon(UNISON_CENTS, DEFAULT_CENTS_EPSILON) {
+        if !first_note
+            .cents()
+            .approx_eq_with_epsilon(UNISON_CENTS, DEFAULT_CENTS_EPSILON)
+        {
             return false;
         }
 
@@ -58,11 +57,10 @@ impl Tuning {
             return false;
         };
 
-        let Some(cents) = last_note.cents() else {
-            return false;
-        };
-
-        if !cents.approx_eq_with_epsilon(OCTAVE_CENTS, DEFAULT_CENTS_EPSILON) {
+        if !last_note
+            .cents()
+            .approx_eq_with_epsilon(OCTAVE_CENTS, DEFAULT_CENTS_EPSILON)
+        {
             return false;
         }
 
