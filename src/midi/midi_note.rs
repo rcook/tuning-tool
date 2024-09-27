@@ -1,4 +1,4 @@
-use crate::midi::midi_note_number::MidiNoteNumber;
+use crate::midi::note_number::NoteNumber;
 use crate::types::Frequency;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -6,7 +6,7 @@ include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct MidiNote {
-    note_number: MidiNoteNumber,
+    note_number: NoteNumber,
     name: &'static str,
     frequency: Frequency,
 }
@@ -30,7 +30,7 @@ impl MidiNote {
     }
 
     #[must_use]
-    pub(crate) const fn note_number(&self) -> MidiNoteNumber {
+    pub(crate) const fn note_number(&self) -> NoteNumber {
         self.note_number
     }
 
@@ -44,7 +44,7 @@ impl MidiNote {
         self.frequency
     }
 
-    const fn new(note_number: MidiNoteNumber, name: &'static str, frequency: Frequency) -> Self {
+    const fn new(note_number: NoteNumber, name: &'static str, frequency: Frequency) -> Self {
         Self {
             note_number,
             name,
@@ -62,7 +62,7 @@ impl Display for MidiNote {
 #[cfg(test)]
 mod tests {
     use crate::midi::midi_note::MidiNote;
-    use crate::midi::midi_note_number::MidiNoteNumber;
+    use crate::midi::note_number::NoteNumber;
     use crate::num::ApproxEq;
     use crate::u7::u7;
     use anyhow::Result;
@@ -101,7 +101,7 @@ mod tests {
     #[test]
     fn frequencies() -> Result<()> {
         for i in 0..128 {
-            let note_number: MidiNoteNumber = i.try_into()?;
+            let note_number: NoteNumber = i.try_into()?;
             let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
             let midi_note = MidiNote::ALL[i];
             assert_eq!(note_number, midi_note.note_number());

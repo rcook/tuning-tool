@@ -1,4 +1,4 @@
-use crate::midi::midi_note_number::MidiNoteNumber;
+use crate::midi::note_number::NoteNumber;
 use crate::types::{Cents, Octave};
 use crate::u7::U7;
 use anyhow::Result;
@@ -7,17 +7,14 @@ use std::ops::Rem;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct MidiFrequency {
-    note_number: MidiNoteNumber,
+    note_number: NoteNumber,
     yy: U7,
     zz: U7,
 }
 
 impl MidiFrequency {
     // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
-    pub(crate) fn from_note_number(
-        note_number: MidiNoteNumber,
-        delta_cents: Cents,
-    ) -> Result<Self> {
+    pub(crate) fn from_note_number(note_number: NoteNumber, delta_cents: Cents) -> Result<Self> {
         let semitones = delta_cents / 100f64;
         let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
         let yy = semitones_14bit / 0x80; // i.e. 42
@@ -31,7 +28,7 @@ impl MidiFrequency {
         Self::from_note_number(note_number, delta_cents)
     }
 
-    pub(crate) fn new(note_number: MidiNoteNumber, yy: U7, zz: U7) -> Result<Self> {
+    pub(crate) fn new(note_number: NoteNumber, yy: U7, zz: U7) -> Result<Self> {
         Ok(Self {
             note_number,
             yy,
@@ -40,7 +37,7 @@ impl MidiFrequency {
     }
 
     #[must_use]
-    pub(crate) const fn note_number(&self) -> MidiNoteNumber {
+    pub(crate) const fn note_number(&self) -> NoteNumber {
         self.note_number
     }
 
