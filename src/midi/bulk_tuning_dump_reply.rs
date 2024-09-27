@@ -22,6 +22,33 @@ macro_rules! read {
     }};
 }
 
+struct ChecksumCalculator {
+    count: i32,
+    value: u8,
+}
+
+impl ChecksumCalculator {
+    fn new(value: u8) -> Self {
+        Self { count: 0, value }
+    }
+
+    #[must_use]
+    fn update(&mut self, value: u8) -> u8 {
+        self.count += 1;
+        self.value ^= value;
+        value
+    }
+
+    fn finalize(self, expected_count: Option<i32>) -> Result<u8> {
+        if let Some(expected_count) = expected_count {
+            if expected_count != self.count {
+                bail!("Checksum item count was incorrect")
+            }
+        }
+        Ok(self.value & 0x7f)
+    }
+}
+
 #[derive(Debug)]
 pub(crate) struct BulkTuningDumpReply {
     #[allow(unused)]
@@ -57,32 +84,39 @@ impl BulkTuningDumpReply {
 impl BulkTuningDumpReply {
     // https://midi.org/midi-tuning-updated-specification
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
+        let mut calc = ChecksumCalculator::new(0xff);
+
         let mut iter = bytes.filter_map(Result::<_, _>::ok).peekable();
 
         if read!(iter) != SYSEX {
             bail!("Unsupported header");
         }
 
-        if read!(iter) != UNIVERSAL_NON_REAL_TIME {
+        if calc.update(read!(iter)) != UNIVERSAL_NON_REAL_TIME {
             bail!("Unsupported header");
         }
 
-        let device_id = read!(iter);
+        let device_id = calc.update(read!(iter));
 
-        if read!(iter) != MIDI_TUNING {
+        if calc.update(read!(iter)) != MIDI_TUNING {
             bail!("Expected MIDI Tuning")
         }
 
-        if read!(iter) != BULK_DUMP_REPLY {
+        if calc.update(read!(iter)) != BULK_DUMP_REPLY {
             bail!("Expected Bulk Dump reply")
         }
 
-        let program_number = read!(iter);
+        let program_number = calc.update(read!(iter));
 
-        let temp = String::from_utf8(read!(iter, 16))?;
-        let name = String::from(temp.trim());
+        let name_bytes = read!(iter, 16);
 
-        let records = (0..128)
+        for b in &name_bytes {
+            _ = calc.update(*b)
+        }
+
+        let name = String::from(String::from_utf8(name_bytes)?.trim());
+
+        let frequencies = (0..128)
             .map(|_| {
                 let xx = read!(iter);
                 let yy = read!(iter);
@@ -91,17 +125,28 @@ impl BulkTuningDumpReply {
             })
             .collect::<Result<Vec<_>>>()?;
 
+        for f in &frequencies {
+            _ = calc.update(f.xx());
+            _ = calc.update(f.yy());
+            _ = calc.update(f.zz());
+        }
+
         let checksum = read!(iter);
 
-        if read!(iter) != 0xf7 {
+        if read!(iter) != EOX {
             bail!("EOX not found");
+        }
+
+        let actual_checksum = calc.finalize(Some(405))?;
+        if actual_checksum != checksum {
+            bail!("Checksum validation failed")
         }
 
         Ok(Self {
             device_id,
             program_number,
             name,
-            frequencies: records,
+            frequencies,
             checksum,
         })
     }
@@ -146,7 +191,7 @@ impl BulkTuningDumpReply {
 
 #[cfg(test)]
 mod tests {
-    use crate::midi_bulk_tuning_dump_reply::MidiBulkTuningDumpReply;
+    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
     use crate::resources::RESOURCE_DIR;
     use anyhow::{anyhow, Result};
     use std::io::Read;
@@ -157,7 +202,7 @@ mod tests {
             .get_file("syx/carlos_super.syx")
             .ok_or_else(|| anyhow!("Could not load tuning dump"))?
             .contents();
-        let reply = MidiBulkTuningDumpReply::from_bytes(bytes.bytes())?;
+        let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes()?;
         assert_eq!(bytes, output);
         Ok(())
