@@ -1,17 +1,23 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
+use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE};
 use crate::dump_sysex_file::dump_sysex_file;
+use crate::frequency::Frequency;
 use crate::midi_note::MidiNote;
+use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
+use crate::tuning::Tuning;
+use crate::u7::{u7, u7_lossy};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
+use std::io::Read;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -186,5 +192,42 @@ pub(crate) fn play_note() -> Result<()> {
     let mut conn = midi_output.connect(&port, "tuning-tool")?;
     play_note(&mut conn, 60, Duration::from_millis(1000))?;
 
+    Ok(())
+}
+
+pub(crate) fn send_tuning_sysex() -> Result<()> {
+    fn get_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
+        for p in midi_output.ports() {
+            if midi_output.port_name(&p)? == name {
+                return Ok(Some(p));
+            }
+        }
+        Ok(None)
+    }
+
+    let scl_file = RESOURCE_DIR
+        .get_file("scl/carlos_super.scl")
+        .ok_or_else(|| anyhow!("Could not get scl file"))?;
+    let s = scl_file
+        .contents_utf8()
+        .ok_or_else(|| anyhow!("Could not convert to string"))?;
+    let scala_file = s.parse::<ScalaFile>()?;
+
+    let scale = scala_file.scale();
+
+    let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
+        .get_frequencies(scale)
+        .map(|f| f.to_mts_bytes());
+    let reply = BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
+    let bytes = reply.to_bytes()?;
+
+    let midi_output = MidiOutput::new("MIDI output")?;
+    let Some(port) = get_output_port(&midi_output, "MidiView")? else {
+        bail!("Couldn't find port with specified name")
+    };
+
+    let mut conn = midi_output.connect(&port, "test")?;
+    println!("Sending {} bytes", bytes.len());
+    conn.send(&bytes)?;
     Ok(())
 }
