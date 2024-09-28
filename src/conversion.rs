@@ -8,8 +8,6 @@ pub(crate) struct Ratio(f64);
 
 impl Ratio {
     // c.f. valueToCents
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_cents(&self) -> Cents {
         Cents(1200f64 * self.0.log2())
     }
@@ -19,8 +17,6 @@ pub(crate) struct Cents(f64);
 
 impl Cents {
     // c.f. centsToValue
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_ratio(&self) -> Ratio {
         Ratio(2f64.powf(self.0 / 1200f64))
     }
@@ -30,26 +26,16 @@ impl Cents {
 pub(crate) struct Frequency(pub(crate) f64);
 
 impl Frequency {
-    #[allow(unused)]
     pub(crate) const A4: Self = Self(440f64);
-
-    #[allow(unused)]
     pub(crate) const MIDDLE_C: Self = Self(261.625565f64);
-
-    #[allow(unused)]
     pub(crate) const MIN: Self = Self(8.175798915643707f64);
-    #[allow(unused)]
     pub(crate) const MAX: Self = Self(13289.656616f64);
 
     // c.f. frequencyToCentOffset
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_cent_offset(&self) -> CentOffset {
         self.to_cent_offset_with_base_frequency(Self::A4)
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_cent_offset_with_base_frequency(
         &self,
         base_frequency: Frequency,
@@ -58,14 +44,10 @@ impl Frequency {
     }
 
     // c.f. ftomts
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_semitones(&self) -> Semitones {
         self.to_semitones_with_ignore_limit(false)
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_semitones_with_ignore_limit(&self, ignore_limit: bool) -> Semitones {
         if self.0 <= 0f64 {
             return Semitones(0f64);
@@ -81,8 +63,6 @@ impl Frequency {
     }
 
     // c.f. ftom
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_note_number(&self) -> (NoteNumber, CentOffset) {
         let semitones = self.semitones_raw();
         let note_number = semitones.0.round();
@@ -90,8 +70,6 @@ impl Frequency {
         (NoteNumber(note_number as i32), CentOffset(cent_offset))
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_mts_bytes(&self) -> MtsBytes {
         self.to_semitones().to_mts_bytes()
     }
@@ -104,12 +82,9 @@ impl Frequency {
 pub(crate) struct Semitones(f64);
 
 impl Semitones {
-    #[allow(unused)]
     pub(crate) const MAX: Self = Self(127.999878f64);
 
     // c.f. mtsToMtsBytes
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_mts_bytes(&self) -> MtsBytes {
         if self.0 <= 0f64 {
             return MtsBytes {
@@ -139,8 +114,6 @@ impl Semitones {
         }
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_frequency(&self) -> Frequency {
         let temp: f64 = NoteNumber::A4.0.into();
         Frequency(Frequency::A4.0 * 2f64.powf((self.0 - temp) / 12f64))
@@ -151,14 +124,10 @@ pub(crate) struct CentOffset(f64);
 
 impl CentOffset {
     // c.f. centOffsetToFrequency
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_frequency(&self) -> Frequency {
         self.to_frequency_with_base_frequency(Frequency::A4)
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_frequency_with_base_frequency(&self, base_frequency: Frequency) -> Frequency {
         Frequency(Cents(self.0).to_ratio().0 * base_frequency.0)
     }
@@ -168,12 +137,9 @@ impl CentOffset {
 pub(crate) struct NoteNumber(pub(crate) i32);
 
 impl NoteNumber {
-    #[allow(unused)]
     pub(crate) const A4: Self = Self(69);
 
     // c.f. mtof
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_frequency(&self) -> Frequency {
         Semitones(self.0.into()).to_frequency()
     }
@@ -188,8 +154,6 @@ pub(crate) struct MtsBytes {
 
 impl MtsBytes {
     // c.f. mtsBytesToMts
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_semitones(&self) -> Semitones {
         let msb = if self.yy > 0x7f { 0x7f } else { self.yy };
         let mut lsb = self.zz;
@@ -212,8 +176,6 @@ impl MtsBytes {
     }
 
     // c.f. mtsBytesToFrequency
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_frequency(&self) -> Frequency {
         let mts = self.to_semitones();
         println!("mts={:?}", mts.0);
@@ -222,8 +184,6 @@ impl MtsBytes {
     }
 
     // c.f. mtsBytesToHex
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn to_hex(&self) -> String {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",

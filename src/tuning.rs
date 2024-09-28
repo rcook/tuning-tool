@@ -1,177 +1,96 @@
-use crate::approx_eq::ApproxEq;
-use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
-use crate::interval::Interval;
-use anyhow::{bail, Error};
-use std::result::Result as StdResult;
-use std::str::FromStr;
+use crate::conversion::Frequency;
+use crate::conversion::NoteNumber;
+use crate::scale::Scale;
+use std::iter::zip;
+use std::ops::Rem;
 
-#[derive(Debug)]
+pub(crate) type Frequencies = [Frequency; 128];
+
+pub(crate) struct EquaveRatio(pub(crate) f64);
+
 pub(crate) struct Tuning {
-    file_name: Option<String>,
-    description: String,
-    note_count: usize,
-    notes: Vec<Interval>,
+    _base_note_number: NoteNumber,
+    base_frequency: Frequency,
+    equave_ratio: EquaveRatio,
+    size: usize,
 }
 
 impl Tuning {
-    #[must_use]
-    pub(crate) const fn file_name(&self) -> &Option<String> {
-        &self.file_name
-    }
-
-    #[must_use]
-    pub(crate) fn description(&self) -> &str {
-        self.description.as_str()
-    }
-
-    #[must_use]
-    pub(crate) const fn step_count(&self) -> usize {
-        self.note_count - 1
-    }
-
-    #[must_use]
-    pub(crate) const fn note_count(&self) -> usize {
-        self.note_count
-    }
-
-    #[must_use]
-    pub(crate) fn notes(&self) -> &Vec<Interval> {
-        &self.notes
-    }
-
-    #[must_use]
-    pub(crate) fn is_octave_repeating(&self) -> bool {
-        let Some(first_note) = self.notes.first() else {
-            return false;
-        };
-
-        if !first_note
-            .cents()
-            .approx_eq_with_epsilon(UNISON_CENTS, DEFAULT_CENTS_EPSILON)
-        {
-            return false;
+    #[allow(unused)]
+    pub(crate) fn new(
+        base_note_number: NoteNumber,
+        base_frequency: Frequency,
+        equave_ratio: EquaveRatio,
+        size: usize,
+    ) -> Self {
+        Self {
+            _base_note_number: base_note_number,
+            base_frequency,
+            equave_ratio,
+            size,
         }
-
-        let Some(last_note) = self.notes.last() else {
-            return false;
-        };
-
-        if !last_note
-            .cents()
-            .approx_eq_with_epsilon(OCTAVE_CENTS, DEFAULT_CENTS_EPSILON)
-        {
-            return false;
-        }
-
-        true
     }
-}
 
-impl FromStr for Tuning {
-    type Err = Error;
-
-    fn from_str(s: &str) -> StdResult<Self, Self::Err> {
-        let mut lines = s
-            .lines()
-            .filter_map(|line| {
-                let s = line.trim();
-                if s.is_empty() {
-                    None
-                } else {
-                    Some(s)
-                }
-            })
-            .peekable();
-
-        let Some(line) = lines.peek() else {
-            bail!("Invalid tuning string")
-        };
-
-        let file_name = match line.strip_prefix("!") {
-            Some(suffix) => match suffix.strip_suffix(".scl") {
-                Some(prefix) => {
-                    _ = lines.next().expect("Consume line");
-                    Some(format!("{}.scl", prefix.trim()))
-                }
-                None => None,
-            },
-            None => None,
-        };
-
-        let mut lines = lines.filter(|line| !line.starts_with("!"));
-
-        let Some(description) = lines.next() else {
-            bail!("No description found")
-        };
-
-        let Some(count_str) = lines.next() else {
-            bail!("No note count found")
-        };
-
-        let note_count = count_str.parse::<usize>()? + 1;
-
-        let mut notes = Vec::with_capacity(note_count);
-        notes.push(Interval::unison());
-
-        for line in lines {
-            notes.push(line.parse()?);
+    #[allow(unused)]
+    pub(crate) fn get_frequencies(&self, tuning: &Scale) -> Frequencies {
+        assert!(tuning.is_octave_repeating());
+        let mut reference_frequency = self.base_frequency;
+        let mut frequencies = [Frequency(0f64); 128];
+        for (i, interval) in zip(0..=127, tuning.intervals().iter().take(self.size).cycle()) {
+            if i > 0 && i.rem(self.size) == 0 {
+                reference_frequency = Frequency(reference_frequency.0 * self.equave_ratio.0);
+            }
+            frequencies[i] = Frequency(reference_frequency.0 * interval.to_f64());
         }
-
-        if notes.len() != note_count {
-            bail!("Incorrect number of notes")
-        }
-
-        Ok(Self {
-            file_name,
-            description: String::from(description),
-            note_count,
-            notes,
-        })
+        frequencies
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::conversion::Frequency;
+    use crate::conversion::NoteNumber;
+    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::midi::midi_frequency::MidiFrequency;
     use crate::resources::RESOURCE_DIR;
+    use crate::scala_file::ScalaFile;
+    use crate::scale::Scale;
+    use crate::tuning::EquaveRatio;
     use crate::tuning::Tuning;
+    use crate::u7::{u7, u7_lossy};
     use anyhow::{anyhow, Result};
-    use std::{borrow::Borrow, ffi::OsStr};
 
     #[test]
-    fn scala_archive() -> Result<()> {
-        fn test_scl(s: &str) -> Result<()> {
-            let tuning = s.parse::<Tuning>()?;
-
-            let file_name = tuning.file_name();
-            assert!(file_name.is_some() || file_name.is_none());
-
-            let _ = tuning.description();
-
-            let step_count = tuning.step_count();
-
-            let note_count = tuning.note_count();
-            assert_eq!(note_count, step_count + 1);
-
-            assert_eq!(note_count, tuning.notes().len());
-            Ok(())
-        }
-
+    fn basics() -> Result<()> {
         let scl_dir = RESOURCE_DIR
             .get_dir("scl")
             .ok_or_else(|| anyhow!("Could not get scl directory"))?;
+        let scl_file = scl_dir
+            .get_file("scl/carlos_super.scl")
+            .ok_or_else(|| anyhow!("Could not get scl file"))?;
+        let s = scl_file
+            .contents_utf8()
+            .ok_or_else(|| anyhow!("Could not convert to string"))?;
+        let scala_file = s.parse::<ScalaFile>()?;
 
-        let extension = Some(OsStr::new("scl"));
-        let files = scl_dir
-            .files()
-            .filter(|f| f.path().extension() == extension)
-            .collect::<Vec<_>>();
-        assert!(files.len() > 5000);
+        let scale = scala_file.scale();
+        assert!(scale.is_octave_repeating());
 
-        for file in files {
-            let s = String::from_utf8_lossy(file.contents());
-            test_scl(s.borrow())?;
-        }
+        let ref_bytes = RESOURCE_DIR
+            .get_file("syx/carlos_super.syx")
+            .ok_or_else(|| anyhow!("Could not load tuning dump"))?
+            .contents()
+            .to_vec();
 
+        let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN, EquaveRatio(2f64), 12)
+            .get_frequencies(&scale);
+
+        let frequencies = frequencies.map(MidiFrequency::temp);
+        let reply =
+            BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
+
+        let bytes = reply.to_bytes()?;
+        assert_eq!(ref_bytes, bytes);
         Ok(())
     }
 }

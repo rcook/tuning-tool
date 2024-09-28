@@ -39,21 +39,13 @@ macro_rules! read_u8 {
 
 #[derive(Debug)]
 pub(crate) struct BulkTuningDumpReply {
-    #[allow(unused)]
     device_id: u7,
-
-    #[allow(unused)]
     preset: u7,
-
-    #[allow(unused)]
     name: String,
-
-    #[allow(unused)]
     frequencies: [MidiFrequency; 128],
 }
 
 impl BulkTuningDumpReply {
-    #[allow(unused)]
     pub(crate) fn new(
         device_id: u7,
         preset: u7,
@@ -72,26 +64,18 @@ impl BulkTuningDumpReply {
         })
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) const fn device_id(&self) -> u7 {
         self.device_id
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) const fn preset(&self) -> u7 {
         self.preset
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn name(&self) -> &str {
         self.name.as_str()
     }
 
-    #[allow(unused)]
-    #[must_use]
     pub(crate) fn frequencies(&self) -> &[MidiFrequency; 128] {
         &self.frequencies
     }
@@ -165,7 +149,6 @@ impl BulkTuningDumpReply {
         })
     }
 
-    #[allow(unused)]
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
         let mut calc = ChecksumCalculator::new();
         let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);

@@ -1,11 +1,11 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
 use crate::consts::BASE_FREQUENCY;
-use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::midi::consts::BASE_MIDI_NOTE;
 use crate::midi::midi_note::MidiNote;
 use crate::resources::RESOURCE_DIR;
+use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
@@ -17,7 +17,6 @@ use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
 
-#[allow(unused)]
 pub(crate) fn show_all_midi_notes() {
     for midi_note in MidiNote::ALL {
         println!(
@@ -29,13 +28,11 @@ pub(crate) fn show_all_midi_notes() {
     }
 }
 
-#[allow(unused)]
 pub(crate) fn nearest_below_or_equal() {
     let (midi_note, rem) = MidiNote::nearest_below_or_equal(880f64).expect("Must succeed");
     println!("{name} + {rem} Hz", name = midi_note.name());
 }
 
-#[allow(unused)]
 pub(crate) fn decode_sysex_events() -> Result<()> {
     let mid_dir = RESOURCE_DIR
         .get_dir("mid")
@@ -52,11 +49,10 @@ pub(crate) fn decode_sysex_events() -> Result<()> {
     Ok(())
 }
 
-#[allow(unused)]
 pub(crate) fn cli() -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
-            Some("scl") => dump_scala_file(path),
+            Some("scl") => Ok(ScalaFile::read(path)?.dump()),
             Some("syx") => dump_sysex_file(path),
             _ => Ok(()),
         }
@@ -80,7 +76,6 @@ pub(crate) fn cli() -> Result<()> {
     Ok(())
 }
 
-#[allow(unused)]
 pub(crate) fn generate_message() {
     // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
     fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) {
@@ -138,14 +133,12 @@ pub(crate) fn generate_message() {
     show_message(0, 0, 0x30, 69.33f64); // just sharp of A4
 }
 
-#[allow(unused)]
 pub(crate) fn misc() {
     println!("{}", BASE_FREQUENCY);
     println!("{}", BASE_MIDI_NOTE);
     println!("{:?}", 0.1f64.approx_eq(0.2f64));
 }
 
-#[allow(unused)]
 pub(crate) fn enumerate_midi_outputs() -> Result<()> {
     let midi_output = MidiOutput::new("MIDI output")?;
     if midi_output.port_count() == 0 {
@@ -159,7 +152,6 @@ pub(crate) fn enumerate_midi_outputs() -> Result<()> {
     Ok(())
 }
 
-#[allow(unused)]
 pub(crate) fn play_note() -> Result<()> {
     fn get_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
         for p in midi_output.ports() {

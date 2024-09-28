@@ -11,7 +11,6 @@ pub(crate) struct MidiFrequency {
 }
 
 impl MidiFrequency {
-    #[allow(unused)]
     pub(crate) fn temp(other: Frequency) -> Self {
         let temp0 = other.to_mts_bytes();
         let note_number = NoteNumber::new_lossy(temp0.note_number.0 as u8);
