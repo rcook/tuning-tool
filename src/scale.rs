@@ -1,6 +1,7 @@
 use crate::approx_eq::ApproxEq;
 use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
 use crate::interval::Interval;
+use crate::tuning::EquaveRatio;
 
 #[derive(Debug)]
 pub(crate) struct Scale {
@@ -24,25 +25,19 @@ impl Scale {
         &self.intervals
     }
 
-    pub(crate) fn is_octave_repeating(&self) -> bool {
-        let Some(first_note) = self.intervals.first() else {
+    pub(crate) fn equave_ratio(&self) -> EquaveRatio {
+        assert!(self.is_octave_repeating());
+        EquaveRatio(2f64) // TBD
+    }
+
+    fn is_octave_repeating(&self) -> bool {
+        let Some(last_interval) = self.intervals.last() else {
             return false;
         };
 
-        if !first_note
-            .cents()
-            .approx_eq_with_epsilon(UNISON_CENTS, DEFAULT_CENTS_EPSILON)
-        {
-            return false;
-        }
-
-        let Some(last_note) = self.intervals.last() else {
-            return false;
-        };
-
-        if !last_note
-            .cents()
-            .approx_eq_with_epsilon(OCTAVE_CENTS, DEFAULT_CENTS_EPSILON)
+        if !last_interval
+            .to_f64()
+            .approx_eq_with_epsilon(2f64, 0.0001f64)
         {
             return false;
         }

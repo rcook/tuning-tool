@@ -90,15 +90,8 @@ impl FromStr for ScalaFile {
             bail!("No note count found")
         };
 
-        let interval_count = count_str.parse::<usize>()? + 1;
-
-        let mut intervals = Vec::with_capacity(interval_count);
-        intervals.push(Interval::unison());
-
-        for line in lines {
-            intervals.push(line.parse()?);
-        }
-
+        let interval_count = count_str.parse::<usize>()?;
+        let intervals = lines.map(|line| line.parse()).collect::<Result<Vec<_>>>()?;
         if intervals.len() != interval_count {
             bail!("Incorrect number of notes")
         }

@@ -1,6 +1,10 @@
+use num::Zero;
+
 use crate::conversion::Frequency;
 use crate::conversion::NoteNumber;
+use crate::interval::Interval;
 use crate::scale::Scale;
+use std::iter::once;
 use std::iter::zip;
 use std::ops::Rem;
 
@@ -11,34 +15,30 @@ pub(crate) struct EquaveRatio(pub(crate) f64);
 pub(crate) struct Tuning {
     _base_note_number: NoteNumber,
     base_frequency: Frequency,
-    equave_ratio: EquaveRatio,
-    size: usize,
 }
 
 impl Tuning {
     #[allow(unused)]
-    pub(crate) fn new(
-        base_note_number: NoteNumber,
-        base_frequency: Frequency,
-        equave_ratio: EquaveRatio,
-        size: usize,
-    ) -> Self {
+    pub(crate) fn new(base_note_number: NoteNumber, base_frequency: Frequency) -> Self {
         Self {
             _base_note_number: base_note_number,
             base_frequency,
-            equave_ratio,
-            size,
         }
     }
 
     #[allow(unused)]
-    pub(crate) fn get_frequencies(&self, tuning: &Scale) -> Frequencies {
-        assert!(tuning.is_octave_repeating());
+    pub(crate) fn get_frequencies(&self, scale: &Scale) -> Frequencies {
+        let equave_ratio = scale.equave_ratio();
+        assert_eq!(2f64, equave_ratio.0); // TBD: Haven't tested with anything other than octave-repeating scales!
+        let scale_size = scale.intervals().len();
+        let unison = Interval::unison();
+        let intervals = once(&unison).chain(scale.intervals().iter().take(scale_size - 1));
+
         let mut reference_frequency = self.base_frequency;
         let mut frequencies = [Frequency(0f64); 128];
-        for (i, interval) in zip(0..=127, tuning.intervals().iter().take(self.size).cycle()) {
-            if i > 0 && i.rem(self.size) == 0 {
-                reference_frequency = Frequency(reference_frequency.0 * self.equave_ratio.0);
+        for (i, interval) in zip(0..=127, intervals.cycle()) {
+            if i > 0 && i.rem(scale_size).is_zero() {
+                reference_frequency = Frequency(reference_frequency.0 * equave_ratio.0);
             }
             frequencies[i] = Frequency(reference_frequency.0 * interval.to_f64());
         }
@@ -62,10 +62,12 @@ mod tests {
 
     #[test]
     fn basics() -> Result<()> {
-        let scl_dir = RESOURCE_DIR
-            .get_dir("scl")
-            .ok_or_else(|| anyhow!("Could not get scl directory"))?;
-        let scl_file = scl_dir
+        let ref_bytes = RESOURCE_DIR
+            .get_file("syx/carlos_super.syx")
+            .ok_or_else(|| anyhow!("Could not load tuning dump"))?
+            .contents()
+            .to_vec();
+        let scl_file = RESOURCE_DIR
             .get_file("scl/carlos_super.scl")
             .ok_or_else(|| anyhow!("Could not get scl file"))?;
         let s = scl_file
@@ -74,18 +76,10 @@ mod tests {
         let scala_file = s.parse::<ScalaFile>()?;
 
         let scale = scala_file.scale();
-        assert!(scale.is_octave_repeating());
 
-        let ref_bytes = RESOURCE_DIR
-            .get_file("syx/carlos_super.syx")
-            .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-            .contents()
-            .to_vec();
-
-        let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN, EquaveRatio(2f64), 12)
-            .get_frequencies(&scale);
-
-        let frequencies = frequencies.map(MidiFrequency::temp);
+        let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
+            .get_frequencies(&scale)
+            .map(MidiFrequency::temp);
         let reply =
             BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
 
