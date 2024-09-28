@@ -26,7 +26,8 @@ impl Cents {
     }
 }
 
-pub(crate) struct Frequency(f64);
+#[derive(Clone, Copy)]
+pub(crate) struct Frequency(pub(crate) f64);
 
 impl Frequency {
     #[allow(unused)]
@@ -35,6 +36,8 @@ impl Frequency {
     #[allow(unused)]
     pub(crate) const MIDDLE_C: Self = Self(261.625565f64);
 
+    #[allow(unused)]
+    pub(crate) const MIN: Self = Self(8.175798915643707f64);
     #[allow(unused)]
     pub(crate) const MAX: Self = Self(13289.656616f64);
 
@@ -162,7 +165,7 @@ impl CentOffset {
 }
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct NoteNumber(i32);
+pub(crate) struct NoteNumber(pub(crate) i32);
 
 impl NoteNumber {
     #[allow(unused)]
@@ -387,14 +390,4 @@ mod tests {
             .0
             .approx_eq_with_epsilon(0f64, CENT_OFFSET_EPSILON.0));
     }
-}
-
-pub(crate) fn test() {
-    let result = MtsBytes {
-        note_number: NoteNumber(68),
-        yy: 127,
-        zz: 127,
-    }
-    .to_frequency();
-    println!("{}", result.0);
 }

@@ -11,6 +11,7 @@ mod midi;
 mod resources;
 mod run;
 mod scala;
+mod scale;
 mod sysex_event;
 mod types;
 mod u7;
