@@ -6,12 +6,12 @@ use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum ScaleNote {
+pub(crate) enum Interval {
     Cents(Decimal),
     Ratio(BigRational),
 }
 
-impl ScaleNote {
+impl Interval {
     pub(crate) fn unison() -> Self {
         Self::Ratio(BigRational::one())
     }
@@ -29,7 +29,7 @@ impl ScaleNote {
     }
 }
 
-impl FromStr for ScaleNote {
+impl FromStr for Interval {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
@@ -48,22 +48,22 @@ impl FromStr for ScaleNote {
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
-    use crate::scala::scale_note::ScaleNote;
+    use crate::interval::Interval;
     use anyhow::Result;
     use num::{BigRational, One};
     use rust_decimal_macros::dec;
 
     #[test]
     fn basics() -> Result<()> {
-        assert_eq!(ScaleNote::Ratio(BigRational::one()), ScaleNote::unison());
+        assert_eq!(Interval::Ratio(BigRational::one()), Interval::unison());
 
-        let note = "150.5".parse::<ScaleNote>()?;
-        assert_eq!(ScaleNote::Cents(dec!(150.5)), note);
+        let note = "150.5".parse::<Interval>()?;
+        assert_eq!(Interval::Cents(dec!(150.5)), note);
         assert!(note.cents().approx_eq_with_epsilon(150.50, 0.01));
 
-        let note = "19/17".parse::<ScaleNote>()?;
+        let note = "19/17".parse::<Interval>()?;
         assert_eq!(
-            ScaleNote::Ratio(BigRational::new(19.into(), 17.into())),
+            Interval::Ratio(BigRational::new(19.into(), 17.into())),
             note
         );
         assert!(note.cents().approx_eq_with_epsilon(192.56, 0.01));

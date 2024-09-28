@@ -9,12 +9,13 @@ mod dump_scala_file;
 mod dump_sysex_file;
 mod examples;
 mod fs;
+mod interval;
 mod midi;
 mod resources;
 mod run;
-mod scala;
 mod scale;
 mod sysex_event;
+mod tuning;
 mod types;
 mod u7;
 

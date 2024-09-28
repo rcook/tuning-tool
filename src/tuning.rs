@@ -1,7 +1,6 @@
 use crate::approx_eq::ApproxEq;
 use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
-use crate::scala::scale_note::ScaleNote;
-use crate::scala::scale_notes::ScaleNotes;
+use crate::interval::Interval;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;
@@ -11,7 +10,7 @@ pub(crate) struct Tuning {
     file_name: Option<String>,
     description: String,
     note_count: usize,
-    notes: Vec<ScaleNote>,
+    notes: Vec<Interval>,
 }
 
 impl Tuning {
@@ -36,8 +35,8 @@ impl Tuning {
     }
 
     #[must_use]
-    pub(crate) fn notes(&self) -> ScaleNotes {
-        ScaleNotes::new(self.notes.iter())
+    pub(crate) fn notes(&self) -> &Vec<Interval> {
+        &self.notes
     }
 
     #[must_use]
@@ -112,7 +111,7 @@ impl FromStr for Tuning {
         let note_count = count_str.parse::<usize>()? + 1;
 
         let mut notes = Vec::with_capacity(note_count);
-        notes.push(ScaleNote::unison());
+        notes.push(Interval::unison());
 
         for line in lines {
             notes.push(line.parse()?);
@@ -134,7 +133,7 @@ impl FromStr for Tuning {
 #[cfg(test)]
 mod tests {
     use crate::resources::RESOURCE_DIR;
-    use crate::scala::tuning::Tuning;
+    use crate::tuning::Tuning;
     use anyhow::{anyhow, Result};
     use std::{borrow::Borrow, ffi::OsStr};
 
@@ -153,8 +152,7 @@ mod tests {
             let note_count = tuning.note_count();
             assert_eq!(note_count, step_count + 1);
 
-            let notes = tuning.notes().collect::<Vec<_>>();
-            assert_eq!(note_count, notes.len());
+            assert_eq!(note_count, tuning.notes().len());
             Ok(())
         }
 

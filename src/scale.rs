@@ -1,7 +1,7 @@
 use crate::conversion::Frequency;
 use crate::conversion::NoteNumber;
-use crate::scala::scale_note::ScaleNote;
-use crate::scala::tuning::Tuning;
+use crate::interval::Interval;
+use crate::tuning::Tuning;
 use num::{One, ToPrimitive};
 use std::iter::zip;
 
@@ -37,9 +37,9 @@ impl Scale {
         assert!(tuning.is_octave_repeating());
         let mut reference_frequency = self.base_frequency;
         let mut frequencies = [Frequency(0f64); 128];
-        for (i, scale_note) in zip(0..=127, tuning.notes().take(self.size).cycle()) {
+        for (i, scale_note) in zip(0..=127, tuning.notes().iter().take(self.size).cycle()) {
             let ratio = match &scale_note {
-                &ScaleNote::Ratio(ratio) => ratio,
+                &Interval::Ratio(ratio) => ratio,
                 _ => todo!(),
             };
             if i > 0 && ratio.is_one() {
@@ -58,9 +58,9 @@ mod tests {
     use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
     use crate::midi::midi_frequency::MidiFrequency;
     use crate::resources::RESOURCE_DIR;
-    use crate::scala::tuning::Tuning;
     use crate::scale::EquaveRatio;
     use crate::scale::Scale;
+    use crate::tuning::Tuning;
     use crate::u7::{u7, u7_lossy};
     use anyhow::{anyhow, Result};
 

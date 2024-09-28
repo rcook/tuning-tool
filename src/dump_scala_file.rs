@@ -1,4 +1,4 @@
-use crate::scala::fs::read_scala_file;
+use crate::fs::read_scala_file;
 use anyhow::Result;
 use std::path::Path;
 
@@ -18,7 +18,7 @@ pub(crate) fn dump_scala_file(scl_path: &Path) -> Result<()> {
     println!("Steps: {step_count}", step_count = tuning.step_count());
     println!("Notes: {note_count}", note_count = tuning.note_count());
 
-    for (i, note) in tuning.notes().enumerate() {
+    for (i, note) in tuning.notes().iter().enumerate() {
         println!("(note {i}): {cents}", cents = note.cents());
     }
 
