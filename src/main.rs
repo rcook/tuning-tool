@@ -2,6 +2,7 @@ mod approx_eq;
 mod args;
 mod cli;
 mod consts;
+mod conversion;
 mod dump_scala_file;
 mod dump_sysex_file;
 mod examples;

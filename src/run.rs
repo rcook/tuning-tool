@@ -9,6 +9,7 @@ pub(crate) fn run() -> Result<()> {
     //crate::examples::misc();
     //crate::examples::enumerate_midi_outputs()?;
     //crate::examples::play_note()?;
-    crate::examples::send_octave_repeating_tuning()?;
+    //crate::examples::send_octave_repeating_tuning()?;
+    crate::examples::arithmetic();
     Ok(())
 }

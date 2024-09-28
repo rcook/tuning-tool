@@ -252,3 +252,7 @@ pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
 
     Ok(())
 }
+
+pub(crate) fn arithmetic() {
+    crate::conversion::test();
+}
