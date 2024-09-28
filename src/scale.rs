@@ -1,9 +1,8 @@
 use crate::conversion::Frequency;
 use crate::conversion::NoteNumber;
-use crate::interval::Interval;
 use crate::tuning::Tuning;
-use num::{One, ToPrimitive};
 use std::iter::zip;
+use std::ops::Rem;
 
 pub(crate) type Frequencies = [Frequency; 128];
 
@@ -37,15 +36,11 @@ impl Scale {
         assert!(tuning.is_octave_repeating());
         let mut reference_frequency = self.base_frequency;
         let mut frequencies = [Frequency(0f64); 128];
-        for (i, scale_note) in zip(0..=127, tuning.notes().iter().take(self.size).cycle()) {
-            let ratio = match &scale_note {
-                &Interval::Ratio(ratio) => ratio,
-                _ => todo!(),
-            };
-            if i > 0 && ratio.is_one() {
+        for (i, interval) in zip(0..=127, tuning.notes().iter().take(self.size).cycle()) {
+            if i > 0 && i.rem(self.size) == 0 {
                 reference_frequency = Frequency(reference_frequency.0 * self.equave_ratio.0);
             }
-            frequencies[i] = Frequency(reference_frequency.0 * ratio.to_f64().expect("TBD"));
+            frequencies[i] = Frequency(reference_frequency.0 * interval.to_f64());
         }
         frequencies
     }

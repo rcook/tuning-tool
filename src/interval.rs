@@ -6,20 +6,46 @@ use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Debug, PartialEq)]
-pub(crate) enum Interval {
+enum Inner {
     Cents(Decimal),
     Ratio(BigRational),
 }
 
+#[derive(Debug, PartialEq)]
+pub(crate) struct Interval(Inner);
+
 impl Interval {
     pub(crate) fn unison() -> Self {
-        Self::Ratio(BigRational::one())
+        Self(Inner::Ratio(BigRational::one()))
+    }
+
+    #[allow(unused)]
+    pub(crate) fn as_cents(&self) -> Option<&Decimal> {
+        match &self.0 {
+            Inner::Cents(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    #[allow(unused)]
+    pub(crate) fn as_ratio(&self) -> Option<&BigRational> {
+        match &self.0 {
+            Inner::Ratio(value) => Some(value),
+            _ => None,
+        }
+    }
+
+    pub(crate) fn to_f64(&self) -> f64 {
+        match &self.0 {
+            Inner::Cents(value) => value.to_f64().expect("Must be f64") / 1200f64,
+            Inner::Ratio(value) => value.to_f64().expect("TBD"),
+        }
     }
 
     pub(crate) fn cents(&self) -> Cents {
-        match self {
-            &Self::Cents(value) => value.to_f64().expect("Must be f64"),
-            Self::Ratio(value) => value.to_f64().expect("Must be f64").log2() * 1200f64,
+        match &self.0 {
+            Inner::Cents(value) => value.to_f64().expect("Must be f64"),
+            Inner::Ratio(value) => value.to_f64().expect("Must be f64").log2() * 1200f64,
         }
     }
 
@@ -38,10 +64,10 @@ impl FromStr for Interval {
         };
 
         if temp.contains(".") {
-            return Ok(Self::Cents(temp.parse()?));
+            return Ok(Self(Inner::Cents(temp.parse()?)));
         }
 
-        Ok(Self::Ratio(temp.parse()?))
+        Ok(Self(Inner::Ratio(temp.parse()?)))
     }
 }
 
@@ -55,18 +81,18 @@ mod tests {
 
     #[test]
     fn basics() -> Result<()> {
-        assert_eq!(Interval::Ratio(BigRational::one()), Interval::unison());
+        assert_eq!(Some(&BigRational::one()), Interval::unison().as_ratio());
 
-        let note = "150.5".parse::<Interval>()?;
-        assert_eq!(Interval::Cents(dec!(150.5)), note);
-        assert!(note.cents().approx_eq_with_epsilon(150.50, 0.01));
+        let interval = "150.5".parse::<Interval>()?;
+        assert_eq!(Some(&dec!(150.5)), interval.as_cents());
+        assert!(interval.cents().approx_eq_with_epsilon(150.50, 0.01));
 
-        let note = "19/17".parse::<Interval>()?;
+        let interval = "19/17".parse::<Interval>()?;
         assert_eq!(
-            Interval::Ratio(BigRational::new(19.into(), 17.into())),
-            note
+            Some(&BigRational::new(19.into(), 17.into())),
+            interval.as_ratio()
         );
-        assert!(note.cents().approx_eq_with_epsilon(192.56, 0.01));
+        assert!(interval.cents().approx_eq_with_epsilon(192.56, 0.01));
 
         Ok(())
     }
