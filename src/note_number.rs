@@ -12,3 +12,17 @@ impl NoteNumber {
         Semitones(self.0.into()).to_frequency()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::approx_eq::ApproxEq;
+    use crate::note_number::NoteNumber;
+
+    #[test]
+    fn to_frequency() {
+        assert!(NoteNumber(60)
+            .to_frequency()
+            .0
+            .approx_eq_with_epsilon(261.625565, 0.000001f64));
+    }
+}

@@ -7,7 +7,6 @@ mod cent_offset;
 mod cents;
 mod cli;
 mod consts;
-mod conversion;
 mod dump_sysex_file;
 mod examples;
 mod frequency;
