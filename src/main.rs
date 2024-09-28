@@ -1,3 +1,5 @@
+#![allow(clippy::wrong_self_convention)]
+
 mod approx_eq;
 mod args;
 mod cli;

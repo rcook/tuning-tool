@@ -181,9 +181,9 @@ impl NoteNumber {
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct MtsBytes {
-    note_number: NoteNumber,
-    yy: u8,
-    zz: u8,
+    pub(crate) note_number: NoteNumber,
+    pub(crate) yy: u8,
+    pub(crate) zz: u8,
 }
 
 impl MtsBytes {

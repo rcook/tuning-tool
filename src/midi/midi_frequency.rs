@@ -1,9 +1,7 @@
+use crate::conversion::Frequency;
 use crate::midi::note_number::NoteNumber;
-use crate::types::{Cents, Octave};
 use crate::u7::u7;
-use anyhow::Result;
 use std::fmt::{Display, Formatter, Result as FmtResult};
-use std::ops::Rem;
 
 #[derive(Debug, PartialEq)]
 pub(crate) struct MidiFrequency {
@@ -13,19 +11,17 @@ pub(crate) struct MidiFrequency {
 }
 
 impl MidiFrequency {
-    // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
-    pub(crate) fn from_note_number(note_number: NoteNumber, delta_cents: Cents) -> Result<Self> {
-        let semitones = delta_cents / 100f64;
-        let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
-        let yy = semitones_14bit / 0x80; // i.e. 42
-        let zz = semitones_14bit - 0x80 * yy; // i.e. 30
-        Ok(Self::new(note_number, yy.try_into()?, zz.try_into()?))
-    }
-
-    pub(crate) fn from_cents(octave: Octave, cents: Cents) -> Result<Self> {
-        let note_number = (octave as usize * 12 + (cents / 100f64) as usize).try_into()?;
-        let delta_cents = cents.rem(100f64);
-        Self::from_note_number(note_number, delta_cents)
+    #[allow(unused)]
+    pub(crate) fn temp(other: Frequency) -> Self {
+        let temp0 = other.to_mts_bytes();
+        let note_number = NoteNumber::new_lossy(temp0.note_number.0 as u8);
+        let yy = temp0.yy.try_into().expect("TBD");
+        let zz = temp0.zz.try_into().expect("TBD");
+        Self {
+            note_number,
+            yy,
+            zz,
+        }
     }
 
     pub(crate) const fn new(note_number: NoteNumber, yy: u7, zz: u7) -> Self {

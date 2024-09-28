@@ -1,26 +1,18 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
 use crate::consts::BASE_FREQUENCY;
-use crate::conversion::{Frequency, NoteNumber};
 use crate::dump_scala_file::dump_scala_file;
 use crate::dump_sysex_file::dump_sysex_file;
-use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::midi::consts::BASE_MIDI_NOTE;
-use crate::midi::midi_frequency::MidiFrequency;
 use crate::midi::midi_note::MidiNote;
 use crate::resources::RESOURCE_DIR;
-use crate::scala::tuning::Tuning;
-use crate::scale::{EquaveRatio, Scale};
 use crate::sysex_event::SysExEvent;
-use crate::u7::{u7, u7_lossy};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
-use std::io::Read;
-use std::iter::zip;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -199,83 +191,6 @@ pub(crate) fn play_note() -> Result<()> {
 
     let mut conn = midi_output.connect(&port, "tuning-tool")?;
     play_note(&mut conn, 60, Duration::from_millis(1000))?;
-
-    Ok(())
-}
-
-#[allow(unused)]
-pub(crate) fn send_octave_repeating_tuning() -> Result<()> {
-    let scl_dir = RESOURCE_DIR
-        .get_dir("scl")
-        .ok_or_else(|| anyhow!("Could not get scl directory"))?;
-    let scl_file = scl_dir
-        .get_file("scl/carlos_super.scl")
-        .ok_or_else(|| anyhow!("Could not get scl file"))?;
-    let s = scl_file
-        .contents_utf8()
-        .ok_or_else(|| anyhow!("Could not convert to string"))?;
-    let tuning = s.parse::<Tuning>()?;
-
-    if !tuning.is_octave_repeating() {
-        bail!("Scale is not octave-repeating");
-    }
-
-    let step_count = tuning.step_count();
-
-    let frequencies = zip(0..=127, tuning.notes().take(step_count).cycle())
-        .map(|(note_number, scale_note)| {
-            let octave = (note_number as usize / step_count).try_into()?;
-            let cents = scale_note.cents();
-            MidiFrequency::from_cents(octave, cents)
-        })
-        .collect::<Result<Vec<_>>>()?
-        .try_into()
-        .expect("Must have exactly 128 elements");
-
-    let reply = BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
-
-    let ref_bytes = RESOURCE_DIR
-        .get_file("syx/carlos_super.syx")
-        .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-        .contents();
-    let ref_reply = BulkTuningDumpReply::from_bytes(ref_bytes.bytes())?;
-
-    assert_eq!(ref_reply.device_id(), reply.device_id());
-    assert_eq!(ref_reply.preset(), reply.preset());
-    assert_eq!(ref_reply.name(), reply.name());
-
-    /*
-    for (a, b) in zip(ref_reply.frequencies(), reply.frequencies()) {
-        if a == b {
-            println!("{a}")
-        } else {
-            println!("{a} vs {b}")
-        }
-    }
-    */
-
-    println!("HELLO");
-    let equave_ratio = 2f64;
-    let mut reference_frequency = Frequency::MIN;
-
-    let frequencies =
-        Scale::new(NoteNumber(0), Frequency::MIN, EquaveRatio(2f64), 12).get_frequencies(&tuning);
-
-    for p in zip(frequencies, ref_reply.frequencies()) {
-        let ref_str = format!(
-            "{xx:02x}{yy:02x}{zz:02x}",
-            xx = p.1.note_number().as_u8(),
-            yy = p.1.yy().as_u8(),
-            zz = p.1.zz().as_u8()
-        );
-
-        let s = p.0.to_mts_bytes().to_hex();
-        if s == ref_str {
-            println!("{s}");
-        } else {
-            println!("{s} vs {ref_str}");
-        }
-    }
 
     Ok(())
 }

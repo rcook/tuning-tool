@@ -53,6 +53,7 @@ pub(crate) struct BulkTuningDumpReply {
 }
 
 impl BulkTuningDumpReply {
+    #[allow(unused)]
     pub(crate) fn new(
         device_id: u7,
         preset: u7,
