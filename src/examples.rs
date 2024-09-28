@@ -1,9 +1,8 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
-use crate::consts::BASE_FREQUENCY;
+use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE};
 use crate::dump_sysex_file::dump_sysex_file;
-use crate::midi::consts::BASE_MIDI_NOTE;
-use crate::midi::midi_note::MidiNote;
+use crate::midi_note::MidiNote;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;

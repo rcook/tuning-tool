@@ -1,4 +1,4 @@
-use crate::midi::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
+use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
 use crate::u7::u7;
 use midly::num::u28;
 use midly::{Smf, TrackEventKind};

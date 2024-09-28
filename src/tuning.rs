@@ -45,8 +45,8 @@ impl Tuning {
 
 #[cfg(test)]
 mod tests {
+    use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
     use crate::frequency::Frequency;
-    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
     use crate::scala_file::ScalaFile;

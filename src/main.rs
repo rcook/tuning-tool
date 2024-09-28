@@ -3,8 +3,10 @@
 
 mod approx_eq;
 mod args;
+mod bulk_tuning_dump_reply;
 mod cent_offset;
 mod cents;
+mod checksum_calculator;
 mod cli;
 mod consts;
 mod dump_sysex_file;
@@ -12,7 +14,7 @@ mod examples;
 mod frequency;
 mod fs;
 mod interval;
-mod midi;
+mod midi_note;
 mod mts_bytes;
 mod note_number;
 mod num;

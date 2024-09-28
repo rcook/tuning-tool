@@ -1,4 +1,4 @@
-use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
+use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use anyhow::Result;
 use std::fs::File;
 use std::io::Read;

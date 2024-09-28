@@ -59,7 +59,7 @@ impl Display for MidiNote {
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
-    use crate::midi::midi_note::MidiNote;
+    use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use crate::u7::u7_lossy;
     use anyhow::Result;

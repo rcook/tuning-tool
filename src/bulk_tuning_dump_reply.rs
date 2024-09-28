@@ -1,5 +1,5 @@
-use crate::midi::checksum_calculator::ChecksumCalculator;
-use crate::midi::consts::{
+use crate::checksum_calculator::ChecksumCalculator;
+use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
@@ -195,8 +195,8 @@ impl BulkTuningDumpReply {
 
 #[cfg(test)]
 mod tests {
-    use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
-    use crate::midi::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+    use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
     use crate::resources::RESOURCE_DIR;
     use anyhow::{anyhow, Result};
     use std::io::Read;
