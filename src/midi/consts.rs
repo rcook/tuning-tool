@@ -1,5 +1,5 @@
 use crate::midi::midi_note::MidiNote;
-use crate::u7::{u7_lossy, u7};
+use crate::u7::{u7, u7_lossy};
 
 pub(crate) const BASE_MIDI_NOTE: MidiNote = MidiNote::ALL[69];
 pub(crate) const SYSEX: u8 = 0xf0;
