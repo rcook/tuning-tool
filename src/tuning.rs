@@ -18,7 +18,6 @@ pub(crate) struct Tuning {
 }
 
 impl Tuning {
-    #[allow(unused)]
     pub(crate) fn new(base_note_number: NoteNumber, base_frequency: Frequency) -> Self {
         Self {
             _base_note_number: base_note_number,
@@ -26,7 +25,6 @@ impl Tuning {
         }
     }
 
-    #[allow(unused)]
     pub(crate) fn get_frequencies(&self, scale: &Scale) -> Frequencies {
         let equave_ratio = scale.equave_ratio();
         assert_eq!(2f64, equave_ratio.0); // TBD: Haven't tested with anything other than octave-repeating scales!
