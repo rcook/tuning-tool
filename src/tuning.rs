@@ -1,9 +1,8 @@
-use num::Zero;
-
-use crate::conversion::Frequency;
-use crate::conversion::NoteNumber;
+use crate::frequency::Frequency;
 use crate::interval::Interval;
+use crate::note_number::NoteNumber;
 use crate::scale::Scale;
+use num::Zero;
 use std::iter::once;
 use std::iter::zip;
 use std::ops::Rem;
@@ -46,10 +45,10 @@ impl Tuning {
 
 #[cfg(test)]
 mod tests {
-    use crate::conversion::Frequency;
-    use crate::conversion::NoteNumber;
+    use crate::frequency::Frequency;
     use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
     use crate::midi::midi_frequency::MidiFrequency;
+    use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
     use crate::scala_file::ScalaFile;
     use crate::scale::Scale;

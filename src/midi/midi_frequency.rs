@@ -1,4 +1,4 @@
-use crate::conversion::Frequency;
+use crate::frequency::Frequency;
 use crate::midi::note_number::NoteNumber;
 use crate::u7::u7;
 use std::fmt::{Display, Formatter, Result as FmtResult};
