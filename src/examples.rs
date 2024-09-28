@@ -51,7 +51,10 @@ pub(crate) fn decode_sysex_events() -> Result<()> {
 pub(crate) fn cli() -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
-            Some("scl") => Ok(ScalaFile::read(path)?.dump()),
+            Some("scl") => {
+                ScalaFile::read(path)?.dump();
+                Ok(())
+            }
             Some("syx") => dump_sysex_file(path),
             _ => Ok(()),
         }
