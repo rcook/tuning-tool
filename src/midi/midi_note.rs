@@ -1,4 +1,4 @@
-use crate::midi::note_number::NoteNumber;
+use crate::note_number::NoteNumber;
 use crate::types::Frequency;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
@@ -29,17 +29,14 @@ impl MidiNote {
         }
     }
 
-    #[must_use]
     pub(crate) const fn note_number(&self) -> NoteNumber {
         self.note_number
     }
 
-    #[must_use]
     pub(crate) const fn name(&self) -> &str {
         self.name
     }
 
-    #[must_use]
     pub(crate) const fn frequency(&self) -> Frequency {
         self.frequency
     }
@@ -55,7 +52,7 @@ impl MidiNote {
 
 impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{} ({} Hz)", self.note_number, self.frequency)
+        write!(f, "{} ({} Hz)", self.note_number.0, self.frequency)
     }
 }
 
@@ -63,7 +60,7 @@ impl Display for MidiNote {
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::midi::midi_note::MidiNote;
-    use crate::midi::note_number::NoteNumber;
+    use crate::note_number::NoteNumber;
     use crate::u7::u7_lossy;
     use anyhow::Result;
 
@@ -77,7 +74,7 @@ mod tests {
         let (midi_note, rem) = MidiNote::nearest_below_or_equal(450f64).expect("Must succeed");
         assert!(rem.approx_eq_with_epsilon(10f64, 0.01));
 
-        assert_eq!(u7_lossy!(69), midi_note.note_number());
+        assert_eq!(69, midi_note.note_number.0);
         assert_eq!("A4", midi_note.name());
         assert!(midi_note.frequency().approx_eq_with_epsilon(440f64, 0.001));
 
@@ -101,7 +98,7 @@ mod tests {
     #[test]
     fn frequencies() -> Result<()> {
         for i in 0..128 {
-            let note_number: NoteNumber = i.try_into()?;
+            let note_number = NoteNumber(i as i32);
             let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
             let midi_note = MidiNote::ALL[i];
             assert_eq!(note_number, midi_note.note_number());

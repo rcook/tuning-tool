@@ -1,7 +1,7 @@
 use crate::frequency::Frequency;
 use crate::semitones::Semitones;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct NoteNumber(pub(crate) i32);
 
 impl NoteNumber {

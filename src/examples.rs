@@ -21,7 +21,7 @@ pub(crate) fn show_all_midi_notes() {
     for midi_note in MidiNote::ALL {
         println!(
             "{note_number}: {name} ({frequency:.1} Hz)",
-            note_number = midi_note.note_number(),
+            note_number = midi_note.note_number().0,
             name = midi_note.name(),
             frequency = midi_note.frequency()
         );
