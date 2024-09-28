@@ -47,7 +47,6 @@ impl Tuning {
 mod tests {
     use crate::frequency::Frequency;
     use crate::midi::bulk_tuning_dump_reply::BulkTuningDumpReply;
-    use crate::midi::midi_frequency::MidiFrequency;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
     use crate::scala_file::ScalaFile;
@@ -76,7 +75,7 @@ mod tests {
 
         let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
             .get_frequencies(&scale)
-            .map(MidiFrequency::temp);
+            .map(|f| f.to_mts_bytes());
         let reply =
             BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
 
