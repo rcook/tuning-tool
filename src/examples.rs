@@ -6,17 +6,13 @@ use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
-use crate::note_change::NoteChange;
-use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
-use crate::test_util::read_test_scala_file;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
-use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
@@ -62,7 +58,7 @@ pub(crate) fn decode_sysex_events() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn cli() -> Result<()> {
+pub(crate) fn cli(start_path: &Path) -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
             Some("scl") => {
@@ -75,18 +71,18 @@ pub(crate) fn cli() -> Result<()> {
     }
 
     let args = Args::parse();
-    if args.start_path.is_file() {
-        dump(&args.start_path)?;
-    } else if args.start_path.is_dir() {
-        for e in read_dir(&args.start_path)? {
+    if start_path.is_file() {
+        dump(&start_path)?;
+    } else if start_path.is_dir() {
+        for e in read_dir(&start_path)? {
             let e = e?;
-            let path = args.start_path.join(e.file_name());
+            let path = start_path.join(e.file_name());
             dump(&path)?;
         }
     } else {
         bail!(
             "Cannot determine what {start_path} is supposed to be",
-            start_path = args.start_path.display()
+            start_path = start_path.display()
         )
     }
     Ok(())
@@ -237,51 +233,5 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let mut conn = midi_output.connect(&port, "test")?;
     println!("Sending {} bytes", bytes.len());
     conn.send(&bytes)?;
-    Ok(())
-}
-
-#[allow(unused)]
-pub(crate) fn send_tuning_demo() -> Result<()> {
-    send_tuning()
-}
-
-fn send_tuning() -> Result<()> {
-    fn make_messages(
-        device_id: u7,
-        preset: u7,
-        entries: &[NoteChangeEntry],
-    ) -> Result<Vec<Vec<u8>>> {
-        let mut messages = Vec::new();
-        for chunk in entries.chunks(64) {
-            let note_change = NoteChange::new(device_id, preset, &chunk)?;
-            let vec = note_change.to_vec()?;
-            let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
-            let mut buffer = Vec::new();
-            event.write_std(&mut buffer)?;
-            messages.push(buffer);
-        }
-        Ok(messages)
-    }
-
-    let scala_file = read_test_scala_file()?;
-    let base_note_number = NoteNumber::A4;
-    let base_frequency = base_note_number.to_frequency();
-    let entries = calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
-        .iter()
-        .enumerate()
-        .map(|(i, f)| {
-            Ok(NoteChangeEntry {
-                #[allow(clippy::unnecessary_fallible_conversions)]
-                kk: TryInto::<u8>::try_into(i)?.try_into()?,
-                mts: f.to_mts_entry(),
-            })
-        })
-        .collect::<Result<Vec<_>>>()?;
-
-    let device_id = U7_ZERO;
-    let preset = u7::from_int_lossy(8);
-    for message in make_messages(device_id, preset, &entries)? {
-        println!("{}", to_hex_dump(&message, None)?);
-    }
     Ok(())
 }

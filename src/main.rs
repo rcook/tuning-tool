@@ -29,6 +29,7 @@ mod run;
 mod scala_file;
 mod scale;
 mod semitones;
+mod send_tuning;
 mod string_extras;
 mod sysex_event;
 mod test_util;
