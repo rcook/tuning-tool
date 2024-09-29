@@ -24,10 +24,10 @@ mod run;
 mod scala_file;
 mod scale;
 mod semitones;
+mod string_extras;
 mod sysex_event;
 mod tuning;
 mod types;
-mod u7;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

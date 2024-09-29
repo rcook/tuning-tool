@@ -46,6 +46,7 @@ impl Tuning {
 #[cfg(test)]
 mod tests {
     use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::consts::U7_ZERO;
     use crate::frequency::Frequency;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
@@ -53,8 +54,8 @@ mod tests {
     use crate::scale::Scale;
     use crate::tuning::EquaveRatio;
     use crate::tuning::Tuning;
-    use crate::u7::{u7, u7_lossy};
     use anyhow::{anyhow, Result};
+    use midly::num::u7;
 
     #[test]
     fn basics() -> Result<()> {
@@ -76,8 +77,12 @@ mod tests {
         let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
             .get_frequencies(scale)
             .map(|f| f.to_mts_bytes());
-        let reply =
-            BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
+        let reply = BulkTuningDumpReply::new(
+            U7_ZERO,
+            u7::from_int_lossy(8),
+            "carlos_super.mid",
+            frequencies,
+        )?;
 
         let bytes = reply.to_bytes()?;
         assert_eq!(ref_bytes, bytes);

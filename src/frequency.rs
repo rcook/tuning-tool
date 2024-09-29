@@ -81,37 +81,41 @@ mod tests {
     }
 
     #[rstest]
-    #[case(Semitones(0f64), Frequency(8.175799f64))]
-    #[case(Semitones(0.000062f64), Frequency(8.175828f64))]
-    #[case(Semitones(1f64), Frequency(8.661957f64))]
-    #[case(Semitones(12f64), Frequency(16.351598f64))]
-    #[case(Semitones(60f64), Frequency(261.625565f64))]
-    #[case(Semitones(61f64), Frequency(277.182631f64))]
-    #[case(Semitones(68.999939f64), Frequency(439.998449f64))]
-    #[case(Semitones(69f64), Frequency(440f64))]
-    #[case(Semitones(69.000061f64), Frequency(440.001551f64))]
-    #[case(Semitones(120f64), Frequency(8372.01809f64))]
-    #[case(Semitones(120.000061f64), Frequency(8372.047605f64))]
-    #[case(Semitones(127f64), Frequency(12543.853951f64))]
-    #[case(Semitones(127.000061f64), Frequency(12543.898175f64))]
-    #[case(Semitones(127.999878f64), Frequency(13289.656616f64))]
-    fn to_semitones(#[case] expected: Semitones, #[case] input: Frequency) {
+    #[case(0f64, 8.175799f64)]
+    #[case(0.000062f64, 8.175828f64)]
+    #[case(1f64, 8.661957f64)]
+    #[case(12f64, 16.351598f64)]
+    #[case(60f64, 261.625565f64)]
+    #[case(61f64, 277.182631f64)]
+    #[case(68.999939f64, 439.998449f64)]
+    #[case(69f64, 440f64)]
+    #[case(69.000061f64, 440.001551f64)]
+    #[case(120f64, 8372.01809f64)]
+    #[case(120.000061f64, 8372.047605f64)]
+    #[case(127f64, 12543.853951f64)]
+    #[case(127.000061f64, 12543.898175f64)]
+    #[case(127.999878f64, 13289.656616f64)]
+    fn to_semitones(#[case] expected: f64, #[case] input: f64) {
+        let input = Frequency(input);
+        let expected = Semitones(expected);
         assert_eq!(expected.0, input.to_semitones().0);
     }
 
     #[rstest]
-    #[case(Semitones(127.999878f64), Frequency(13289.656616f64), true)]
-    #[case(Semitones(0f64), Frequency(-100f64), false)]
-    #[case(Semitones(127.999878f64), Frequency(14080f64), false)]
-    #[case(Semitones(127.999878f64), Frequency(28980f64), false)]
-    #[case(Semitones(0f64), Frequency(-100f64), true)]
-    #[case(Semitones(129f64), Frequency(14080f64), true)]
-    #[case(Semitones(141.496923f64), Frequency(28980f64), true)]
+    #[case(127.999878f64, 13289.656616f64, true)]
+    #[case(0f64, -100f64, false)]
+    #[case(127.999878f64, 14080f64, false)]
+    #[case(127.999878f64, 28980f64, false)]
+    #[case(0f64, -100f64, true)]
+    #[case(129f64, 14080f64, true)]
+    #[case(141.496923f64, 28980f64, true)]
     fn to_semitones_with_ignore_limit(
-        #[case] expected: Semitones,
-        #[case] input: Frequency,
+        #[case] expected: f64,
+        #[case] input: f64,
         #[case] ignore_limit: bool,
     ) {
+        let input = Frequency(input);
+        let expected = Semitones(expected);
         assert_eq!(
             expected.0,
             input.to_semitones_with_ignore_limit(ignore_limit).0
@@ -119,27 +123,33 @@ mod tests {
     }
 
     #[rstest]
-    #[case(MtsBytes { note_number: NoteNumber(0), yy: 0, zz: 0 }, Frequency(8.175799f64))]
-    #[case(MtsBytes { note_number: NoteNumber(0), yy: 0, zz: 1 }, Frequency(8.175828f64))]
-    #[case(MtsBytes { note_number: NoteNumber(1), yy: 0, zz: 0 }, Frequency(8.661957f64))]
-    #[case(MtsBytes { note_number: NoteNumber(12), yy: 0, zz: 0 }, Frequency(16.351598f64))]
-    #[case(MtsBytes { note_number: NoteNumber(60), yy: 0, zz: 0 }, Frequency(261.625565f64))]
-    #[case(MtsBytes { note_number: NoteNumber(61), yy: 0, zz: 0 }, Frequency(277.182631f64))]
-    #[case(MtsBytes { note_number: NoteNumber(68), yy: 127, zz: 127 }, Frequency(439.998449f64))]
-    #[case(MtsBytes { note_number: NoteNumber(69), yy: 0, zz: 0 }, Frequency(440f64))]
-    #[case(MtsBytes { note_number: NoteNumber(69), yy: 0, zz: 1 }, Frequency(440.001551f64))]
-    #[case(MtsBytes { note_number: NoteNumber(120), yy: 0, zz: 0 }, Frequency(8372.01809f64))]
-    #[case(MtsBytes { note_number: NoteNumber(120), yy: 0, zz: 1 }, Frequency(8372.047605f64))]
-    #[case(MtsBytes { note_number: NoteNumber(127), yy: 0, zz: 0 }, Frequency(12543.853951f64))]
-    #[case(MtsBytes { note_number: NoteNumber(127), yy: 0, zz: 1 }, Frequency(12543.898175f64))]
-    #[case(MtsBytes { note_number: NoteNumber(127), yy: 127, zz: 126 }, Frequency(13289.656616f64))]
-    #[case(MtsBytes { note_number: NoteNumber(59), yy: 79, zz: 106 }, Frequency(255.999612f64))]
-    #[case(MtsBytes { note_number: NoteNumber(59), yy: 79, zz: 106 }, Frequency(256f64))]
-    #[case(MtsBytes { note_number: NoteNumber(69), yy: 10, zz: 6 }, Frequency(441.999414f64))]
-    #[case(MtsBytes { note_number: NoteNumber(69), yy: 10, zz: 6 }, Frequency(442f64))]
-    #[case(MtsBytes { note_number: NoteNumber(0), yy: 0, zz: 0 }, Frequency(-1f64))]
-    #[case(MtsBytes { note_number: NoteNumber(127), yy: 127, zz: 126 }, Frequency(14000f64))]
-    fn to_mts_bytes(#[case] expected: MtsBytes, #[case] input: Frequency) {
+    #[case((0, 0, 0), 8.175799f64)]
+    #[case((0, 0, 1), 8.175828f64)]
+    #[case((1, 0, 0), 8.661957f64)]
+    #[case((12, 0, 0), 16.351598f64)]
+    #[case((60, 0, 0), 261.625565f64)]
+    #[case((61, 0, 0), 277.182631f64)]
+    #[case((68, 127, 127), 439.998449f64)]
+    #[case((69, 0, 0), 440f64)]
+    #[case((69, 0, 1), 440.001551f64)]
+    #[case((120, 0, 0), 8372.01809f64)]
+    #[case((120, 0, 1), 8372.047605f64)]
+    #[case((127, 0, 0), 12543.853951f64)]
+    #[case((127, 0, 1), 12543.898175f64)]
+    #[case((127, 127, 126), 13289.656616f64)]
+    #[case((59, 79, 106), 255.999612f64)]
+    #[case((59, 79, 106), 256f64)]
+    #[case((69, 10, 6), 441.999414f64)]
+    #[case((69, 10, 6), 442f64)]
+    #[case((0, 0, 0), -1f64)]
+    #[case((127, 127, 126), 14000f64)]
+    fn to_mts_bytes(#[case] expected: (u8, u8, u8), #[case] input: f64) {
+        let input = Frequency(input);
+        let expected = MtsBytes {
+            note_number: NoteNumber(expected.0.into()),
+            yy: expected.1.into(),
+            zz: expected.2.into(),
+        };
         assert_eq!(expected, input.to_mts_bytes())
     }
 

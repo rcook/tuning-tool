@@ -1,17 +1,18 @@
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
-    MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
+    MIDI_TUNING, SYSEX, U7_ZERO, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::mts_bytes::MtsBytes;
 use crate::note_number::NoteNumber;
-use crate::u7::u7;
+use crate::string_extras::StringExtras;
 use anyhow::{bail, Result};
+use midly::num::u7;
 use std::io::{Bytes, Read};
 
 macro_rules! read_u7 {
     ($iter: expr) => {
-        std::convert::TryInto::<crate::u7::u7>::try_into(read_u8!($iter))?
+        std::convert::TryInto::<midly::num::u7>::try_into(read_u8!($iter))?
     };
     ($iter: expr, $count: expr) => {{
         let mut result = Vec::with_capacity($count);
@@ -115,7 +116,7 @@ impl BulkTuningDumpReply {
             _ = calc.update(*value)
         }
 
-        let name = String::from(u7::to_utf8_lossy(&name_values).trim());
+        let name = String::from(str::from_u7_slice(&name_values).trim());
 
         let frequencies: [MtsBytes; 128] = (0..128)
             .map(|_| {
@@ -123,9 +124,9 @@ impl BulkTuningDumpReply {
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
                 Ok(MtsBytes {
-                    note_number: NoteNumber(xx.as_u8() as i32),
-                    yy: yy.as_u8(),
-                    zz: zz.as_u8(),
+                    note_number: NoteNumber(xx.as_int() as i32),
+                    yy: yy.as_int(),
+                    zz: zz.as_int(),
                 })
             })
             .collect::<Result<Vec<_>>>()?
@@ -158,11 +159,11 @@ impl BulkTuningDumpReply {
         let mut calc = ChecksumCalculator::new();
         let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);
         bytes.push(SYSEX);
-        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME).as_u8());
-        bytes.push(calc.update(self.device_id).as_u8());
-        bytes.push(calc.update(MIDI_TUNING).as_u8());
-        bytes.push(calc.update(BULK_DUMP_REPLY).as_u8());
-        bytes.push(calc.update(self.preset).as_u8());
+        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME).as_int());
+        bytes.push(calc.update(self.device_id).as_int());
+        bytes.push(calc.update(MIDI_TUNING).as_int());
+        bytes.push(calc.update(BULK_DUMP_REPLY).as_int());
+        bytes.push(calc.update(self.preset).as_int());
 
         let name_bytes = self.name.as_bytes();
         let name_bytes_len = name_bytes.len();
@@ -171,20 +172,23 @@ impl BulkTuningDumpReply {
         }
 
         for b in name_bytes {
-            bytes.push(calc.update((*b).try_into()?).as_u8());
+            bytes.push(calc.update((*b).try_into()?).as_int());
         }
 
         for _ in 0..(16 - name_bytes_len) {
-            bytes.push(calc.update(u7::ZERO).as_u8());
+            bytes.push(calc.update(U7_ZERO).as_int());
         }
 
         for f in &self.frequencies {
-            bytes.push(calc.update((f.note_number.0 as u8).try_into()?).as_u8());
-            bytes.push(calc.update(f.yy.try_into()?).as_u8());
-            bytes.push(calc.update(f.zz.try_into()?).as_u8());
+            bytes.push(calc.update((f.note_number.0 as u8).try_into()?).as_int());
+            bytes.push(calc.update(f.yy.try_into()?).as_int());
+            bytes.push(calc.update(f.zz.try_into()?).as_int());
         }
 
-        bytes.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.as_u8());
+        bytes.push(
+            calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?
+                .as_int(),
+        );
         bytes.push(EOX);
 
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());

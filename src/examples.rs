@@ -1,7 +1,7 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
 use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
-use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE};
+use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequency::Frequency;
 use crate::midi_note::MidiNote;
@@ -10,10 +10,10 @@ use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
 use crate::tuning::Tuning;
-use crate::u7::{u7, u7_lossy};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
+use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
@@ -218,7 +218,12 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scale)
         .map(|f| f.to_mts_bytes());
-    let reply = BulkTuningDumpReply::new(u7::ZERO, u7_lossy!(8), "carlos_super.mid", frequencies)?;
+    let reply = BulkTuningDumpReply::new(
+        U7_ZERO,
+        u7::from_int_lossy(8),
+        "carlos_super.mid",
+        frequencies,
+    )?;
     let bytes = reply.to_bytes()?;
 
     let midi_output = MidiOutput::new("MIDI output")?;

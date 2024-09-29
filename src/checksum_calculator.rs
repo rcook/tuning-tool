@@ -1,5 +1,6 @@
-use crate::u7::u7;
+use crate::consts::U7_MAX;
 use anyhow::{bail, Result};
+use midly::num::u7;
 
 pub(crate) struct ChecksumCalculator {
     count: usize,
@@ -10,14 +11,14 @@ impl ChecksumCalculator {
     pub(crate) const fn new() -> Self {
         Self {
             count: 0,
-            value: u7::MAX,
+            value: U7_MAX,
         }
     }
 
     #[must_use]
     pub(crate) fn update(&mut self, value: u7) -> u7 {
         self.count += 1;
-        self.value ^= value;
+        self.value = u7::from_int_lossy(self.value.as_int() ^ value.as_int());
         value
     }
 
