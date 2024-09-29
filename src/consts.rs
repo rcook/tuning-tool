@@ -1,10 +1,5 @@
-use crate::midi_note::MidiNote;
-use crate::types::Frequency;
 use midly::num::u7;
 
-pub(crate) const BASE_FREQUENCY: Frequency = 440f64;
-
-pub(crate) const BASE_MIDI_NOTE: MidiNote = MidiNote::ALL[69];
 pub(crate) const SYSEX: u8 = 0xf0;
 pub(crate) const UNIVERSAL_REAL_TIME: u7 = u7::from_int_lossy(0x7f);
 pub(crate) const UNIVERSAL_NON_REAL_TIME: u7 = u7::from_int_lossy(0x7e);

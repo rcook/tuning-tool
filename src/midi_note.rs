@@ -1,5 +1,5 @@
+use crate::frequency::Frequency;
 use crate::note_number::NoteNumber;
-use crate::types::Frequency;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));
@@ -16,14 +16,14 @@ impl MidiNote {
 
     pub(crate) fn nearest_below_or_equal(frequency: Frequency) -> Option<(MidiNote, Frequency)> {
         let mut i = 127;
-        while i > 0 && ALL_MIDI_NOTES[i].frequency() > frequency {
+        while i > 0 && ALL_MIDI_NOTES[i].frequency().0 > frequency.0 {
             i -= 1;
         }
 
         let midi_note = ALL_MIDI_NOTES[i];
-        let delta = frequency - midi_note.frequency();
+        let delta = frequency.0 - midi_note.frequency().0;
         if delta >= 0f64 {
-            Some((midi_note, delta))
+            Some((midi_note, Frequency(delta)))
         } else {
             None
         }
@@ -52,13 +52,14 @@ impl MidiNote {
 
 impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{} ({} Hz)", self.note_number.0, self.frequency)
+        write!(f, "{} ({} Hz)", self.note_number.0, self.frequency.0)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
+    use crate::frequency::Frequency;
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use anyhow::Result;
@@ -70,27 +71,34 @@ mod tests {
 
     #[test]
     fn concert_a() {
-        let (midi_note, rem) = MidiNote::nearest_below_or_equal(450f64).expect("Must succeed");
-        assert!(rem.approx_eq_with_epsilon(10f64, 0.01));
+        let (midi_note, rem) =
+            MidiNote::nearest_below_or_equal(Frequency(450f64)).expect("Must succeed");
+        assert!(rem.0.approx_eq_with_epsilon(10f64, 0.01));
 
         assert_eq!(69, midi_note.note_number.0);
         assert_eq!("A4", midi_note.name());
-        assert!(midi_note.frequency().approx_eq_with_epsilon(440f64, 0.001));
+        assert!(midi_note
+            .frequency()
+            .0
+            .approx_eq_with_epsilon(440f64, 0.001));
 
-        let (other_midi_note, _) = MidiNote::nearest_below_or_equal(450f64).expect("Must succeed");
+        let (other_midi_note, _) =
+            MidiNote::nearest_below_or_equal(Frequency(450f64)).expect("Must succeed");
         assert_eq!(midi_note, other_midi_note);
     }
 
     #[test]
     fn limits() {
-        assert!(MidiNote::nearest_below_or_equal(0f64).is_none());
+        assert!(MidiNote::nearest_below_or_equal(Frequency(0f64)).is_none());
 
-        let (midi_note, rem) = MidiNote::nearest_below_or_equal(8.2f64).expect("Must succeed");
-        assert!(rem.approx_eq_with_epsilon(0.03f64, 0.01));
+        let (midi_note, rem) =
+            MidiNote::nearest_below_or_equal(Frequency(8.2f64)).expect("Must succeed");
+        assert!(rem.0.approx_eq_with_epsilon(0.03f64, 0.01));
         assert_eq!(MidiNote::ALL[0], midi_note);
 
-        let (midi_note, rem) = MidiNote::nearest_below_or_equal(80000f64).expect("Must succeed");
-        assert!(rem.approx_eq_with_epsilon(67456.15f64, 0.01));
+        let (midi_note, rem) =
+            MidiNote::nearest_below_or_equal(Frequency(80000f64)).expect("Must succeed");
+        assert!(rem.0.approx_eq_with_epsilon(67456.15f64, 0.01));
         assert_eq!(MidiNote::ALL[127], midi_note);
     }
 
@@ -103,7 +111,7 @@ mod tests {
             assert_eq!(note_number, midi_note.note_number());
 
             // This must be an exact match
-            assert_eq!(frequency, midi_note.frequency());
+            assert_eq!(frequency, midi_note.frequency().0);
         }
         Ok(())
     }

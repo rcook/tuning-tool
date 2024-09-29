@@ -1,9 +1,11 @@
-use crate::types::{Cents, Semitones};
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
 use rust_decimal::Decimal;
 use std::result::Result as StdResult;
 use std::str::FromStr;
+
+use crate::cents::Cents;
+use crate::semitones::Semitones;
 
 #[derive(Debug, PartialEq)]
 enum Inner {
@@ -43,15 +45,15 @@ impl Interval {
     }
 
     pub(crate) fn cents(&self) -> Cents {
-        match &self.0 {
+        Cents(match &self.0 {
             Inner::Cents(value) => value.to_f64().expect("Must be f64"),
             Inner::Ratio(value) => value.to_f64().expect("Must be f64").log2() * 1200f64,
-        }
+        })
     }
 
     #[allow(unused)]
     pub(crate) fn semitones(&self) -> Semitones {
-        self.cents() / 100f64
+        Semitones(self.cents().0 / 100f64)
     }
 }
 
@@ -85,14 +87,14 @@ mod tests {
 
         let interval = "150.5".parse::<Interval>()?;
         assert_eq!(Some(&dec!(150.5)), interval.as_cents());
-        assert!(interval.cents().approx_eq_with_epsilon(150.50, 0.01));
+        assert!(interval.cents().0.approx_eq_with_epsilon(150.50, 0.01));
 
         let interval = "19/17".parse::<Interval>()?;
         assert_eq!(
             Some(&BigRational::new(19.into(), 17.into())),
             interval.as_ratio()
         );
-        assert!(interval.cents().approx_eq_with_epsilon(192.56, 0.01));
+        assert!(interval.cents().0.approx_eq_with_epsilon(192.56, 0.01));
 
         Ok(())
     }

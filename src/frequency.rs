@@ -5,7 +5,7 @@ use crate::num::round_default_scale;
 use crate::ratio::Ratio;
 use crate::semitones::Semitones;
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct Frequency(pub(crate) f64);
 
 impl Frequency {

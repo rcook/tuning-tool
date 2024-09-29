@@ -45,7 +45,7 @@ impl ScalaFile {
         );
 
         for (i, note) in self.scale.intervals().iter().enumerate() {
-            println!("(note {i}): {cents}", cents = note.cents());
+            println!("(note {i}): {cents}", cents = note.cents().0);
         }
     }
 }

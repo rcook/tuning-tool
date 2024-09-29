@@ -1,14 +1,11 @@
-use crate::approx_eq::ApproxEq;
 use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
-use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
+use crate::consts::U7_ZERO;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
-use crate::note_change::NoteChange;
-use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
@@ -16,7 +13,6 @@ use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
-use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
@@ -32,15 +28,16 @@ pub(crate) fn show_all_midi_notes() {
             "{note_number}: {name} ({frequency:.1} Hz)",
             note_number = midi_note.note_number().0,
             name = midi_note.name(),
-            frequency = midi_note.frequency()
+            frequency = midi_note.frequency().0
         );
     }
 }
 
 #[allow(unused)]
 pub(crate) fn nearest_below_or_equal() {
-    let (midi_note, rem) = MidiNote::nearest_below_or_equal(880f64).expect("Must succeed");
-    println!("{name} + {rem} Hz", name = midi_note.name());
+    let (midi_note, rem) =
+        MidiNote::nearest_below_or_equal(Frequency(880f64)).expect("Must succeed");
+    println!("{name} + {rem} Hz", name = midi_note.name(), rem = rem.0);
 }
 
 #[allow(unused)]
@@ -148,13 +145,6 @@ pub(crate) fn generate_message() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn misc() {
-    println!("{}", BASE_FREQUENCY);
-    println!("{}", BASE_MIDI_NOTE);
-    println!("{:?}", 0.1f64.approx_eq(0.2f64));
-}
-
-#[allow(unused)]
 pub(crate) fn enumerate_midi_outputs() -> Result<()> {
     let midi_output = MidiOutput::new("MIDI output")?;
     if midi_output.port_count() == 0 {
@@ -255,6 +245,18 @@ pub(crate) fn send_note_change() -> Result<()> {
         .ok_or_else(|| anyhow!("Could not convert to string"))?
         .parse::<ScalaFile>()?;
 
+    for (i, f) in calculate_frequencies(
+        scala_file.scale(),
+        NoteNumber::ZERO,
+        MidiNote::ALL[0].frequency(),
+    )
+    .iter()
+    .enumerate()
+    {
+        println!("{i}: {f:.03} Hz", f = f.0);
+    }
+
+    /*
     let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIN)
         .iter()
         .enumerate()
@@ -275,6 +277,7 @@ pub(crate) fn send_note_change() -> Result<()> {
         event.write_std(&mut buffer)?;
         println!("{}", to_hex_dump(&buffer, None)?);
     }
+    */
 
     Ok(())
 }
