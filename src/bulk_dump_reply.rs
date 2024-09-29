@@ -108,9 +108,7 @@ impl BulkDumpReply {
         let preset = calc.update(read_u7!(iter));
 
         let name = PresetName::new(read_u7!(iter, PresetName::LEN));
-        for ch in name.as_array() {
-            _ = calc.update(*ch);
-        }
+        _ = calc.update_from_slice(name.as_array());
 
         let frequencies: [MtsBytes; 128] = (0..128)
             .map(|_| {

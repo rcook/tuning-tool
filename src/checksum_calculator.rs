@@ -15,11 +15,16 @@ impl ChecksumCalculator {
         }
     }
 
-    #[must_use]
     pub(crate) fn update(&mut self, value: u7) -> u7 {
         self.count += 1;
         self.value = u7::from_int_lossy(self.value.as_int() ^ value.as_int());
         value
+    }
+
+    pub(crate) fn update_from_slice(&mut self, values: &[u7]) {
+        for value in values {
+            _ = self.update(*value);
+        }
     }
 
     pub(crate) fn verify(self, expected_checksum: u7, expected_count: Option<usize>) -> Result<()> {
