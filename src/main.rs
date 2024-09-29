@@ -3,7 +3,7 @@
 
 mod approx_eq;
 mod args;
-mod bulk_tuning_dump_reply;
+mod bulk_dump_reply;
 mod cent_offset;
 mod cents;
 mod checksum_calculator;

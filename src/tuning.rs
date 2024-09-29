@@ -45,7 +45,7 @@ impl Tuning {
 
 #[cfg(test)]
 mod tests {
-    use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::U7_ZERO;
     use crate::frequency::Frequency;
     use crate::note_number::NoteNumber;
@@ -77,7 +77,7 @@ mod tests {
         let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
             .get_frequencies(scale)
             .map(|f| f.to_mts_bytes());
-        let reply = BulkTuningDumpReply::new(
+        let reply = BulkDumpReply::new(
             U7_ZERO,
             u7::from_int_lossy(8),
             "carlos_super.mid",

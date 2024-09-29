@@ -40,14 +40,14 @@ macro_rules! read_u8 {
 }
 
 #[derive(Debug)]
-pub(crate) struct BulkTuningDumpReply {
+pub(crate) struct BulkDumpReply {
     device_id: u7,
     preset: u7,
     name: String,
     frequencies: [MtsBytes; 128],
 }
 
-impl BulkTuningDumpReply {
+impl BulkDumpReply {
     pub(crate) fn new(
         device_id: u7,
         preset: u7,
@@ -83,7 +83,7 @@ impl BulkTuningDumpReply {
     }
 }
 
-impl BulkTuningDumpReply {
+impl BulkDumpReply {
     // https://midi.org/midi-tuning-updated-specification
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
         let mut calc = ChecksumCalculator::new();
@@ -212,7 +212,7 @@ impl BulkTuningDumpReply {
 
 #[cfg(test)]
 mod tests {
-    use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
+    use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
     use crate::resources::RESOURCE_DIR;
     use anyhow::{anyhow, Result};
@@ -225,7 +225,7 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not load tuning dump"))?
             .contents();
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
-        let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
+        let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes()?;
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, output.len());
         assert_eq!(bytes, output);

@@ -1,6 +1,6 @@
 use crate::approx_eq::ApproxEq;
 use crate::args::Args;
-use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
+use crate::bulk_dump_reply::BulkDumpReply;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequency::Frequency;
@@ -221,7 +221,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scale)
         .map(|f| f.to_mts_bytes());
-    let reply = BulkTuningDumpReply::new(
+    let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
         "carlos_super.mid",
@@ -265,7 +265,7 @@ pub(crate) fn midi_messages() -> Result<()> {
     let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scale)
         .map(|f| f.to_mts_bytes());
-    let reply = BulkTuningDumpReply::new(
+    let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
         "carlos_super.mid",
