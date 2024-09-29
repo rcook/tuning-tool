@@ -1,6 +1,7 @@
 use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
-use crate::hex_dump::hex_dump;
+use crate::hex_dump::to_hex_dump;
 use crate::string_extras::StringExtras;
+use anyhow::Result;
 use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
@@ -41,9 +42,10 @@ impl<'a> SysExEvent<'a> {
         events
     }
 
-    pub(crate) fn dump(&self) {
+    pub(crate) fn dump(&self) -> Result<()> {
         println!("SysEx: delta {delta:08X}", delta = u32::from(self.delta));
-        hex_dump(self.data);
+        println!("{}", to_hex_dump(&self.data, None)?);
+        Ok(())
     }
 
     pub(crate) fn decode(&self) {

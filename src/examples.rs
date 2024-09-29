@@ -4,7 +4,7 @@ use crate::bulk_dump_reply::BulkDumpReply;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequency::Frequency;
-use crate::hex_dump::hex_dump;
+use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
@@ -92,9 +92,9 @@ pub(crate) fn cli() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn generate_message() {
+pub(crate) fn generate_message() -> Result<()> {
     // https://forums.steinberg.net/t/microtonal-midi-messages-vst-3/831268/9
-    fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) {
+    fn show_message(device_id: u8, program_number: u8, kk: u8, target_midi: f64) -> Result<()> {
         let xx = target_midi as i32; // i.e. 69
         let semitones = target_midi - xx as f64; // i.e. 0.33
         let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
@@ -138,15 +138,13 @@ pub(crate) fn generate_message() {
 
         assert!(data.len() == length as usize);
 
-        let hex_dump = data
-            .iter()
-            .map(|x| format!("{x:02X}"))
-            .collect::<Vec<_>>()
-            .join(" ");
-        println!("{hex_dump}");
+        println!("{}", to_hex_dump(&data, None)?);
+
+        Ok(())
     }
 
-    show_message(0, 0, 0x30, 69.33f64); // just sharp of A4
+    show_message(0, 0, 0x30, 69.33f64)?; // just sharp of A4
+    Ok(())
 }
 
 #[allow(unused)]
@@ -277,7 +275,7 @@ pub(crate) fn send_note_change() -> Result<()> {
         let event = LiveEvent::Common(SystemCommon::SysEx(&values));
         let mut buffer = Vec::new();
         event.write_std(&mut buffer)?;
-        hex_dump(&buffer);
+        println!("{}", to_hex_dump(&buffer, None)?);
     }
 
     Ok(())
