@@ -220,7 +220,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
     let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scale)
-        .map(|f| f.to_mts_bytes());
+        .map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
@@ -264,7 +264,7 @@ pub(crate) fn midi_messages() -> Result<()> {
     let scale = scala_file.scale();
     let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scale)
-        .map(|f| f.to_mts_bytes());
+        .map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),

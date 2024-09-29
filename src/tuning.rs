@@ -76,7 +76,7 @@ mod tests {
 
         let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
             .get_frequencies(scale)
-            .map(|f| f.to_mts_bytes());
+            .map(|f| f.to_mts_entry());
         let reply = BulkDumpReply::new(
             U7_ZERO,
             u7::from_int_lossy(8),

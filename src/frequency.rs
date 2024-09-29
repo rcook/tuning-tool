@@ -1,5 +1,5 @@
 use crate::cent_offset::CentOffset;
-use crate::mts_bytes::MtsBytes;
+use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
 use crate::ratio::Ratio;
@@ -53,8 +53,8 @@ impl Frequency {
         (NoteNumber(note_number as i32), CentOffset(cent_offset))
     }
 
-    pub(crate) fn to_mts_bytes(&self) -> MtsBytes {
-        self.to_semitones().to_mts_bytes()
+    pub(crate) fn to_mts_entry(&self) -> MtsEntry {
+        self.to_semitones().to_mts_entry()
     }
 
     fn semitones_raw(&self) -> Semitones {
@@ -66,7 +66,7 @@ impl Frequency {
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::frequency::Frequency;
-    use crate::mts_bytes::MtsBytes;
+    use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
     use midly::num::u7;
@@ -144,14 +144,14 @@ mod tests {
     #[case((69, 10, 6), 442f64)]
     #[case((0, 0, 0), -1f64)]
     #[case((127, 127, 126), 14000f64)]
-    fn to_mts_bytes(#[case] expected: (u8, u8, u8), #[case] input: f64) {
+    fn to_mts_entry(#[case] expected: (u8, u8, u8), #[case] input: f64) {
         let input = Frequency(input);
-        let expected = MtsBytes {
+        let expected = MtsEntry {
             note_number: NoteNumber(expected.0.into()),
             yy: u7::from_int_lossy(expected.1),
             zz: u7::from_int_lossy(expected.2),
         };
-        assert_eq!(expected, input.to_mts_bytes())
+        assert_eq!(expected, input.to_mts_entry())
     }
 
     #[test]

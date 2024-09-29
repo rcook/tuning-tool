@@ -3,7 +3,7 @@ use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
     MIDI_TUNING, SYSEX, U7_ZERO, UNIVERSAL_NON_REAL_TIME,
 };
-use crate::mts_bytes::MtsBytes;
+use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset_name::PresetName;
 use crate::string_extras::StringExtras;
@@ -40,12 +40,16 @@ macro_rules! read_u8 {
     }};
 }
 
+const ENTRIES_LEN: usize = 128;
+
+type MtsEntries = [MtsEntry; ENTRIES_LEN];
+
 #[derive(Debug)]
 pub(crate) struct BulkDumpReply {
     device_id: u7,
     preset: u7,
     name: PresetName,
-    frequencies: [MtsBytes; 128],
+    entries: MtsEntries,
 }
 
 impl BulkDumpReply {
@@ -53,13 +57,13 @@ impl BulkDumpReply {
         device_id: u7,
         preset: u7,
         name: PresetName,
-        frequencies: [MtsBytes; 128],
+        entries: MtsEntries,
     ) -> Result<Self> {
         Ok(Self {
             device_id,
             preset,
             name,
-            frequencies,
+            entries,
         })
     }
 
@@ -75,8 +79,8 @@ impl BulkDumpReply {
         &self.name
     }
 
-    pub(crate) fn frequencies(&self) -> &[MtsBytes; 128] {
-        &self.frequencies
+    pub(crate) fn entries(&self) -> &MtsEntries {
+        &self.entries
     }
 }
 
@@ -110,12 +114,12 @@ impl BulkDumpReply {
         let name = PresetName::new(read_u7!(iter, PresetName::LEN));
         _ = calc.update_from_slice(name.as_array());
 
-        let frequencies: [MtsBytes; 128] = (0..128)
+        let entries: MtsEntries = (0..ENTRIES_LEN)
             .map(|_| {
                 let xx = read_u7!(iter);
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
-                Ok(MtsBytes {
+                Ok(MtsEntry {
                     note_number: NoteNumber(xx.as_int() as i32),
                     yy,
                     zz,
@@ -125,10 +129,10 @@ impl BulkDumpReply {
             .try_into()
             .expect("Vector must have exactly 128 elements");
 
-        for f in &frequencies {
-            _ = calc.update((f.note_number.0 as u8).into());
-            _ = calc.update(f.yy);
-            _ = calc.update(f.zz);
+        for e in &entries {
+            _ = calc.update((e.note_number.0 as u8).into());
+            _ = calc.update(e.yy);
+            _ = calc.update(e.zz);
         }
 
         let checksum = read_u7!(iter);
@@ -143,7 +147,7 @@ impl BulkDumpReply {
             device_id,
             preset,
             name,
-            frequencies,
+            entries,
         })
     }
 
@@ -158,7 +162,7 @@ impl BulkDumpReply {
 
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
-        for f in &self.frequencies {
+        for f in &self.entries {
             values.push(calc.update((f.note_number.0 as u8).into()));
             values.push(calc.update(f.yy));
             values.push(calc.update(f.zz));

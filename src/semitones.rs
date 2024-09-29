@@ -1,6 +1,6 @@
 use crate::consts::{U7_MAX, U7_ZERO};
 use crate::frequency::Frequency;
-use crate::mts_bytes::MtsBytes;
+use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use midly::num::u7;
 
@@ -10,9 +10,9 @@ impl Semitones {
     pub(crate) const MAX: Self = Self(127.999878f64);
 
     // c.f. mtsToMtsBytes
-    pub(crate) fn to_mts_bytes(&self) -> MtsBytes {
+    pub(crate) fn to_mts_entry(&self) -> MtsEntry {
         if self.0 <= 0f64 {
-            return MtsBytes {
+            return MtsEntry {
                 note_number: NoteNumber(0),
                 yy: U7_ZERO,
                 zz: U7_ZERO,
@@ -20,7 +20,7 @@ impl Semitones {
         }
 
         if self.0 > 127.999878f64 {
-            return MtsBytes {
+            return MtsEntry {
                 note_number: NoteNumber(127),
                 yy: U7_MAX,
                 zz: u7::from_int_lossy(0x7e),
@@ -32,7 +32,7 @@ impl Semitones {
 
         let yy = u7::from_int_lossy(((fine >> 7) & 0x7f) as u8);
         let zz = u7::from_int_lossy((fine & 0x7f) as u8);
-        MtsBytes {
+        MtsEntry {
             note_number: NoteNumber(note_number as i32),
             yy,
             zz,
@@ -47,7 +47,7 @@ impl Semitones {
 
 #[cfg(test)]
 mod tests {
-    use crate::mts_bytes::MtsBytes;
+    use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
     use midly::num::u7;
@@ -71,13 +71,13 @@ mod tests {
     #[case((0, 0, 0), -1f64)]
     #[case((127, 127, 126), 127.9999f64)]
     #[case((127, 127, 126), 128f64)]
-    fn to_mts_bytes(#[case] expected: (u8, u8, u8), #[case] input: f64) {
+    fn to_mts_entry(#[case] expected: (u8, u8, u8), #[case] input: f64) {
         let input = Semitones(input);
-        let expected = MtsBytes {
+        let expected = MtsEntry {
             note_number: NoteNumber(expected.0.into()),
             yy: u7::from_int_lossy(expected.1),
             zz: u7::from_int_lossy(expected.2),
         };
-        assert_eq!(expected, input.to_mts_bytes())
+        assert_eq!(expected, input.to_mts_entry())
     }
 }

@@ -5,13 +5,13 @@ use crate::semitones::Semitones;
 use midly::num::u7;
 
 #[derive(Debug, PartialEq)]
-pub(crate) struct MtsBytes {
+pub(crate) struct MtsEntry {
     pub(crate) note_number: NoteNumber,
     pub(crate) yy: u7,
     pub(crate) zz: u7,
 }
 
-impl MtsBytes {
+impl MtsEntry {
     // c.f. mtsBytesToMts
     pub(crate) fn to_semitones(&self) -> Semitones {
         let msb = if self.yy > 0x7f {
@@ -60,7 +60,7 @@ impl MtsBytes {
 #[cfg(test)]
 mod tests {
     use crate::frequency::Frequency;
-    use crate::mts_bytes::MtsBytes;
+    use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use midly::num::u7;
     use rstest::rstest;
@@ -85,7 +85,7 @@ mod tests {
     //#[case(439.998449f64, (68, 199, 199))]
     //#[case(13289.656616f64, (199, 199, 199))]
     fn to_frequency(#[case] expected: f64, #[case] input: (u8, u8, u8)) {
-        let input = MtsBytes {
+        let input = MtsEntry {
             note_number: NoteNumber(input.0.into()),
             yy: u7::from_int_lossy(input.1),
             zz: u7::from_int_lossy(input.2),
@@ -102,7 +102,7 @@ mod tests {
     //#[case("7f7f7f", (128, 255, 128))]
     #[case("7f7f7f", (127, 127, 127))]
     fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) {
-        let input = MtsBytes {
+        let input = MtsEntry {
             note_number: NoteNumber(input.0.into()),
             yy: u7::from_int_lossy(input.1),
             zz: u7::from_int_lossy(input.2),
