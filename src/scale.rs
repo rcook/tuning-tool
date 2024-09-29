@@ -1,5 +1,4 @@
 use crate::approx_eq::ApproxEq;
-use crate::consts::{DEFAULT_CENTS_EPSILON, OCTAVE_CENTS, UNISON_CENTS};
 use crate::interval::Interval;
 use crate::tuning::EquaveRatio;
 

@@ -1,5 +1,4 @@
 use crate::fs::read_to_string_lossy;
-use crate::interval::Interval;
 use crate::scale::Scale;
 use anyhow::{bail, Error, Result};
 use std::path::Path;
@@ -18,10 +17,12 @@ impl ScalaFile {
         read_to_string_lossy(path)?.parse()
     }
 
+    #[allow(unused)]
     pub(crate) const fn file_name(&self) -> &Option<String> {
         &self.file_name
     }
 
+    #[allow(unused)]
     pub(crate) fn description(&self) -> &str {
         self.description.as_str()
     }
@@ -106,7 +107,6 @@ impl FromStr for ScalaFile {
 
 #[cfg(test)]
 mod tests {
-    use crate::scale::Scale;
     use crate::{resources::RESOURCE_DIR, scala_file::ScalaFile};
     use anyhow::{anyhow, Result};
     use std::{borrow::Borrow, ffi::OsStr};

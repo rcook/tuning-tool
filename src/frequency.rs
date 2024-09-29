@@ -10,15 +10,16 @@ pub(crate) struct Frequency(pub(crate) f64);
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);
-    pub(crate) const MIDDLE_C: Self = Self(261.625565f64);
     pub(crate) const MIN: Self = Self(8.175798915643707f64);
     pub(crate) const MAX: Self = Self(13289.656616f64);
 
     // c.f. frequencyToCentOffset
+    #[allow(unused)]
     pub(crate) fn to_cent_offset(&self) -> CentOffset {
         self.to_cent_offset_with_base_frequency(Self::A4)
     }
 
+    #[allow(unused)]
     pub(crate) fn to_cent_offset_with_base_frequency(
         &self,
         base_frequency: Frequency,
@@ -46,6 +47,7 @@ impl Frequency {
     }
 
     // c.f. ftom
+    #[allow(unused)]
     pub(crate) fn to_note_number(&self) -> (NoteNumber, CentOffset) {
         let semitones = self.semitones_raw();
         let note_number = semitones.0.round();

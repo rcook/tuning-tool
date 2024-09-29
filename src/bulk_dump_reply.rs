@@ -1,13 +1,12 @@
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
-    MIDI_TUNING, SYSEX, U7_ZERO, UNIVERSAL_NON_REAL_TIME,
+    MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset_name::PresetName;
-use crate::string_extras::StringExtras;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use midly::num::u7;
 use std::io::{Bytes, Read};
 
@@ -67,18 +66,22 @@ impl BulkDumpReply {
         })
     }
 
+    #[allow(unused)]
     pub(crate) const fn device_id(&self) -> u7 {
         self.device_id
     }
 
+    #[allow(unused)]
     pub(crate) const fn preset(&self) -> u7 {
         self.preset
     }
 
+    #[allow(unused)]
     pub(crate) fn name(&self) -> &PresetName {
         &self.name
     }
 
+    #[allow(unused)]
     pub(crate) fn entries(&self) -> &MtsEntries {
         &self.entries
     }

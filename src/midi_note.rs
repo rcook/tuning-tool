@@ -62,7 +62,6 @@ mod tests {
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use anyhow::Result;
-    use midly::num::u7;
 
     #[test]
     fn basics() {

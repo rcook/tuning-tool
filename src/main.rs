@@ -1,5 +1,4 @@
 #![allow(clippy::wrong_self_convention)]
-#![allow(unused)]
 
 mod approx_eq;
 mod args;

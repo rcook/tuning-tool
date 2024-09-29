@@ -19,6 +19,7 @@ impl Interval {
         Self(Inner::Ratio(BigRational::one()))
     }
 
+    #[allow(unused)]
     pub(crate) fn as_cents(&self) -> Option<&Decimal> {
         match &self.0 {
             Inner::Cents(value) => Some(value),
@@ -26,6 +27,7 @@ impl Interval {
         }
     }
 
+    #[allow(unused)]
     pub(crate) fn as_ratio(&self) -> Option<&BigRational> {
         match &self.0 {
             Inner::Ratio(value) => Some(value),
@@ -47,6 +49,7 @@ impl Interval {
         }
     }
 
+    #[allow(unused)]
     pub(crate) fn semitones(&self) -> Semitones {
         self.cents() / 100f64
     }

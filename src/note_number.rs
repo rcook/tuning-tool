@@ -8,6 +8,7 @@ impl NoteNumber {
     pub(crate) const A4: Self = Self(69);
 
     // c.f. mtof
+    #[allow(unused)]
     pub(crate) fn to_frequency(&self) -> Frequency {
         Semitones(self.0.into()).to_frequency()
     }

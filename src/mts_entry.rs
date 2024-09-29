@@ -13,6 +13,7 @@ pub(crate) struct MtsEntry {
 
 impl MtsEntry {
     // c.f. mtsBytesToMts
+    #[allow(unused)]
     pub(crate) fn to_semitones(&self) -> Semitones {
         let msb = if self.yy > 0x7f {
             0x7f
@@ -39,6 +40,7 @@ impl MtsEntry {
     }
 
     // c.f. mtsBytesToFrequency
+    #[allow(unused)]
     pub(crate) fn to_frequency(&self) -> Frequency {
         let mts = self.to_semitones();
         println!("mts={:?}", mts.0);
@@ -47,6 +49,7 @@ impl MtsEntry {
     }
 
     // c.f. mtsBytesToHex
+    #[allow(unused)]
     pub(crate) fn to_hex(&self) -> String {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",

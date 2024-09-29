@@ -51,8 +51,6 @@ mod tests {
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
     use crate::scala_file::ScalaFile;
-    use crate::scale::Scale;
-    use crate::tuning::EquaveRatio;
     use crate::tuning::Tuning;
     use anyhow::{anyhow, Result};
     use midly::num::u7;

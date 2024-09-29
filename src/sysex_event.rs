@@ -1,9 +1,7 @@
 use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
-use crate::hex_dump::{hex_dump, HexDumpOptionsBuilder};
+use crate::hex_dump::hex_dump;
 use crate::string_extras::StringExtras;
-use anyhow::Result;
-use core::str;
-use midly::num::{u28, u7};
+use midly::num::u28;
 use midly::{Smf, TrackEventKind};
 use std::slice::Iter;
 
