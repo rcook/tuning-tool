@@ -10,6 +10,6 @@ pub(crate) fn run() -> Result<()> {
     //crate::examples::enumerate_midi_outputs()?;
     //crate::examples::play_note()?;
     //crate::examples::send_tuning_sysex()?;
-    crate::examples::send_note_change()?;
+    crate::examples::send_tuning_demo()?;
     Ok(())
 }

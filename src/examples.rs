@@ -6,21 +6,21 @@ use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
+use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
-use crate::test_util::{read_test_scala_file, read_test_syx_file};
+use crate::test_util::read_test_scala_file;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
+use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
-use std::io::Read;
-use std::iter::zip;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -241,7 +241,28 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn send_note_change() -> Result<()> {
+pub(crate) fn send_tuning_demo() -> Result<()> {
+    send_tuning()
+}
+
+fn send_tuning() -> Result<()> {
+    fn make_messages(
+        device_id: u7,
+        preset: u7,
+        entries: &[NoteChangeEntry],
+    ) -> Result<Vec<Vec<u8>>> {
+        let mut messages = Vec::new();
+        for chunk in entries.chunks(64) {
+            let note_change = NoteChange::new(device_id, preset, &chunk)?;
+            let vec = note_change.to_vec()?;
+            let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
+            let mut buffer = Vec::new();
+            event.write_std(&mut buffer)?;
+            messages.push(buffer);
+        }
+        Ok(messages)
+    }
+
     let scala_file = read_test_scala_file()?;
     let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
@@ -257,18 +278,10 @@ pub(crate) fn send_note_change() -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?;
 
-    let ref_reply =
-        BulkDumpReply::from_bytes(read_test_syx_file("syx/carlos_super_440.syx")?.bytes())?;
-
-    for (m, e) in zip(ref_reply.entries(), entries) {
-        let m_hex = m.to_hex();
-        let e_hex = e.mts.to_hex();
-        if m_hex == e_hex {
-            println!("{kk}: {m_hex}", kk = e.kk);
-        } else {
-            println!("{kk}: {m_hex} vs {e_hex}", kk = e.kk);
-        }
+    let device_id = U7_ZERO;
+    let preset = u7::from_int_lossy(8);
+    for message in make_messages(device_id, preset, &entries)? {
+        println!("{}", to_hex_dump(&message, None)?);
     }
-
     Ok(())
 }
