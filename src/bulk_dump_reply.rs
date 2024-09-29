@@ -119,8 +119,8 @@ impl BulkDumpReply {
                 let zz = read_u7!(iter);
                 Ok(MtsBytes {
                     note_number: NoteNumber(xx.as_int() as i32),
-                    yy: yy.as_int(),
-                    zz: zz.as_int(),
+                    yy,
+                    zz,
                 })
             })
             .collect::<Result<Vec<_>>>()?

@@ -69,6 +69,7 @@ mod tests {
     use crate::mts_bytes::MtsBytes;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use midly::num::u7;
     use rstest::rstest;
 
     #[test]
@@ -147,8 +148,8 @@ mod tests {
         let input = Frequency(input);
         let expected = MtsBytes {
             note_number: NoteNumber(expected.0.into()),
-            yy: expected.1,
-            zz: expected.2,
+            yy: u7::from_int_lossy(expected.1),
+            zz: u7::from_int_lossy(expected.2),
         };
         assert_eq!(expected, input.to_mts_bytes())
     }
