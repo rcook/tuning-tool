@@ -147,8 +147,8 @@ mod tests {
         let input = Frequency(input);
         let expected = MtsBytes {
             note_number: NoteNumber(expected.0.into()),
-            yy: expected.1.into(),
-            zz: expected.2.into(),
+            yy: expected.1,
+            zz: expected.2,
         };
         assert_eq!(expected, input.to_mts_bytes())
     }

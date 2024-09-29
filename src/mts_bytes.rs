@@ -81,8 +81,8 @@ mod tests {
     fn to_frequency(#[case] expected: f64, #[case] input: (u8, u8, u8)) {
         let input = MtsBytes {
             note_number: NoteNumber(input.0.into()),
-            yy: input.1.into(),
-            zz: input.2.into(),
+            yy: input.1,
+            zz: input.2,
         };
         let expected = Frequency(expected);
         assert_eq!(expected.0, input.to_frequency().0);
@@ -98,8 +98,8 @@ mod tests {
     fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) {
         let input = MtsBytes {
             note_number: NoteNumber(input.0.into()),
-            yy: input.1.into(),
-            zz: input.2.into(),
+            yy: input.1,
+            zz: input.2,
         };
         assert_eq!(expected, input.to_hex());
     }

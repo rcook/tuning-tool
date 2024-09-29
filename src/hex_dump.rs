@@ -1,6 +1,6 @@
-use std::default;
-
 use derive_builder::Builder;
+use std::default;
+use std::ops::Rem;
 
 #[derive(Builder, Default)]
 #[builder(default)]
@@ -14,17 +14,19 @@ pub(crate) fn hex_dump(bytes: &[u8]) {
 
 pub(crate) fn hex_dump_with_options(bytes: &[u8], options: &HexDumpOptions) {
     let columns = options.columns.unwrap_or(32);
-    let mut i = 0;
-    let n = bytes.len();
-    while i < n {
-        let bound = n.min(i + columns);
-        for j in i..bound {
-            if j > i {
-                print!(" ");
-            }
-            print!("{byte:02X}", byte = bytes[j])
+
+    for (i, b) in bytes.iter().enumerate() {
+        let column = i.rem(columns);
+        if column > 0 {
+            print!(" ");
         }
+        print!("{b:02X}");
+        if column == columns - 1 {
+            println!();
+        }
+    }
+
+    if bytes.len().rem(columns) > 0 {
         println!();
-        i += columns;
     }
 }

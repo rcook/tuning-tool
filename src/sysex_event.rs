@@ -45,7 +45,7 @@ impl<'a> SysExEvent<'a> {
 
     pub(crate) fn dump(&self) {
         println!("SysEx: delta {delta:08X}", delta = u32::from(self.delta));
-        hex_dump(&self.data);
+        hex_dump(self.data);
     }
 
     pub(crate) fn decode(&self) {
