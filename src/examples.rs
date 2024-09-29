@@ -245,15 +245,12 @@ pub(crate) fn send_note_change() -> Result<()> {
         .ok_or_else(|| anyhow!("Could not convert to string"))?
         .parse::<ScalaFile>()?;
 
-    //let base_note_number = NoteNumber::A4;
-    //let base_frequency = base_note_number.to_frequency();
-    let base_note_number = NoteNumber::ZERO;
+    let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
     for (i, f) in calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
         .iter()
         .enumerate()
     {
-        //println!("{i}: {f:.03} Hz", f = f.0);
         println!("{f}f64,", f = f.0)
     }
 

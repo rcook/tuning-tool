@@ -11,24 +11,39 @@ pub(crate) type Frequencies = [Frequency; 128];
 
 pub(crate) fn calculate_frequencies(
     scale: &Scale,
-    _base_note_number: NoteNumber,
+    base_note_number: NoteNumber,
     base_frequency: Frequency,
 ) -> Frequencies {
-    let equave_ratio = scale.equave_ratio();
-    assert_eq!(2f64, equave_ratio.0); // TBD: Haven't tested with anything other than octave-repeating scales!
-    let scale_size = scale.intervals().len();
-    let unison = Interval::unison();
-    let intervals = once(&unison).chain(scale.intervals().iter().take(scale_size - 1));
+    let start = 0f64;
+    let end = 128f64;
+    let scale_size = scale.intervals().len() as f64;
+    let equave_ratio = scale.equave_ratio().0;
 
-    let mut reference_frequency = base_frequency;
-    let mut frequencies = [Frequency(0f64); 128];
-    for (i, interval) in zip(0..=127, intervals.cycle()) {
-        if i > 0 && i.rem(scale_size).is_zero() {
-            reference_frequency = Frequency(reference_frequency.0 * equave_ratio.0);
+    // Deal with implicit 1/1 and centre on base note number
+    let base = base_note_number.0.as_int() as f64;
+    let low = start - 1f64 - base + 1f64;
+    let high = end - 1f64 - base + 1f64;
+    let numEquaves = (low / scale_size).floor();
+    let mut referenceFrequency = base_frequency.0 * equave_ratio.powf(numEquaves);
+    let mut result = Vec::new();
+
+    let unison = Interval::unison();
+    let intervals = once(&unison)
+        .chain(scale.intervals().iter().take(scale.intervals().len() - 1))
+        .collect::<Vec<_>>();
+
+    let index = (low as i32 - numEquaves as i32 * scale_size as i32);
+    assert!(index >= 0);
+    let mut index = index as usize;
+    for _ in start as usize..end as usize {
+        result.push(Frequency(referenceFrequency * intervals[index].to_f64()));
+        index += 1;
+        if index >= scale.interval_count() {
+            index -= scale.interval_count();
+            referenceFrequency *= equave_ratio;
         }
-        frequencies[i] = Frequency(reference_frequency.0 * interval.to_f64());
     }
-    frequencies
+    result.try_into().expect("TBD")
 }
 
 #[cfg(test)]
@@ -198,15 +213,148 @@ mod tests {
             12558.027134428734f64,
         ];
 
-        let (_, scala_file) = read_test_data()?;
-        let scale = scala_file.scale();
-        let frequencies = calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIDI_MIN);
+        check_frequencies(&EXPECTED_FREQUENCIES, NoteNumber::ZERO, Frequency::MIDI_MIN)?;
+        Ok(())
+    }
 
-        assert_eq!(EXPECTED_FREQUENCIES.len(), frequencies.len());
-        for (expected, actual) in zip(EXPECTED_FREQUENCIES, frequencies) {
-            assert_eq!(expected, actual.0)
-        }
+    #[test]
+    fn base_note_number_69() -> Result<()> {
+        const EXPECTED_FREQUENCIES: [f64; 128] = [
+            8.25f64,
+            8.59375f64,
+            9.166666666666666f64,
+            9.453125f64,
+            10.3125f64,
+            11.171875f64,
+            11.458333333333334f64,
+            12.03125f64,
+            12.890625f64,
+            13.75f64,
+            14.609375f64,
+            15.46875f64,
+            16.5f64,
+            17.1875f64,
+            18.333333333333332f64,
+            18.90625f64,
+            20.625f64,
+            22.34375f64,
+            22.916666666666668f64,
+            24.0625f64,
+            25.78125f64,
+            27.5f64,
+            29.21875f64,
+            30.9375f64,
+            33f64,
+            34.375f64,
+            36.666666666666664f64,
+            37.8125f64,
+            41.25f64,
+            44.6875f64,
+            45.833333333333336f64,
+            48.125f64,
+            51.5625f64,
+            55f64,
+            58.4375f64,
+            61.875f64,
+            66f64,
+            68.75f64,
+            73.33333333333333f64,
+            75.625f64,
+            82.5f64,
+            89.375f64,
+            91.66666666666667f64,
+            96.25f64,
+            103.125f64,
+            110f64,
+            116.875f64,
+            123.75f64,
+            132f64,
+            137.5f64,
+            146.66666666666666f64,
+            151.25f64,
+            165f64,
+            178.75f64,
+            183.33333333333334f64,
+            192.5f64,
+            206.25f64,
+            220f64,
+            233.75f64,
+            247.5f64,
+            264f64,
+            275f64,
+            293.3333333333333f64,
+            302.5f64,
+            330f64,
+            357.5f64,
+            366.6666666666667f64,
+            385f64,
+            412.5f64,
+            440f64,
+            467.5f64,
+            495f64,
+            528f64,
+            550f64,
+            586.6666666666666f64,
+            605f64,
+            660f64,
+            715f64,
+            733.3333333333334f64,
+            770f64,
+            825f64,
+            880f64,
+            935f64,
+            990f64,
+            1056f64,
+            1100f64,
+            1173.3333333333333f64,
+            1210f64,
+            1320f64,
+            1430f64,
+            1466.6666666666667f64,
+            1540f64,
+            1650f64,
+            1760f64,
+            1870f64,
+            1980f64,
+            2112f64,
+            2200f64,
+            2346.6666666666665f64,
+            2420f64,
+            2640f64,
+            2860f64,
+            2933.3333333333335f64,
+            3080f64,
+            3300f64,
+            3520f64,
+            3740f64,
+            3960f64,
+            4224f64,
+            4400f64,
+            4693.333333333333f64,
+            4840f64,
+            5280f64,
+            5720f64,
+            5866.666666666667f64,
+            6160f64,
+            6600f64,
+            7040f64,
+            7480f64,
+            7920f64,
+            8448f64,
+            8800f64,
+            9386.666666666666f64,
+            9680f64,
+            10560f64,
+            11440f64,
+            11733.333333333334f64,
+            12320f64,
+        ];
 
+        check_frequencies(
+            &EXPECTED_FREQUENCIES,
+            NoteNumber::A4,
+            NoteNumber::A4.to_frequency(),
+        )?;
         Ok(())
     }
 
@@ -224,5 +372,22 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not convert to string"))?;
         let scala_file = s.parse::<ScalaFile>()?;
         Ok((ref_bytes, scala_file))
+    }
+
+    fn check_frequencies(
+        expected_frequencies: &[f64],
+        base_note_number: NoteNumber,
+        base_frequency: Frequency,
+    ) -> Result<()> {
+        let (_, scala_file) = read_test_data()?;
+        let scale = scala_file.scale();
+        let frequencies = calculate_frequencies(scale, base_note_number, base_frequency);
+
+        assert_eq!(expected_frequencies.len(), frequencies.len());
+        for (expected, actual) in zip(expected_frequencies, frequencies) {
+            assert_eq!(*expected, actual.0)
+        }
+
+        Ok(())
     }
 }
