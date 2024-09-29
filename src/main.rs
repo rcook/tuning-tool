@@ -9,6 +9,7 @@ mod checksum_calculator;
 mod cli;
 mod consts;
 mod dump_sysex_file;
+mod equave_ratio;
 mod examples;
 mod frequency;
 mod fs;

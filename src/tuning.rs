@@ -9,8 +9,6 @@ use std::ops::Rem;
 
 pub(crate) type Frequencies = [Frequency; 128];
 
-pub(crate) struct EquaveRatio(pub(crate) f64);
-
 pub(crate) struct Tuning {
     _base_note_number: NoteNumber,
     base_frequency: Frequency,
@@ -24,7 +22,7 @@ impl Tuning {
         }
     }
 
-    pub(crate) fn get_frequencies(&self, scale: &Scale) -> Frequencies {
+    pub(crate) fn calculate_frequencies(&self, scale: &Scale) -> Frequencies {
         let equave_ratio = scale.equave_ratio();
         assert_eq!(2f64, equave_ratio.0); // TBD: Haven't tested with anything other than octave-repeating scales!
         let scale_size = scale.intervals().len();
@@ -73,7 +71,7 @@ mod tests {
         let scale = scala_file.scale();
 
         let frequencies = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-            .get_frequencies(scale)
+            .calculate_frequencies(scale)
             .map(|f| f.to_mts_entry());
         let reply = BulkDumpReply::new(
             U7_ZERO,

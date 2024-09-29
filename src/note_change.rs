@@ -119,7 +119,7 @@ mod tests {
             .parse::<ScalaFile>()?;
 
         let entries = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-            .get_frequencies(scala_file.scale())
+            .calculate_frequencies(scala_file.scale())
             .iter()
             .enumerate()
             .map(|(i, f)| {

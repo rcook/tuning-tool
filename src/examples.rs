@@ -226,7 +226,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let scale = scala_file.scale();
 
     let frequencies = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-        .get_frequencies(scale)
+        .calculate_frequencies(scale)
         .map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
         U7_ZERO,
@@ -257,7 +257,7 @@ pub(crate) fn send_note_change() -> Result<()> {
         .parse::<ScalaFile>()?;
 
     let entries = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-        .get_frequencies(scala_file.scale())
+        .calculate_frequencies(scala_file.scale())
         .iter()
         .enumerate()
         .map(|(i, f)| {
