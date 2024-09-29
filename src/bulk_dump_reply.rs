@@ -128,9 +128,9 @@ impl BulkDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for f in &frequencies {
-            _ = calc.update((f.note_number.0 as u8).try_into()?);
-            _ = calc.update(f.yy.try_into()?);
-            _ = calc.update(f.zz.try_into()?);
+            _ = calc.update((f.note_number.0 as u8).into());
+            _ = calc.update(f.yy);
+            _ = calc.update(f.zz);
         }
 
         let checksum = read_u7!(iter);
@@ -170,9 +170,9 @@ impl BulkDumpReply {
         }
 
         for f in &self.frequencies {
-            bytes.push(calc.update((f.note_number.0 as u8).try_into()?).as_int());
-            bytes.push(calc.update(f.yy.try_into()?).as_int());
-            bytes.push(calc.update(f.zz.try_into()?).as_int());
+            bytes.push(calc.update((f.note_number.0 as u8).into()).as_int());
+            bytes.push(calc.update(f.yy).as_int());
+            bytes.push(calc.update(f.zz).as_int());
         }
 
         bytes.push(
