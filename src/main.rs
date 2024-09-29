@@ -17,6 +17,8 @@ mod hex_dump;
 mod interval;
 mod midi_note;
 mod mts_entry;
+mod note_change;
+mod note_change_entry;
 mod note_number;
 mod num;
 mod preset_name;

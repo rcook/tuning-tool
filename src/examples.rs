@@ -6,6 +6,8 @@ use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequency::Frequency;
 use crate::hex_dump::hex_dump;
 use crate::midi_note::MidiNote;
+use crate::note_change::NoteChange;
+use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
@@ -240,7 +242,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     Ok(())
 }
 
-pub(crate) fn midi_messages() -> Result<()> {
+pub(crate) fn send_note_change() -> Result<()> {
     let scala_file = RESOURCE_DIR
         .get_file("scl/carlos_super.scl")
         .ok_or_else(|| anyhow!("Could not get scl file"))?
@@ -250,20 +252,25 @@ pub(crate) fn midi_messages() -> Result<()> {
 
     let entries = Tuning::new(NoteNumber(0), Frequency::MIN)
         .get_frequencies(scala_file.scale())
-        .map(|f| f.to_mts_entry());
+        .iter()
+        .enumerate()
+        .map(|(i, f)| {
+            Ok(NoteChangeEntry {
+                #[allow(clippy::unnecessary_fallible_conversions)]
+                kk: TryInto::<u8>::try_into(i)?.try_into()?,
+                mts: f.to_mts_entry(),
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
 
-    let reply = BulkDumpReply::new(
-        U7_ZERO,
-        u7::from_int_lossy(8),
-        "carlos_super.mid".parse()?,
-        entries,
-    )?;
-
-    let values = reply.to_vec()?;
-    let event = LiveEvent::Common(SystemCommon::SysEx(&values));
-    let mut buffer = Vec::new();
-    event.write_std(&mut buffer)?;
-    hex_dump(&buffer);
+    for chunk in entries.chunks(64) {
+        let message = NoteChange::new(U7_ZERO, u7::from_int_lossy(8), chunk)?;
+        let values = message.to_vec()?;
+        let event = LiveEvent::Common(SystemCommon::SysEx(&values));
+        let mut buffer = Vec::new();
+        event.write_std(&mut buffer)?;
+        hex_dump(&buffer);
+    }
 
     Ok(())
 }

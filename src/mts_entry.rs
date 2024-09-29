@@ -4,7 +4,7 @@ use crate::num::round_default_scale;
 use crate::semitones::Semitones;
 use midly::num::u7;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct MtsEntry {
     pub(crate) note_number: NoteNumber,
     pub(crate) yy: u7,
