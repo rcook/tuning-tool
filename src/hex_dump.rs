@@ -21,9 +21,9 @@ pub(crate) fn to_hex_dump(bytes: &[u8], columns: Option<usize>) -> Result<String
 
 #[allow(unused)]
 pub(crate) fn from_hex_dump(s: &str) -> Result<Vec<u8>> {
-    Ok(s.split_whitespace()
+    s.split_whitespace()
         .map(|t| u8::from_str_radix(t, 16).map_err(|e| anyhow!(e)))
-        .collect::<Result<Vec<_>>>()?)
+        .collect::<Result<Vec<_>>>()
 }
 
 #[cfg(test)]
