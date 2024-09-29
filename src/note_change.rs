@@ -56,7 +56,7 @@ impl NoteChange {
 
         for e in &self.entries {
             values.push(e.kk);
-            values.push((e.mts.note_number.0 as u8).into());
+            values.push(e.mts.note_number.0);
             values.push(e.mts.yy);
             values.push(e.mts.zz);
         }

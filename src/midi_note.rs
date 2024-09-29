@@ -96,8 +96,8 @@ mod tests {
 
     #[test]
     fn frequencies() -> Result<()> {
-        for i in 0..128 {
-            let note_number = NoteNumber(i as i32);
+        for i in 0..=127 {
+            let note_number = NoteNumber::new_lossy(i as u8);
             let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
             let midi_note = MidiNote::ALL[i];
             assert_eq!(note_number, midi_note.note_number());

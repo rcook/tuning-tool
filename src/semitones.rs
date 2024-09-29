@@ -13,7 +13,7 @@ impl Semitones {
     pub(crate) fn to_mts_entry(&self) -> MtsEntry {
         if self.0 <= 0f64 {
             return MtsEntry {
-                note_number: NoteNumber(0),
+                note_number: NoteNumber::ZERO,
                 yy: U7_ZERO,
                 zz: U7_ZERO,
             };
@@ -21,7 +21,7 @@ impl Semitones {
 
         if self.0 > 127.999878f64 {
             return MtsEntry {
-                note_number: NoteNumber(127),
+                note_number: NoteNumber::MAX,
                 yy: U7_MAX,
                 zz: u7::from_int_lossy(0x7e),
             };
@@ -33,14 +33,14 @@ impl Semitones {
         let yy = u7::from_int_lossy(((fine >> 7) & 0x7f) as u8);
         let zz = u7::from_int_lossy((fine & 0x7f) as u8);
         MtsEntry {
-            note_number: NoteNumber(note_number as i32),
+            note_number: NoteNumber::new_lossy(note_number as u8),
             yy,
             zz,
         }
     }
 
     pub(crate) fn to_frequency(&self) -> Frequency {
-        let temp: f64 = NoteNumber::A4.0.into();
+        let temp: f64 = NoteNumber::A4.0.as_int() as f64;
         Frequency(Frequency::A4.0 * 2f64.powf((self.0 - temp) / 12f64))
     }
 }

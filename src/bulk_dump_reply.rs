@@ -123,7 +123,7 @@ impl BulkDumpReply {
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
                 Ok(MtsEntry {
-                    note_number: NoteNumber(xx.as_int() as i32),
+                    note_number: NoteNumber(xx),
                     yy,
                     zz,
                 })
@@ -133,7 +133,7 @@ impl BulkDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for e in &entries {
-            _ = calc.update((e.note_number.0 as u8).into());
+            _ = calc.update(e.note_number.0);
             _ = calc.update(e.yy);
             _ = calc.update(e.zz);
         }
@@ -166,7 +166,7 @@ impl BulkDumpReply {
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
         for f in &self.entries {
-            values.push(calc.update((f.note_number.0 as u8).into()));
+            values.push(calc.update(f.note_number.0));
             values.push(calc.update(f.yy));
             values.push(calc.update(f.zz));
         }

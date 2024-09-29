@@ -1,3 +1,4 @@
+use crate::consts::U7_MAX;
 use crate::frequency::Frequency;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
@@ -21,22 +22,14 @@ impl MtsEntry {
             self.yy.as_int()
         };
         let mut lsb = self.zz.as_int();
-        let note_number = if self.note_number.0 > 0x7f {
-            0x7f
-        } else {
-            self.note_number.0 as u8
-        };
+        let note_number = self.note_number.0;
 
-        if note_number == 0x7f {
-            if lsb >= 0x7f {
-                lsb = 0x7e;
-            }
-        } else if lsb > 0x7f {
-            lsb = 0x7f;
+        if note_number == U7_MAX && lsb == U7_MAX {
+            lsb = 0x7e;
         }
 
         let fine = (((msb as u16) << 7) + lsb as u16) as f64 / 0x4000 as f64;
-        Semitones(note_number as f64 + fine)
+        Semitones(note_number.as_int() as f64 + fine)
     }
 
     // c.f. mtsBytesToFrequency
@@ -53,7 +46,7 @@ impl MtsEntry {
     pub(crate) fn to_hex(&self) -> String {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",
-            xx = self.note_number.0.clamp(0, 127),
+            xx = self.note_number.0.as_int(),
             yy = self.yy.as_int(),
             zz = self.zz.as_int()
         )

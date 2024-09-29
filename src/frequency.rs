@@ -52,7 +52,10 @@ impl Frequency {
         let semitones = self.semitones_raw();
         let note_number = semitones.0.round();
         let cent_offset = (semitones.0 - note_number) * 100f64;
-        (NoteNumber(note_number as i32), CentOffset(cent_offset))
+        (
+            NoteNumber::new_lossy(note_number as u8),
+            CentOffset(cent_offset),
+        )
     }
 
     pub(crate) fn to_mts_entry(&self) -> MtsEntry {
@@ -60,7 +63,7 @@ impl Frequency {
     }
 
     fn semitones_raw(&self) -> Semitones {
-        Semitones((NoteNumber::A4.0 as f64) + 12f64 * (self.0 / Self::A4.0).log2())
+        Semitones((NoteNumber::A4.0.as_int() as f64) + 12f64 * (self.0 / Self::A4.0).log2())
     }
 }
 

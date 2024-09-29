@@ -72,7 +72,7 @@ mod tests {
 
         let scale = scala_file.scale();
 
-        let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
+        let frequencies = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
             .get_frequencies(scale)
             .map(|f| f.to_mts_entry());
         let reply = BulkDumpReply::new(

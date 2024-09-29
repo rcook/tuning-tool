@@ -227,7 +227,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
     let scale = scala_file.scale();
 
-    let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
+    let frequencies = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
         .get_frequencies(scale)
         .map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
@@ -258,7 +258,7 @@ pub(crate) fn send_note_change() -> Result<()> {
         .ok_or_else(|| anyhow!("Could not convert to string"))?
         .parse::<ScalaFile>()?;
 
-    let entries = Tuning::new(NoteNumber(0), Frequency::MIN)
+    let entries = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
         .get_frequencies(scala_file.scale())
         .iter()
         .enumerate()
