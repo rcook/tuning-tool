@@ -25,7 +25,9 @@ impl NoteNumber {
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
+    use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
+    use midly::num::u7;
 
     #[test]
     fn to_frequency() {
@@ -33,5 +35,15 @@ mod tests {
             .to_frequency()
             .0
             .approx_eq_with_epsilon(261.625565, 0.000001f64));
+    }
+
+    #[test]
+    fn all_note_numbers() {
+        for i in 0..=127 {
+            let note_number = NoteNumber(u7::from_int_lossy(i));
+            let frequency = note_number.to_frequency();
+            let hardcoded_frequency = MidiNote::ALL[i as usize].frequency();
+            assert_eq!(hardcoded_frequency, frequency);
+        }
     }
 }
