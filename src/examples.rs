@@ -3,6 +3,7 @@ use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
+use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
@@ -12,7 +13,6 @@ use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
-use crate::tuning::Tuning;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
@@ -225,9 +225,8 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
     let scale = scala_file.scale();
 
-    let frequencies = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-        .calculate_frequencies(scale)
-        .map(|f| f.to_mts_entry());
+    let frequencies =
+        calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIN).map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
@@ -256,8 +255,7 @@ pub(crate) fn send_note_change() -> Result<()> {
         .ok_or_else(|| anyhow!("Could not convert to string"))?
         .parse::<ScalaFile>()?;
 
-    let entries = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-        .calculate_frequencies(scala_file.scale())
+    let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIN)
         .iter()
         .enumerate()
         .map(|(i, f)| {

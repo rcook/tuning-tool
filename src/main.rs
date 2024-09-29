@@ -11,6 +11,7 @@ mod consts;
 mod dump_sysex_file;
 mod equave_ratio;
 mod examples;
+mod frequencies;
 mod frequency;
 mod fs;
 mod hex_dump;
@@ -30,7 +31,6 @@ mod scale;
 mod semitones;
 mod string_extras;
 mod sysex_event;
-mod tuning;
 mod types;
 
 fn main() -> anyhow::Result<()> {

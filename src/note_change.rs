@@ -70,6 +70,7 @@ impl NoteChange {
 #[cfg(test)]
 mod tests {
     use crate::consts::U7_ZERO;
+    use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
     use crate::note_change::NoteChange;
@@ -77,7 +78,6 @@ mod tests {
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
     use crate::scala_file::ScalaFile;
-    use crate::tuning::Tuning;
     use anyhow::{anyhow, Result};
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;
@@ -118,8 +118,7 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not convert to string"))?
             .parse::<ScalaFile>()?;
 
-        let entries = Tuning::new(NoteNumber::ZERO, Frequency::MIN)
-            .calculate_frequencies(scala_file.scale())
+        let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIN)
             .iter()
             .enumerate()
             .map(|(i, f)| {
