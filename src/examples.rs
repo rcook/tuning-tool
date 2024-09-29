@@ -241,35 +241,22 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 }
 
 pub(crate) fn midi_messages() -> Result<()> {
-    fn note_on(channel: u8, key: u8) {
-        let ev = LiveEvent::Midi {
-            channel: channel.into(),
-            message: MidiMessage::NoteOn {
-                key: key.into(),
-                vel: 127.into(),
-            },
-        };
-        let mut buf = Vec::new();
-        ev.write(&mut buf).unwrap();
-        hex_dump(&buf);
-    }
-
-    let scl_file = RESOURCE_DIR
+    let scala_file = RESOURCE_DIR
         .get_file("scl/carlos_super.scl")
-        .ok_or_else(|| anyhow!("Could not get scl file"))?;
-    let s = scl_file
+        .ok_or_else(|| anyhow!("Could not get scl file"))?
         .contents_utf8()
-        .ok_or_else(|| anyhow!("Could not convert to string"))?;
-    let scala_file = s.parse::<ScalaFile>()?;
-    let scale = scala_file.scale();
-    let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
-        .get_frequencies(scale)
+        .ok_or_else(|| anyhow!("Could not convert to string"))?
+        .parse::<ScalaFile>()?;
+
+    let entries = Tuning::new(NoteNumber(0), Frequency::MIN)
+        .get_frequencies(scala_file.scale())
         .map(|f| f.to_mts_entry());
+
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
         "carlos_super.mid".parse()?,
-        frequencies,
+        entries,
     )?;
 
     let values = reply.to_vec()?;
