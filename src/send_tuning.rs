@@ -3,7 +3,7 @@ use crate::hex_dump::to_hex_dump;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
-use crate::scala_file::ScalaFile;
+use crate::scl_file::SclFile;
 use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
@@ -29,7 +29,7 @@ pub(crate) fn send_tuning(
     device_id: u7,
     preset: u7,
 ) -> Result<()> {
-    let scala_file = ScalaFile::read(scl_path)?;
+    let scala_file = SclFile::read(scl_path)?;
     let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
     let entries = calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)

@@ -51,7 +51,7 @@ mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::note_number::NoteNumber;
-    use crate::test_util::read_test_scala_file;
+    use crate::test_util::read_test_scl_file;
     use anyhow::Result;
     use std::iter::zip;
 
@@ -338,7 +338,7 @@ mod tests {
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scala_file()?;
+        let scala_file = read_test_scl_file()?;
         let scale = scala_file.scale();
         let frequencies = calculate_frequencies(scale, base_note_number, base_frequency);
 

@@ -6,13 +6,13 @@ use std::result::Result as StdResult;
 use std::str::FromStr;
 
 #[derive(Debug)]
-pub(crate) struct ScalaFile {
+pub(crate) struct SclFile {
     file_name: Option<String>,
     description: String,
     scale: Scale,
 }
 
-impl ScalaFile {
+impl SclFile {
     pub(crate) fn read(path: &Path) -> Result<Self> {
         read_to_string_lossy(path)?.parse()
     }
@@ -48,7 +48,7 @@ impl ScalaFile {
     }
 }
 
-impl FromStr for ScalaFile {
+impl FromStr for SclFile {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
@@ -105,14 +105,14 @@ impl FromStr for ScalaFile {
 
 #[cfg(test)]
 mod tests {
-    use crate::{resources::RESOURCE_DIR, scala_file::ScalaFile};
+    use crate::{resources::RESOURCE_DIR, scl_file::SclFile};
     use anyhow::{anyhow, Result};
     use std::{borrow::Borrow, ffi::OsStr};
 
     #[test]
     fn scala_archive() -> Result<()> {
         fn test_scala_file(s: &str) -> Result<()> {
-            let scala_file = s.parse::<ScalaFile>()?;
+            let scala_file = s.parse::<SclFile>()?;
             let file_name = scala_file.file_name();
             assert!(file_name.is_some() || file_name.is_none());
             Ok(())

@@ -197,7 +197,7 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
-    use crate::test_util::read_test_scala_file;
+    use crate::test_util::read_test_scl_file;
     use crate::test_util::read_test_syx_file;
     use anyhow::{anyhow, Result};
     use midly::num::u7;
@@ -249,7 +249,7 @@ mod tests {
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scala_file()?;
+        let scala_file = read_test_scl_file()?;
         let scale = scala_file.scale();
         let entries = calculate_frequencies(scale, base_note_number, base_frequency)
             .map(|f| f.to_mts_entry());

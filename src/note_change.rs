@@ -79,7 +79,7 @@ mod tests {
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
-    use crate::scala_file::ScalaFile;
+    use crate::scl_file::SclFile;
     use anyhow::{anyhow, Result};
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;
@@ -118,7 +118,7 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not get scl file"))?
             .contents_utf8()
             .ok_or_else(|| anyhow!("Could not convert to string"))?
-            .parse::<ScalaFile>()?;
+            .parse::<SclFile>()?;
 
         let entries =
             calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)

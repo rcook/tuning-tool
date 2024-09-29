@@ -8,7 +8,7 @@ use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
-use crate::scala_file::ScalaFile;
+use crate::scl_file::SclFile;
 use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
@@ -62,7 +62,7 @@ pub(crate) fn cli(start_path: &Path) -> Result<()> {
     fn dump(path: &Path) -> Result<()> {
         match path.extension().and_then(OsStr::to_str) {
             Some("scl") => {
-                ScalaFile::read(path)?.dump();
+                SclFile::read(path)?.dump();
                 Ok(())
             }
             Some("syx") => dump_sysex_file(path),
@@ -211,7 +211,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let s = scl_file
         .contents_utf8()
         .ok_or_else(|| anyhow!("Could not convert to string"))?;
-    let scala_file = s.parse::<ScalaFile>()?;
+    let scala_file = s.parse::<SclFile>()?;
 
     let scale = scala_file.scale();
 
