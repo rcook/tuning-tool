@@ -7,7 +7,7 @@ use crate::mts_bytes::MtsBytes;
 use crate::note_number::NoteNumber;
 use crate::preset_name::PresetName;
 use crate::string_extras::StringExtras;
-use anyhow::{bail, Result};
+use anyhow::{anyhow, bail, Result};
 use midly::num::u7;
 use std::io::{Bytes, Read};
 
@@ -147,47 +147,38 @@ impl BulkDumpReply {
         })
     }
 
-    pub fn to_bytes(&self) -> Result<Vec<u8>> {
-        self.to_bytes_with_option(true)
-    }
-
-    pub fn to_bytes_with_option(&self, include_start_and_end_bytes: bool) -> Result<Vec<u8>> {
+    pub(crate) fn to_vec(&self) -> Result<Vec<u7>> {
         let mut calc = ChecksumCalculator::new();
-        let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);
-        if include_start_and_end_bytes {
-            bytes.push(SYSEX);
-        }
-        bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME).as_int());
-        bytes.push(calc.update(self.device_id).as_int());
-        bytes.push(calc.update(MIDI_TUNING).as_int());
-        bytes.push(calc.update(BULK_DUMP_REPLY).as_int());
-        bytes.push(calc.update(self.preset).as_int());
+        let mut values = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE + 2);
+        values.push(calc.update(UNIVERSAL_NON_REAL_TIME));
+        values.push(calc.update(self.device_id));
+        values.push(calc.update(MIDI_TUNING));
+        values.push(calc.update(BULK_DUMP_REPLY));
+        values.push(calc.update(self.preset));
 
-        for ch in self.name.as_array() {
-            bytes.push(calc.update(*ch).as_int());
-        }
+        values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
         for f in &self.frequencies {
-            bytes.push(calc.update((f.note_number.0 as u8).into()).as_int());
-            bytes.push(calc.update(f.yy).as_int());
-            bytes.push(calc.update(f.zz).as_int());
+            values.push(calc.update((f.note_number.0 as u8).into()));
+            values.push(calc.update(f.yy));
+            values.push(calc.update(f.zz));
         }
 
-        bytes.push(
-            calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?
-                .as_int(),
-        );
+        values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
 
-        if include_start_and_end_bytes {
-            bytes.push(EOX);
-        }
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, values.len());
 
-        if include_start_and_end_bytes {
-            assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
-        } else {
-            assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
-        }
+        Ok(values)
+    }
 
+    pub(crate) fn to_bytes_with_start_and_end(&self) -> Result<Vec<u8>> {
+        let vec = self.to_vec()?;
+        let inner_bytes = u7::slice_as_int(&vec);
+        let mut bytes = Vec::with_capacity(inner_bytes.len() + 2);
+        bytes.push(SYSEX);
+        bytes.extend_from_slice(inner_bytes);
+        bytes.push(EOX);
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         Ok(bytes)
     }
 }
@@ -208,7 +199,7 @@ mod tests {
             .contents();
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
-        let output = reply.to_bytes()?;
+        let output = reply.to_bytes_with_start_and_end()?;
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, output.len());
         assert_eq!(bytes, output);
         Ok(())

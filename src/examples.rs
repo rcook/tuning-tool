@@ -227,7 +227,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
         "carlos_super.mid".parse()?,
         frequencies,
     )?;
-    let bytes = reply.to_bytes()?;
+    let bytes = reply.to_bytes_with_start_and_end()?;
 
     let midi_output = MidiOutput::new("MIDI output")?;
     let Some(port) = get_output_port(&midi_output, "MidiView")? else {
@@ -272,10 +272,8 @@ pub(crate) fn midi_messages() -> Result<()> {
         frequencies,
     )?;
 
-    let bytes = reply.to_bytes_with_option(false)?;
-    let blah = u7::slice_try_from_int(&bytes).expect("Must be valid u7 slice");
-
-    let event = LiveEvent::Common(SystemCommon::SysEx(blah));
+    let values = reply.to_vec()?;
+    let event = LiveEvent::Common(SystemCommon::SysEx(&values));
     let mut buffer = Vec::new();
     event.write_std(&mut buffer)?;
     hex_dump(&buffer);

@@ -84,7 +84,7 @@ mod tests {
             frequencies,
         )?;
 
-        let bytes = reply.to_bytes()?;
+        let bytes = reply.to_bytes_with_start_and_end()?;
         assert_eq!(ref_bytes, bytes);
         Ok(())
     }

@@ -21,10 +21,11 @@ impl ChecksumCalculator {
         value
     }
 
-    pub(crate) fn update_from_slice(&mut self, values: &[u7]) {
+    pub(crate) fn update_from_slice<'a>(&mut self, values: &'a [u7]) -> &'a [u7] {
         for value in values {
             _ = self.update(*value);
         }
+        values
     }
 
     pub(crate) fn verify(self, expected_checksum: u7, expected_count: Option<usize>) -> Result<()> {
