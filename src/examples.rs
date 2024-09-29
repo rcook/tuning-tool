@@ -215,8 +215,8 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
     let scale = scala_file.scale();
 
-    let frequencies =
-        calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIN).map(|f| f.to_mts_entry());
+    let frequencies = calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIDI_MIN)
+        .map(|f| f.to_mts_entry());
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
@@ -245,13 +245,9 @@ pub(crate) fn send_note_change() -> Result<()> {
         .ok_or_else(|| anyhow!("Could not convert to string"))?
         .parse::<ScalaFile>()?;
 
-    for (i, f) in calculate_frequencies(
-        scala_file.scale(),
-        NoteNumber::ZERO,
-        MidiNote::ALL[0].frequency(),
-    )
-    .iter()
-    .enumerate()
+    for (i, f) in calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)
+        .iter()
+        .enumerate()
     {
         println!("{i}: {f:.03} Hz", f = f.0);
     }

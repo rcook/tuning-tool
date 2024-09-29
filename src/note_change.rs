@@ -118,7 +118,7 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not convert to string"))?
             .parse::<ScalaFile>()?;
 
-        let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIN)
+        let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)
             .iter()
             .enumerate()
             .map(|(i, f)| {

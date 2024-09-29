@@ -1,4 +1,5 @@
 use crate::cent_offset::CentOffset;
+use crate::midi_note::MidiNote;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
@@ -10,8 +11,8 @@ pub(crate) struct Frequency(pub(crate) f64);
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);
-    pub(crate) const MIN: Self = Self(8.175798915643707f64);
-    pub(crate) const MAX: Self = Self(13289.656616f64);
+    pub(crate) const MIDI_MIN: Self = MidiNote::ALL[0].frequency();
+    pub(crate) const MIDI_MAX: Self = Self(13289.656616f64);
 
     // c.f. frequencyToCentOffset
     #[allow(unused)]
@@ -37,7 +38,7 @@ impl Frequency {
             return Semitones(0f64);
         }
 
-        if self.0 > Self::MAX.0 && !ignore_limit {
+        if self.0 > Self::MIDI_MAX.0 && !ignore_limit {
             return Semitones::MAX;
         }
 
