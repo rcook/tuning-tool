@@ -6,20 +6,21 @@ use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
-use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
 use crate::sysex_event::SysExEvent;
+use crate::test_util::{read_test_scala_file, read_test_syx_file};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
-use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
+use std::io::Read;
+use std::iter::zip;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
@@ -241,16 +242,9 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
 #[allow(unused)]
 pub(crate) fn send_note_change() -> Result<()> {
-    let scala_file = RESOURCE_DIR
-        .get_file("scl/carlos_super.scl")
-        .ok_or_else(|| anyhow!("Could not get scl file"))?
-        .contents_utf8()
-        .ok_or_else(|| anyhow!("Could not convert to string"))?
-        .parse::<ScalaFile>()?;
-
+    let scala_file = read_test_scala_file()?;
     let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
-
     let entries = calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
         .iter()
         .enumerate()
@@ -263,13 +257,17 @@ pub(crate) fn send_note_change() -> Result<()> {
         })
         .collect::<Result<Vec<_>>>()?;
 
-    for chunk in entries.chunks(64) {
-        let message = NoteChange::new(U7_ZERO, u7::from_int_lossy(8), chunk)?;
-        let values = message.to_vec()?;
-        let event = LiveEvent::Common(SystemCommon::SysEx(&values));
-        let mut buffer = Vec::new();
-        event.write_std(&mut buffer)?;
-        println!("{}", to_hex_dump(&buffer, None)?);
+    let ref_reply =
+        BulkDumpReply::from_bytes(read_test_syx_file("syx/carlos_super_440.syx")?.bytes())?;
+
+    for (m, e) in zip(ref_reply.entries(), entries) {
+        let m_hex = m.to_hex();
+        let e_hex = e.mts.to_hex();
+        if m_hex == e_hex {
+            println!("{kk}: {m_hex}", kk = e.kk);
+        } else {
+            println!("{kk}: {m_hex} vs {e_hex}", kk = e.kk);
+        }
     }
 
     Ok(())

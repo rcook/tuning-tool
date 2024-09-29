@@ -31,6 +31,7 @@ mod scale;
 mod semitones;
 mod string_extras;
 mod sysex_event;
+mod test_util;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

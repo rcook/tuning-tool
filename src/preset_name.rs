@@ -34,7 +34,7 @@ impl FromStr for PresetName {
         }
 
         let mut array = [U7_ZERO; Self::LEN];
-        array.copy_from_slice(slice);
+        array[0..slice.len()].copy_from_slice(slice);
         Ok(Self(array))
     }
 }

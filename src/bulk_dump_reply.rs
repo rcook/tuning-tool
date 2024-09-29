@@ -88,7 +88,6 @@ impl BulkDumpReply {
 }
 
 impl BulkDumpReply {
-    // https://midi.org/midi-tuning-updated-specification
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
         let mut calc = ChecksumCalculator::new();
 
@@ -165,16 +164,15 @@ impl BulkDumpReply {
 
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
-        for f in &self.entries {
-            values.push(calc.update(f.note_number.0));
-            values.push(calc.update(f.yy));
-            values.push(calc.update(f.zz));
+        for e in &self.entries {
+            values.push(calc.update(e.note_number.0));
+            values.push(calc.update(e.yy));
+            values.push(calc.update(e.zz));
         }
 
         values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
 
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, values.len());
-
         Ok(values)
     }
 
@@ -194,9 +192,17 @@ impl BulkDumpReply {
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+    use crate::consts::U7_ZERO;
+    use crate::frequencies::calculate_frequencies;
+    use crate::frequency::Frequency;
+    use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
+    use crate::test_util::read_test_scala_file;
+    use crate::test_util::read_test_syx_file;
     use anyhow::{anyhow, Result};
+    use midly::num::u7;
     use std::io::Read;
+    use std::path::Path;
 
     #[test]
     fn basics() -> Result<()> {
@@ -209,6 +215,49 @@ mod tests {
         let output = reply.to_bytes_with_start_and_end()?;
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, output.len());
         assert_eq!(bytes, output);
+        Ok(())
+    }
+
+    #[test]
+    fn base_note_number_0() -> Result<()> {
+        check_bytes(
+            "syx/carlos_super.syx",
+            u7::from_int_lossy(8),
+            "carlos_super.mid",
+            NoteNumber::ZERO,
+            Frequency::MIDI_MIN,
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn base_note_number_69() -> Result<()> {
+        check_bytes(
+            "syx/carlos_super_440.syx",
+            u7::from_int_lossy(0),
+            "carlos_super_a4 ",
+            NoteNumber::A4,
+            NoteNumber::A4.to_frequency(),
+        )?;
+        Ok(())
+    }
+
+    fn check_bytes<P: AsRef<Path>>(
+        expected_syx_path: P,
+        preset: u7,
+        name: &str,
+        base_note_number: NoteNumber,
+        base_frequency: Frequency,
+    ) -> Result<()> {
+        let scala_file = read_test_scala_file()?;
+        let scale = scala_file.scale();
+        let entries = calculate_frequencies(scale, base_note_number, base_frequency)
+            .map(|f| f.to_mts_entry());
+        let reply = BulkDumpReply::new(U7_ZERO, preset, name.parse()?, entries)?;
+
+        let ref_bytes = read_test_syx_file(expected_syx_path)?;
+        let bytes = reply.to_bytes_with_start_and_end()?;
+        assert_eq!(ref_bytes, bytes);
         Ok(())
     }
 }

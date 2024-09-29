@@ -48,36 +48,12 @@ pub(crate) fn calculate_frequencies(
 
 #[cfg(test)]
 mod tests {
-    use crate::bulk_dump_reply::BulkDumpReply;
-    use crate::consts::U7_ZERO;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::note_number::NoteNumber;
-    use crate::resources::RESOURCE_DIR;
-    use crate::scala_file::ScalaFile;
-    use anyhow::{anyhow, Result};
-    use midly::num::u7;
+    use crate::test_util::read_test_scala_file;
+    use anyhow::Result;
     use std::iter::zip;
-
-    #[test]
-    fn basics() -> Result<()> {
-        let (ref_bytes, scala_file) = read_test_data()?;
-        let scale = scala_file.scale();
-
-        let entries = calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIDI_MIN)
-            .map(|f| f.to_mts_entry());
-
-        let reply = BulkDumpReply::new(
-            U7_ZERO,
-            u7::from_int_lossy(8),
-            "carlos_super.mid".parse()?,
-            entries,
-        )?;
-
-        let bytes = reply.to_bytes_with_start_and_end()?;
-        assert_eq!(ref_bytes, bytes);
-        Ok(())
-    }
 
     #[test]
     fn base_note_number_0() -> Result<()> {
@@ -357,28 +333,12 @@ mod tests {
         Ok(())
     }
 
-    fn read_test_data() -> Result<(Vec<u8>, ScalaFile)> {
-        let ref_bytes = RESOURCE_DIR
-            .get_file("syx/carlos_super.syx")
-            .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-            .contents()
-            .to_vec();
-        let scl_file = RESOURCE_DIR
-            .get_file("scl/carlos_super.scl")
-            .ok_or_else(|| anyhow!("Could not get scl file"))?;
-        let s = scl_file
-            .contents_utf8()
-            .ok_or_else(|| anyhow!("Could not convert to string"))?;
-        let scala_file = s.parse::<ScalaFile>()?;
-        Ok((ref_bytes, scala_file))
-    }
-
     fn check_frequencies(
         expected_frequencies: &[f64],
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let (_, scala_file) = read_test_data()?;
+        let scala_file = read_test_scala_file()?;
         let scale = scala_file.scale();
         let frequencies = calculate_frequencies(scale, base_note_number, base_frequency);
 
