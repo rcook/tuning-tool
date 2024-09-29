@@ -37,7 +37,7 @@ impl Interval {
         }
     }
 
-    pub(crate) fn to_f64(&self) -> f64 {
+    pub(crate) fn as_f64(&self) -> f64 {
         match &self.0 {
             Inner::Cents(value) => value.to_f64().expect("Must be f64") / 1200f64,
             Inner::Ratio(value) => value.to_f64().expect("TBD"),

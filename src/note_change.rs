@@ -11,6 +11,7 @@ pub(crate) struct NoteChange {
 }
 
 impl NoteChange {
+    #[allow(unused)]
     pub(crate) fn new(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Result<Self> {
         if entries.len() > 127 {
             bail!("Too many note changes")
@@ -39,6 +40,7 @@ impl NoteChange {
 }
 
 impl NoteChange {
+    #[allow(unused)]
     pub(crate) fn to_vec(&self) -> Result<Vec<u7>> {
         let entry_count = self.entries.len();
         let message_len = 6 + entry_count * 4;
@@ -118,17 +120,18 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not convert to string"))?
             .parse::<ScalaFile>()?;
 
-        let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)
-            .iter()
-            .enumerate()
-            .map(|(i, f)| {
-                Ok(NoteChangeEntry {
-                    #[allow(clippy::unnecessary_fallible_conversions)]
-                    kk: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: f.to_mts_entry(),
+        let entries =
+            calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)
+                .iter()
+                .enumerate()
+                .map(|(i, f)| {
+                    Ok(NoteChangeEntry {
+                        #[allow(clippy::unnecessary_fallible_conversions)]
+                        kk: TryInto::<u8>::try_into(i)?.try_into()?,
+                        mts: f.to_mts_entry(),
+                    })
                 })
-            })
-            .collect::<Result<Vec<_>>>()?;
+                .collect::<Result<Vec<_>>>()?;
 
         let messages = entries
             .chunks(64)

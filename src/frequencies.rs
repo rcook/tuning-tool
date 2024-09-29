@@ -1,11 +1,16 @@
+use crate::consts::U7_MAX;
+use crate::consts::U7_ZERO;
 use crate::frequency::Frequency;
 use crate::interval::Interval;
 use crate::note_number::NoteNumber;
 use crate::scale::Scale;
-use num::Zero;
+use midly::num::u7;
 use std::iter::once;
 use std::iter::zip;
-use std::ops::Rem;
+
+const START_NOTE_NUMBER: u7 = U7_ZERO;
+const END_NOTE_NUMBER: u7 = U7_MAX;
+const NOTE_COUNT: usize = 128;
 
 pub(crate) type Frequencies = [Frequency; 128];
 
@@ -14,42 +19,35 @@ pub(crate) fn calculate_frequencies(
     base_note_number: NoteNumber,
     base_frequency: Frequency,
 ) -> Frequencies {
-    let start = 0f64;
-    let end = 128f64;
-    let scale_size = scale.intervals().len() as f64;
+    let scale_size = scale.intervals().len();
     let equave_ratio = scale.equave_ratio().0;
-
-    // Deal with implicit 1/1 and centre on base note number
-    let base = base_note_number.0.as_int() as f64;
-    let low = start - 1f64 - base + 1f64;
-    let high = end - 1f64 - base + 1f64;
-    let numEquaves = (low / scale_size).floor();
-    let mut referenceFrequency = base_frequency.0 * equave_ratio.powf(numEquaves);
-    let mut result = Vec::new();
-
+    let low = START_NOTE_NUMBER.as_int() as i32 - base_note_number.0.as_int() as i32;
+    let equave_count = (low as f64 / scale_size as f64).floor() as i32;
+    let offset = (low - equave_count * scale_size as i32) as usize;
+    let note_number_range = START_NOTE_NUMBER.as_int() as usize..=END_NOTE_NUMBER.as_int() as usize;
     let unison = Interval::unison();
     let intervals = once(&unison)
-        .chain(scale.intervals().iter().take(scale.intervals().len() - 1))
-        .collect::<Vec<_>>();
+        .chain(scale.intervals().iter().take(scale_size - 1))
+        .cycle()
+        .skip(offset);
 
-    let index = (low as i32 - numEquaves as i32 * scale_size as i32);
-    assert!(index >= 0);
-    let mut index = index as usize;
-    for _ in start as usize..end as usize {
-        result.push(Frequency(referenceFrequency * intervals[index].to_f64()));
-        index += 1;
-        if index >= scale.interval_count() {
-            index -= scale.interval_count();
-            referenceFrequency *= equave_ratio;
+    let mut frequencies = [Frequency(-1f64); NOTE_COUNT];
+    let mut f = base_frequency.0 * equave_ratio.powi(equave_count);
+    let mut degree = offset;
+    for (index, interval) in zip(note_number_range, intervals) {
+        frequencies[index] = Frequency(f * interval.as_f64());
+        degree += 1;
+        if degree >= scale_size {
+            degree -= scale_size;
+            f *= equave_ratio;
         }
     }
-    result.try_into().expect("TBD")
+
+    frequencies
 }
 
 #[cfg(test)]
 mod tests {
-    use std::iter::zip;
-
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::U7_ZERO;
     use crate::frequencies::calculate_frequencies;
@@ -59,6 +57,7 @@ mod tests {
     use crate::scala_file::ScalaFile;
     use anyhow::{anyhow, Result};
     use midly::num::u7;
+    use std::iter::zip;
 
     #[test]
     fn basics() -> Result<()> {

@@ -12,14 +12,6 @@ impl Scale {
         Self { intervals }
     }
 
-    pub(crate) fn step_count(&self) -> usize {
-        self.interval_count() - 1
-    }
-
-    pub(crate) fn interval_count(&self) -> usize {
-        self.intervals.len()
-    }
-
     pub(crate) fn intervals(&self) -> &Vec<Interval> {
         &self.intervals
     }
@@ -35,7 +27,7 @@ impl Scale {
         };
 
         if !last_interval
-            .to_f64()
+            .as_f64()
             .approx_eq_with_epsilon(2f64, 0.0001f64)
         {
             return false;

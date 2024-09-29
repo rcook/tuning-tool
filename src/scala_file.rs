@@ -37,11 +37,9 @@ impl ScalaFile {
         }
 
         println!("Description: {description}", description = self.description);
-
-        println!("Steps: {step_count}", step_count = self.scale.step_count());
         println!(
             "Intervals: {interval_count}",
-            interval_count = self.scale.interval_count()
+            interval_count = self.scale.intervals().len()
         );
 
         for (i, note) in self.scale.intervals().iter().enumerate() {
@@ -117,12 +115,6 @@ mod tests {
             let scala_file = s.parse::<ScalaFile>()?;
             let file_name = scala_file.file_name();
             assert!(file_name.is_some() || file_name.is_none());
-            let _ = scala_file.description();
-            let scale = scala_file.scale();
-            let step_count = scale.step_count();
-            let interval_count = scale.interval_count();
-            assert_eq!(interval_count, step_count + 1);
-            assert_eq!(interval_count, scale.intervals().len());
             Ok(())
         }
 
