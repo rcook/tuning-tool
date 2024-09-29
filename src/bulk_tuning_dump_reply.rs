@@ -156,9 +156,15 @@ impl BulkTuningDumpReply {
     }
 
     pub fn to_bytes(&self) -> Result<Vec<u8>> {
+        self.to_bytes_with_option(true)
+    }
+
+    pub fn to_bytes_with_option(&self, include_start_and_end_bytes: bool) -> Result<Vec<u8>> {
         let mut calc = ChecksumCalculator::new();
         let mut bytes = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE);
-        bytes.push(SYSEX);
+        if include_start_and_end_bytes {
+            bytes.push(SYSEX);
+        }
         bytes.push(calc.update(UNIVERSAL_NON_REAL_TIME).as_int());
         bytes.push(calc.update(self.device_id).as_int());
         bytes.push(calc.update(MIDI_TUNING).as_int());
@@ -189,9 +195,16 @@ impl BulkTuningDumpReply {
             calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?
                 .as_int(),
         );
-        bytes.push(EOX);
 
-        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
+        if include_start_and_end_bytes {
+            bytes.push(EOX);
+        }
+
+        if include_start_and_end_bytes {
+            assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
+        } else {
+            assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
+        }
 
         Ok(bytes)
     }
@@ -211,10 +224,10 @@ mod tests {
             .get_file("syx/carlos_super.syx")
             .ok_or_else(|| anyhow!("Could not load tuning dump"))?
             .contents();
-        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, bytes.len());
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkTuningDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes()?;
-        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, output.len());
+        assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, output.len());
         assert_eq!(bytes, output);
         Ok(())
     }

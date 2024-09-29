@@ -4,6 +4,7 @@ use crate::bulk_tuning_dump_reply::BulkTuningDumpReply;
 use crate::consts::{BASE_FREQUENCY, BASE_MIDI_NOTE, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequency::Frequency;
+use crate::hex_dump::hex_dump;
 use crate::midi_note::MidiNote;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
@@ -13,7 +14,9 @@ use crate::tuning::Tuning;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
+use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
+use midly::MidiMessage;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
@@ -234,5 +237,48 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let mut conn = midi_output.connect(&port, "test")?;
     println!("Sending {} bytes", bytes.len());
     conn.send(&bytes)?;
+    Ok(())
+}
+
+pub(crate) fn midi_messages() -> Result<()> {
+    fn note_on(channel: u8, key: u8) {
+        let ev = LiveEvent::Midi {
+            channel: channel.into(),
+            message: MidiMessage::NoteOn {
+                key: key.into(),
+                vel: 127.into(),
+            },
+        };
+        let mut buf = Vec::new();
+        ev.write(&mut buf).unwrap();
+        hex_dump(&buf);
+    }
+
+    let scl_file = RESOURCE_DIR
+        .get_file("scl/carlos_super.scl")
+        .ok_or_else(|| anyhow!("Could not get scl file"))?;
+    let s = scl_file
+        .contents_utf8()
+        .ok_or_else(|| anyhow!("Could not convert to string"))?;
+    let scala_file = s.parse::<ScalaFile>()?;
+    let scale = scala_file.scale();
+    let frequencies = Tuning::new(NoteNumber(0), Frequency::MIN)
+        .get_frequencies(scale)
+        .map(|f| f.to_mts_bytes());
+    let reply = BulkTuningDumpReply::new(
+        U7_ZERO,
+        u7::from_int_lossy(8),
+        "carlos_super.mid",
+        frequencies,
+    )?;
+
+    let bytes = reply.to_bytes_with_option(false)?;
+    let blah = u7::slice_try_from_int(&bytes).expect("Must be valid u7 slice");
+
+    let event = LiveEvent::Common(SystemCommon::SysEx(blah));
+    let mut buffer = Vec::new();
+    event.write_std(&mut buffer)?;
+    hex_dump(&buffer);
+
     Ok(())
 }

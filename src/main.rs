@@ -13,6 +13,7 @@ mod dump_sysex_file;
 mod examples;
 mod frequency;
 mod fs;
+mod hex_dump;
 mod interval;
 mod midi_note;
 mod mts_bytes;
