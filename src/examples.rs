@@ -224,7 +224,7 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
-        "carlos_super.mid",
+        "carlos_super.mid".parse()?,
         frequencies,
     )?;
     let bytes = reply.to_bytes()?;
@@ -268,7 +268,7 @@ pub(crate) fn midi_messages() -> Result<()> {
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
-        "carlos_super.mid",
+        "carlos_super.mid".parse()?,
         frequencies,
     )?;
 

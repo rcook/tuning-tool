@@ -5,6 +5,7 @@ use crate::consts::{
 };
 use crate::mts_bytes::MtsBytes;
 use crate::note_number::NoteNumber;
+use crate::preset_name::PresetName;
 use crate::string_extras::StringExtras;
 use anyhow::{bail, Result};
 use midly::num::u7;
@@ -15,9 +16,9 @@ macro_rules! read_u7 {
         std::convert::TryInto::<midly::num::u7>::try_into(read_u8!($iter))?
     };
     ($iter: expr, $count: expr) => {{
-        let mut result = Vec::with_capacity($count);
-        for _ in 0..$count {
-            result.push(read_u7!($iter));
+        let mut result = [crate::consts::U7_ZERO; $count];
+        for i in 0..$count {
+            result[i] = read_u7!($iter);
         }
         result
     }};
@@ -43,7 +44,7 @@ macro_rules! read_u8 {
 pub(crate) struct BulkDumpReply {
     device_id: u7,
     preset: u7,
-    name: String,
+    name: PresetName,
     frequencies: [MtsBytes; 128],
 }
 
@@ -51,17 +52,13 @@ impl BulkDumpReply {
     pub(crate) fn new(
         device_id: u7,
         preset: u7,
-        name: &str,
+        name: PresetName,
         frequencies: [MtsBytes; 128],
     ) -> Result<Self> {
-        if name.len() > 16 {
-            bail!("Invalid name");
-        }
-
         Ok(Self {
             device_id,
             preset,
-            name: String::from(name),
+            name,
             frequencies,
         })
     }
@@ -74,8 +71,8 @@ impl BulkDumpReply {
         self.preset
     }
 
-    pub(crate) fn name(&self) -> &str {
-        self.name.as_str()
+    pub(crate) fn name(&self) -> &PresetName {
+        &self.name
     }
 
     pub(crate) fn frequencies(&self) -> &[MtsBytes; 128] {
@@ -110,13 +107,10 @@ impl BulkDumpReply {
 
         let preset = calc.update(read_u7!(iter));
 
-        let name_values = read_u7!(iter, 16);
-
-        for value in &name_values {
-            _ = calc.update(*value)
+        let name = PresetName::new(read_u7!(iter, PresetName::LEN));
+        for ch in name.as_array() {
+            _ = calc.update(*ch);
         }
-
-        let name = String::from(str::from_u7_slice(&name_values).trim());
 
         let frequencies: [MtsBytes; 128] = (0..128)
             .map(|_| {
@@ -171,18 +165,8 @@ impl BulkDumpReply {
         bytes.push(calc.update(BULK_DUMP_REPLY).as_int());
         bytes.push(calc.update(self.preset).as_int());
 
-        let name_bytes = self.name.as_bytes();
-        let name_bytes_len = name_bytes.len();
-        if name_bytes_len > 16 {
-            bail!("Invalid name");
-        }
-
-        for b in name_bytes {
-            bytes.push(calc.update((*b).try_into()?).as_int());
-        }
-
-        for _ in 0..(16 - name_bytes_len) {
-            bytes.push(calc.update(U7_ZERO).as_int());
+        for ch in self.name.as_array() {
+            bytes.push(calc.update(*ch).as_int());
         }
 
         for f in &self.frequencies {

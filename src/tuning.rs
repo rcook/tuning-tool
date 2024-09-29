@@ -80,7 +80,7 @@ mod tests {
         let reply = BulkDumpReply::new(
             U7_ZERO,
             u7::from_int_lossy(8),
-            "carlos_super.mid",
+            "carlos_super.mid".parse()?,
             frequencies,
         )?;
 

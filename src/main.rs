@@ -19,6 +19,7 @@ mod midi_note;
 mod mts_bytes;
 mod note_number;
 mod num;
+mod preset_name;
 mod ratio;
 mod resources;
 mod run;

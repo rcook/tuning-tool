@@ -32,8 +32,12 @@ impl ChecksumCalculator {
 
     pub(crate) fn finalize(self, expected_count: Option<usize>) -> Result<u7> {
         if let Some(expected_count) = expected_count {
+            assert_eq!(expected_count, self.count);
             if expected_count != self.count {
-                bail!("Checksum item count was incorrect")
+                bail!(
+                    "Checksum item count {count} was not expected value {expected_count}",
+                    count = self.count
+                )
             }
         }
         Ok(self.value)
