@@ -6,6 +6,8 @@ use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::midi_note::MidiNote;
+use crate::note_change::NoteChange;
+use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
 use crate::scala_file::ScalaFile;
@@ -13,6 +15,7 @@ use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
+use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
@@ -247,15 +250,8 @@ pub(crate) fn send_note_change() -> Result<()> {
 
     let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
-    for (i, f) in calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
-        .iter()
-        .enumerate()
-    {
-        println!("{f}f64,", f = f.0)
-    }
 
-    /*
-    let entries = calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIN)
+    let entries = calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
         .iter()
         .enumerate()
         .map(|(i, f)| {
@@ -275,7 +271,6 @@ pub(crate) fn send_note_change() -> Result<()> {
         event.write_std(&mut buffer)?;
         println!("{}", to_hex_dump(&buffer, None)?);
     }
-    */
 
     Ok(())
 }
