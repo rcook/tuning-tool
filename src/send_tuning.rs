@@ -12,13 +12,18 @@ use std::path::Path;
 
 const CHUNK_SIZE: usize = 32;
 
-fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
+fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
+    let mut names = Vec::new();
     for p in midi_output.ports() {
+        let temp = midi_output.port_name(&p)?;
         if midi_output.port_name(&p)? == name {
-            return Ok(Some(p));
+            return Ok(p);
         }
+        names.push(temp);
     }
-    Ok(None)
+
+    let s = names.join(", ");
+    bail!("No MIDI output port with name {name} found: choose from {s}");
 }
 
 fn make_note_change_entries(
@@ -64,10 +69,7 @@ pub(crate) fn send_tuning(
     let messages = make_messages(device_id, preset, &entries)?;
 
     let midi_output = MidiOutput::new("MIDI output")?;
-    let Some(midi_output_port) = get_midi_output_port(&midi_output, &midi_output_port_name)? else {
-        bail!("Couldn't find MIDI output port with name {midi_output_port_name}");
-    };
-
+    let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
     let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
     for message in messages {
         println!("{}", to_hex_dump(&message, None)?);
