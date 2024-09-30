@@ -10,8 +10,6 @@ use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use std::path::Path;
 
-const CHUNK_SIZE: usize = 1;
-
 fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
     let mut names = Vec::new();
     for p in midi_output.ports() {
@@ -43,9 +41,14 @@ fn make_note_change_entries(
         .collect::<Result<Vec<_>>>()
 }
 
-fn make_messages(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Result<Vec<Vec<u8>>> {
+fn make_messages(
+    device_id: u7,
+    preset: u7,
+    entries: &[NoteChangeEntry],
+    chunk_size: u7,
+) -> Result<Vec<Vec<u8>>> {
     let mut messages = Vec::new();
-    for chunk in entries.chunks(CHUNK_SIZE) {
+    for chunk in entries.chunks(chunk_size.as_int() as usize) {
         let note_change = NoteChange::new(device_id, preset, chunk)?;
         let vec = note_change.to_vec()?;
         let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
@@ -57,24 +60,30 @@ fn make_messages(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Resu
 }
 
 pub(crate) fn send_tuning(
-    midi_output_port_name: &str,
     scl_path: &Path,
     kbm_path: &Path,
+    midi_output_port_name: &Option<String>,
     device_id: u7,
     preset: u7,
+    chunk_size: u7,
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
     let kbm_file = KbmFile::read(kbm_path)?;
     let entries = make_note_change_entries(&scl_file, &kbm_file)?;
-    let messages = make_messages(device_id, preset, &entries)?;
+    let messages = make_messages(device_id, preset, &entries, chunk_size)?;
 
-    let midi_output = MidiOutput::new("MIDI output")?;
-    let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
-    let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
-    for message in messages {
-        println!("{}", to_hex_dump(&message, None)?);
-        println!("({} bytes)", message.len());
-        conn.send(&message)?;
+    if let Some(midi_output_port_name) = midi_output_port_name {
+        let midi_output = MidiOutput::new("MIDI output")?;
+        let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
+        let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
+        for message in messages {
+            println!("{}", to_hex_dump(&message, None)?);
+            conn.send(&message)?;
+        }
+    } else {
+        for message in messages {
+            println!("{}", to_hex_dump(&message, None)?);
+        }
     }
 
     Ok(())
