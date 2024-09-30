@@ -21,8 +21,8 @@ pub(crate) enum Command {
 
     #[command(name = "send-tuning", about = "Send tuning SysEx to MIDI device")]
     SendTuning {
-        #[arg(help = "MIDI port name")]
-        midi_port_name: String,
+        #[arg(help = "MIDI output port name")]
+        midi_output_port_name: String,
 
         #[arg(help = "Path to .scl file", value_parser = parse_absolute_path)]
         scl_path: PathBuf,

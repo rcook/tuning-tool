@@ -17,11 +17,17 @@ pub(crate) fn run() -> Result<()> {
             crate::examples::send_tuning_sysex()
         }
         Command::SendTuning {
-            midi_port_name,
+            midi_output_port_name,
             scl_path,
             kbm_path,
             device_id,
             preset,
-        } => send_tuning(&midi_port_name, &scl_path, &kbm_path, device_id, preset),
+        } => send_tuning(
+            &midi_output_port_name,
+            &scl_path,
+            &kbm_path,
+            device_id,
+            preset,
+        ),
     }
 }
