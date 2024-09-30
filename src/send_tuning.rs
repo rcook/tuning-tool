@@ -10,7 +10,7 @@ use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use std::path::Path;
 
-const CHUNK_SIZE: usize = 32;
+const CHUNK_SIZE: usize = 1;
 
 fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
     let mut names = Vec::new();
