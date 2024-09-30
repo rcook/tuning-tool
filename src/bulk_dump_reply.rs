@@ -196,19 +196,15 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
-    use crate::resources::RESOURCE_DIR;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
-    use anyhow::{anyhow, Result};
+    use anyhow::Result;
     use midly::num::u7;
     use std::io::Read;
     use std::path::Path;
 
     #[test]
     fn basics() -> Result<()> {
-        let bytes = RESOURCE_DIR
-            .get_file("syx/carlos_super.syx")
-            .ok_or_else(|| anyhow!("Could not load tuning dump"))?
-            .contents();
+        let bytes = read_test_syx_file("carlos_super.syx")?;
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes_with_start_and_end()?;
@@ -220,7 +216,7 @@ mod tests {
     #[test]
     fn base_note_number_0() -> Result<()> {
         check_bytes(
-            "syx/carlos_super.syx",
+            "carlos_super.syx",
             u7::from_int_lossy(8),
             "carlos_super.mid",
             NoteNumber::ZERO,
@@ -232,7 +228,7 @@ mod tests {
     #[test]
     fn base_note_number_69() -> Result<()> {
         check_bytes(
-            "syx/carlos_super_440.syx",
+            "carlos_super_a4.syx",
             u7::from_int_lossy(0),
             "carlos_super_a4 ",
             NoteNumber::A4,
@@ -248,7 +244,7 @@ mod tests {
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scl_file()?;
+        let scala_file = read_test_scl_file("scl/carlos_super.scl")?;
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(

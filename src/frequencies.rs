@@ -335,7 +335,7 @@ mod tests {
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scl_file()?;
+        let scala_file = read_test_scl_file("scl/carlos_super.scl")?;
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(
