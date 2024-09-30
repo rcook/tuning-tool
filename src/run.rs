@@ -1,9 +1,7 @@
 use crate::args::{Args, Command};
-use crate::consts::U7_ZERO;
 use crate::send_tuning::send_tuning;
 use anyhow::Result;
 use clap::Parser;
-use midly::num::u7;
 
 pub(crate) fn run() -> Result<()> {
     match Args::parse().command {

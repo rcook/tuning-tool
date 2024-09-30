@@ -41,7 +41,7 @@ macro_rules! read_u8 {
 
 const ENTRIES_LEN: usize = 128;
 
-type MtsEntries = [MtsEntry; ENTRIES_LEN];
+pub(crate) type MtsEntries = [MtsEntry; ENTRIES_LEN];
 
 #[derive(Debug)]
 pub(crate) struct BulkDumpReply {
@@ -191,14 +191,13 @@ impl BulkDumpReply {
 #[cfg(test)]
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
-    use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
-    use crate::consts::U7_ZERO;
+    use crate::consts::{BULK_DUMP_REPLY_MESSAGE_SIZE, U7_MAX, U7_ZERO};
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
     use crate::resources::RESOURCE_DIR;
-    use crate::test_util::read_test_scl_file;
-    use crate::test_util::read_test_syx_file;
+    use crate::test_util::{read_test_scl_file, read_test_syx_file};
     use anyhow::{anyhow, Result};
     use midly::num::u7;
     use std::io::Read;
@@ -251,8 +250,20 @@ mod tests {
     ) -> Result<()> {
         let scala_file = read_test_scl_file()?;
         let scale = scala_file.scale();
-        let entries = calculate_frequencies(scale, base_note_number, base_frequency)
-            .map(|f| f.to_mts_entry());
+
+        let keyboard_mapping = KeyboardMapping::new(
+            NoteNumber(U7_ZERO),
+            NoteNumber(U7_MAX),
+            base_note_number,
+            base_frequency,
+        )?;
+
+        let entries = calculate_frequencies(scale, &keyboard_mapping)
+            .iter()
+            .map(|f| f.to_mts_entry())
+            .collect::<Vec<_>>()
+            .try_into()
+            .expect("Must have exactly 128 elements");
         let reply = BulkDumpReply::new(U7_ZERO, preset, name.parse()?, entries)?;
 
         let ref_bytes = read_test_syx_file(expected_syx_path)?;

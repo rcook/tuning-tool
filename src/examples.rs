@@ -1,10 +1,11 @@
 use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
-use crate::consts::U7_ZERO;
+use crate::consts::{U7_MAX, U7_ZERO};
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
+use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::note_number::NoteNumber;
 use crate::resources::RESOURCE_DIR;
@@ -72,9 +73,9 @@ pub(crate) fn cli(start_path: &Path) -> Result<()> {
 
     let args = Args::parse();
     if start_path.is_file() {
-        dump(&start_path)?;
+        dump(start_path)?;
     } else if start_path.is_dir() {
-        for e in read_dir(&start_path)? {
+        for e in read_dir(start_path)? {
             let e = e?;
             let path = start_path.join(e.file_name());
             dump(&path)?;
@@ -215,13 +216,24 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
 
     let scale = scala_file.scale();
 
-    let frequencies = calculate_frequencies(scale, NoteNumber::ZERO, Frequency::MIDI_MIN)
-        .map(|f| f.to_mts_entry());
+    let keyboard_mapping = KeyboardMapping::new(
+        NoteNumber(U7_ZERO),
+        NoteNumber(U7_MAX),
+        NoteNumber::ZERO,
+        Frequency::MIDI_MIN,
+    )?;
+    let entries = calculate_frequencies(scale, &keyboard_mapping)
+        .iter()
+        .map(|f| f.to_mts_entry())
+        .collect::<Vec<_>>();
+    let entries = entries
+        .try_into()
+        .expect("Must contain exactly 128 elements");
     let reply = BulkDumpReply::new(
         U7_ZERO,
         u7::from_int_lossy(8),
         "carlos_super.mid".parse()?,
-        frequencies,
+        entries,
     )?;
     let bytes = reply.to_bytes_with_start_and_end()?;
 

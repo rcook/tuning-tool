@@ -71,10 +71,11 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
-    use crate::consts::U7_ZERO;
+    use crate::consts::{U7_MAX, U7_ZERO};
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
+    use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
@@ -120,18 +121,24 @@ mod tests {
             .ok_or_else(|| anyhow!("Could not convert to string"))?
             .parse::<SclFile>()?;
 
-        let entries =
-            calculate_frequencies(scala_file.scale(), NoteNumber::ZERO, Frequency::MIDI_MIN)
-                .iter()
-                .enumerate()
-                .map(|(i, f)| {
-                    Ok(NoteChangeEntry {
-                        #[allow(clippy::unnecessary_fallible_conversions)]
-                        kk: TryInto::<u8>::try_into(i)?.try_into()?,
-                        mts: f.to_mts_entry(),
-                    })
+        let keyboard_mapping = KeyboardMapping::new(
+            NoteNumber(U7_ZERO),
+            NoteNumber(U7_MAX),
+            NoteNumber::ZERO,
+            Frequency::MIDI_MIN,
+        )?;
+
+        let entries = calculate_frequencies(scala_file.scale(), &keyboard_mapping)
+            .iter()
+            .enumerate()
+            .map(|(i, f)| {
+                Ok(NoteChangeEntry {
+                    #[allow(clippy::unnecessary_fallible_conversions)]
+                    kk: TryInto::<u8>::try_into(i)?.try_into()?,
+                    mts: f.to_mts_entry(),
                 })
-                .collect::<Result<Vec<_>>>()?;
+            })
+            .collect::<Result<Vec<_>>>()?;
 
         let messages = entries
             .chunks(64)

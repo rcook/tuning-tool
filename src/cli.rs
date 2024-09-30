@@ -11,8 +11,9 @@ pub(crate) fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
 }
 
 pub(crate) fn parse_u7(s: &str) -> StdResult<u7, String> {
-    Ok(s.parse::<u8>()
+    #[allow(clippy::unnecessary_fallible_conversions)]
+    s.parse::<u8>()
         .map_err(|_| String::from("Invalid u8 value"))?
         .try_into()
-        .map_err(|_| String::from("Invalid u7 value"))?)
+        .map_err(|_| String::from("Invalid u7 value"))
 }

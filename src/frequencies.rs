@@ -1,41 +1,36 @@
-use crate::consts::U7_MAX;
-use crate::consts::U7_ZERO;
 use crate::frequency::Frequency;
 use crate::interval::Interval;
-use crate::note_number::NoteNumber;
+use crate::keyboard_mapping::KeyboardMapping;
 use crate::scale::Scale;
-use midly::num::u7;
 use std::iter::once;
 use std::iter::zip;
 
-const START_NOTE_NUMBER: u7 = U7_ZERO;
-const END_NOTE_NUMBER: u7 = U7_MAX;
-const NOTE_COUNT: usize = 128;
-
-pub(crate) type Frequencies = [Frequency; 128];
-
 pub(crate) fn calculate_frequencies(
     scale: &Scale,
-    base_note_number: NoteNumber,
-    base_frequency: Frequency,
-) -> Frequencies {
+    keyboard_mapping: &KeyboardMapping,
+) -> Vec<Frequency> {
+    let note_count = keyboard_mapping.end_note_number().0.as_int() as usize
+        - keyboard_mapping.start_note_number().0.as_int() as usize
+        + 1;
     let scale_size = scale.intervals().len();
     let equave_ratio = scale.equave_ratio().0;
-    let low = START_NOTE_NUMBER.as_int() as i32 - base_note_number.0.as_int() as i32;
+    let low = keyboard_mapping.start_note_number().0.as_int() as i32
+        - keyboard_mapping.base_note_number().0.as_int() as i32;
     let equave_count = (low as f64 / scale_size as f64).floor() as i32;
     let offset = (low - equave_count * scale_size as i32) as usize;
-    let note_number_range = START_NOTE_NUMBER.as_int() as usize..=END_NOTE_NUMBER.as_int() as usize;
     let unison = Interval::unison();
     let intervals = once(&unison)
         .chain(scale.intervals().iter().take(scale_size - 1))
         .cycle()
         .skip(offset);
 
-    let mut frequencies = [Frequency(-1f64); NOTE_COUNT];
-    let mut f = base_frequency.0 * equave_ratio.powi(equave_count);
+    let mut frequencies = Vec::with_capacity(note_count);
+    let mut f = keyboard_mapping.base_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
-    for (index, interval) in zip(note_number_range, intervals) {
-        frequencies[index] = Frequency(f * interval.as_f64());
+    let note_number_range = keyboard_mapping.start_note_number().0.as_int() as usize
+        ..=keyboard_mapping.end_note_number().0.as_int() as usize;
+    for (_, interval) in zip(note_number_range, intervals) {
+        frequencies.push(Frequency(f * interval.as_f64()));
         degree += 1;
         if degree >= scale_size {
             degree -= scale_size;
@@ -48,8 +43,10 @@ pub(crate) fn calculate_frequencies(
 
 #[cfg(test)]
 mod tests {
+    use crate::consts::{U7_MAX, U7_ZERO};
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
     use crate::test_util::read_test_scl_file;
     use anyhow::Result;
@@ -340,7 +337,15 @@ mod tests {
     ) -> Result<()> {
         let scala_file = read_test_scl_file()?;
         let scale = scala_file.scale();
-        let frequencies = calculate_frequencies(scale, base_note_number, base_frequency);
+
+        let keyboard_mapping = KeyboardMapping::new(
+            NoteNumber(U7_ZERO),
+            NoteNumber(U7_MAX),
+            base_note_number,
+            base_frequency,
+        )?;
+
+        let frequencies = calculate_frequencies(scale, &keyboard_mapping);
 
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {

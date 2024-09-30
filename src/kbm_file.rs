@@ -1,15 +1,55 @@
+use crate::frequency::Frequency;
 use crate::fs::read_to_string_lossy;
-use crate::scale::Scale;
-use anyhow::{bail, Error, Result};
+use crate::key::Key;
+use crate::keyboard_mapping::KeyboardMapping;
+use crate::note_number::NoteNumber;
+use anyhow::bail;
+use anyhow::{Error, Result};
+use midly::num::u7;
 use std::path::Path;
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
+macro_rules! read_str {
+    ($iter: expr) => {
+        $iter
+            .next()
+            .ok_or_else(|| ::anyhow::anyhow!("Stream is exhausted"))?
+    };
+}
+
+macro_rules! read_u7 {
+    ($iter: expr) => {{
+        let s = read_str!($iter);
+        let value = s.parse::<u8>()?;
+        let value: ::midly::num::u7 = value.try_into()?;
+        value
+    }};
+}
+
+macro_rules! read_f64 {
+    ($iter: expr) => {{
+        let s = read_str!($iter);
+        let value = s.parse::<f64>()?;
+        value
+    }};
+}
+
+macro_rules! read_usize {
+    ($iter: expr) => {{
+        let s = read_str!($iter);
+        let value = s.parse::<usize>()?;
+        value
+    }};
+}
+
 #[derive(Debug)]
 pub(crate) struct KbmFile {
-    file_name: Option<String>,
-    description: String,
-    scale: Scale,
+    _size: u7,
+    _middle_note_number: NoteNumber,
+    _octave_degree: usize,
+    _keys: Vec<Key>,
+    keyboard_mapping: KeyboardMapping,
 }
 
 impl KbmFile {
@@ -17,34 +57,8 @@ impl KbmFile {
         read_to_string_lossy(path)?.parse()
     }
 
-    #[allow(unused)]
-    pub(crate) const fn file_name(&self) -> &Option<String> {
-        &self.file_name
-    }
-
-    #[allow(unused)]
-    pub(crate) fn description(&self) -> &str {
-        self.description.as_str()
-    }
-
-    pub(crate) fn scale(&self) -> &Scale {
-        &self.scale
-    }
-
-    pub(crate) fn dump(&self) {
-        if let Some(file_name) = &self.file_name {
-            println!("File name: {file_name}");
-        }
-
-        println!("Description: {description}", description = self.description);
-        println!(
-            "Intervals: {interval_count}",
-            interval_count = self.scale.intervals().len()
-        );
-
-        for (i, note) in self.scale.intervals().iter().enumerate() {
-            println!("(note {i}): {cents}", cents = note.cents().0);
-        }
+    pub(crate) const fn keyboard_mapping(&self) -> &KeyboardMapping {
+        &self.keyboard_mapping
     }
 }
 
@@ -52,88 +66,68 @@ impl FromStr for KbmFile {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
-        let mut lines = s
-            .lines()
-            .filter_map(|line| {
-                let s = line.trim();
-                if s.is_empty() {
-                    None
-                } else {
-                    Some(s)
-                }
+        let mut lines = s.lines().filter_map(|line| {
+            let s = line.trim();
+            if s.is_empty() || s.starts_with("!") {
+                None
+            } else {
+                Some(s)
+            }
+        });
+
+        let size = read_u7!(lines);
+        let start_note_number = NoteNumber(read_u7!(lines));
+        let end_note_number = NoteNumber(read_u7!(lines));
+        let middle_note_number = NoteNumber(read_u7!(lines));
+        let base_note_number = NoteNumber(read_u7!(lines));
+        let base_frequency = Frequency(read_f64!(lines));
+        let octave_degree = read_usize!(lines);
+
+        let count = size.as_int() as usize;
+        let mut keys = Vec::with_capacity(count);
+        for _ in 0..count {
+            let s = read_str!(lines);
+            keys.push(if s == "x" {
+                Key::Unmapped
+            } else {
+                Key::Degree(s.parse()?)
             })
-            .peekable();
-
-        let Some(line) = lines.peek() else {
-            bail!("Invalid tuning string")
-        };
-
-        let file_name = match line.strip_prefix("!") {
-            Some(suffix) => match suffix.strip_suffix(".scl") {
-                Some(prefix) => {
-                    _ = lines.next().expect("Consume line");
-                    Some(format!("{}.scl", prefix.trim()))
-                }
-                None => None,
-            },
-            None => None,
-        };
-
-        let mut lines = lines.filter(|line| !line.starts_with("!"));
-
-        let Some(description) = lines.next() else {
-            bail!("No description found")
-        };
-
-        let Some(count_str) = lines.next() else {
-            bail!("No note count found")
-        };
-
-        let interval_count = count_str.parse::<usize>()?;
-        let intervals = lines.map(|line| line.parse()).collect::<Result<Vec<_>>>()?;
-        if intervals.len() != interval_count {
-            bail!("Incorrect number of notes")
         }
+
+        if lines.next().is_some() {
+            bail!("Invalid .kbm file")
+        }
+
+        let keyboard_mapping = KeyboardMapping::new(
+            start_note_number,
+            end_note_number,
+            base_note_number,
+            base_frequency,
+        )?;
+
+        // <LIMITATIONS>
+
+        if octave_degree != 12 {
+            todo!("Non-octave scales not currently supported");
+        }
+
+        for (i, key) in keys.iter().enumerate() {
+            let Key::Degree(degree) = key else {
+                todo!("Nontrivial keyboard mappings not yet supported");
+            };
+            if *degree != i {
+                todo!("Nontrivial keyboard mappings not yet supported");
+            }
+        }
+
+        // </LIMITATIONS>
 
         Ok(Self {
-            file_name,
-            description: String::from(description),
-            scale: Scale::new(intervals),
+            _size: size,
+            _middle_note_number: middle_note_number,
+            _octave_degree: octave_degree,
+            _keys: keys,
+            keyboard_mapping,
         })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::{resources::RESOURCE_DIR, scl_file::SclFile};
-    use anyhow::{anyhow, Result};
-    use std::{borrow::Borrow, ffi::OsStr};
-
-    #[test]
-    fn scala_archive() -> Result<()> {
-        fn test_scala_file(s: &str) -> Result<()> {
-            let scala_file = s.parse::<SclFile>()?;
-            let file_name = scala_file.file_name();
-            assert!(file_name.is_some() || file_name.is_none());
-            Ok(())
-        }
-
-        let scl_dir = RESOURCE_DIR
-            .get_dir("scl")
-            .ok_or_else(|| anyhow!("Could not get scl directory"))?;
-
-        let extension = Some(OsStr::new("scl"));
-        let files = scl_dir
-            .files()
-            .filter(|f| f.path().extension() == extension)
-            .collect::<Vec<_>>();
-        assert!(files.len() > 5000);
-
-        for file in files {
-            let s = String::from_utf8_lossy(file.contents());
-            test_scala_file(s.borrow())?;
-        }
-
-        Ok(())
     }
 }

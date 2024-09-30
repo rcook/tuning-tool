@@ -3,7 +3,6 @@ use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
-use crate::note_number::NoteNumber;
 use crate::scl_file::SclFile;
 use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
@@ -13,7 +12,7 @@ use std::path::Path;
 fn make_messages(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Result<Vec<Vec<u8>>> {
     let mut messages = Vec::new();
     for chunk in entries.chunks(64) {
-        let note_change = NoteChange::new(device_id, preset, &chunk)?;
+        let note_change = NoteChange::new(device_id, preset, chunk)?;
         let vec = note_change.to_vec()?;
         let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
         let mut buffer = Vec::new();
@@ -31,10 +30,8 @@ pub(crate) fn send_tuning(
     preset: u7,
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
-    _ = KbmFile::read(kbm_path)?;
-    let base_note_number = NoteNumber::A4;
-    let base_frequency = base_note_number.to_frequency();
-    let entries = calculate_frequencies(scl_file.scale(), base_note_number, base_frequency)
+    let kbm_file = KbmFile::read(kbm_path)?;
+    let entries = calculate_frequencies(scl_file.scale(), kbm_file.keyboard_mapping())
         .iter()
         .enumerate()
         .map(|(i, f)| {

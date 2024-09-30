@@ -17,6 +17,8 @@ mod fs;
 mod hex_dump;
 mod interval;
 mod kbm_file;
+mod key;
+mod keyboard_mapping;
 mod midi_note;
 mod mts_entry;
 mod note_change;

@@ -105,7 +105,8 @@ impl FromStr for SclFile {
 
 #[cfg(test)]
 mod tests {
-    use crate::{resources::RESOURCE_DIR, scl_file::SclFile};
+    use crate::resources::RESOURCE_DIR;
+    use crate::scl_file::SclFile;
     use anyhow::{anyhow, Result};
     use std::{borrow::Borrow, ffi::OsStr};
 
