@@ -107,7 +107,7 @@ impl FromStr for KbmFile {
 
         // <LIMITATIONS>
 
-        if octave_degree != 12 {
+        if octave_degree != size.as_int() as usize {
             todo!("Non-octave scales not currently supported");
         }
 
