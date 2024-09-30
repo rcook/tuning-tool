@@ -16,6 +16,7 @@ mod frequency;
 mod fs;
 mod hex_dump;
 mod interval;
+mod kbm_file;
 mod midi_note;
 mod mts_entry;
 mod note_change;

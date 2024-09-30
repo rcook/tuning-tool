@@ -1,5 +1,6 @@
 use crate::frequencies::calculate_frequencies;
 use crate::hex_dump::to_hex_dump;
+use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::note_number::NoteNumber;
@@ -7,7 +8,7 @@ use crate::scl_file::SclFile;
 use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 fn make_messages(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Result<Vec<Vec<u8>>> {
     let mut messages = Vec::new();
@@ -25,14 +26,15 @@ fn make_messages(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Resu
 pub(crate) fn send_tuning(
     _midi_port_name: &str,
     scl_path: &Path,
-    _kbm_path: &Option<PathBuf>,
+    kbm_path: &Path,
     device_id: u7,
     preset: u7,
 ) -> Result<()> {
-    let scala_file = SclFile::read(scl_path)?;
+    let scl_file = SclFile::read(scl_path)?;
+    _ = KbmFile::read(kbm_path)?;
     let base_note_number = NoteNumber::A4;
     let base_frequency = base_note_number.to_frequency();
-    let entries = calculate_frequencies(scala_file.scale(), base_note_number, base_frequency)
+    let entries = calculate_frequencies(scl_file.scale(), base_note_number, base_frequency)
         .iter()
         .enumerate()
         .map(|(i, f)| {

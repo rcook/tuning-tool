@@ -21,12 +21,9 @@ pub(crate) fn run() -> Result<()> {
         Command::SendTuning {
             midi_port_name,
             scl_path,
-        } => send_tuning(
-            &midi_port_name,
-            &scl_path,
-            &None,
-            U7_ZERO,
-            u7::from_int_lossy(8),
-        ),
+            kbm_path,
+            device_id,
+            preset,
+        } => send_tuning(&midi_port_name, &scl_path, &kbm_path, device_id, preset),
     }
 }
