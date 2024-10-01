@@ -5,10 +5,10 @@ use crate::keyboard_mapping::KeyboardMapping;
 use crate::note_number::NoteNumber;
 use anyhow::bail;
 use anyhow::{Error, Result};
-use midly::num::u7;
 use std::path::Path;
 use std::result::Result as StdResult;
 use std::str::FromStr;
+use tuning_tool_lib::U7;
 
 macro_rules! read_str {
     ($iter: expr) => {
@@ -18,13 +18,14 @@ macro_rules! read_str {
     };
 }
 
-macro_rules! read_u7 {
-    ($iter: expr) => {{
-        let s = read_str!($iter);
-        let value = s.parse::<u8>()?;
-        let value: ::midly::num::u7 = value.try_into()?;
-        value
-    }};
+fn read<'a, U, I>(iter: &mut I) -> Result<U>
+where
+    U: U7,
+    I: Iterator<Item = &'a str>,
+{
+    let s = read_str!(iter);
+    let value = s.parse::<u8>()?;
+    Ok(value.try_into()?)
 }
 
 macro_rules! read_f64 {
@@ -45,7 +46,7 @@ macro_rules! read_usize {
 
 #[derive(Debug)]
 pub(crate) struct KbmFile {
-    _size: u7,
+    _size: usize,
     _middle_note_number: NoteNumber,
     _octave_degree: usize,
     _keys: Vec<Key>,
@@ -75,17 +76,20 @@ impl FromStr for KbmFile {
             }
         });
 
-        let size = read_u7!(lines);
-        let start_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
-        let end_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
-        let middle_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
-        let base_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
+        let size = read_str!(lines).parse::<usize>()?;
+        if size > 127 {
+            bail!("Invalid size")
+        }
+
+        let start_note_number = read::<NoteNumber, _>(&mut lines)?;
+        let end_note_number = read::<NoteNumber, _>(&mut lines)?;
+        let middle_note_number = read::<NoteNumber, _>(&mut lines)?;
+        let base_note_number = read::<NoteNumber, _>(&mut lines)?;
         let base_frequency = Frequency(read_f64!(lines));
         let octave_degree = read_usize!(lines);
 
-        let count = size.as_int() as usize;
-        let mut keys = Vec::with_capacity(count);
-        for _ in 0..count {
+        let mut keys = Vec::with_capacity(size);
+        for _ in 0..size {
             let s = read_str!(lines);
             keys.push(if s == "x" {
                 Key::Unmapped
@@ -107,7 +111,7 @@ impl FromStr for KbmFile {
 
         // <LIMITATIONS>
 
-        if octave_degree != size.as_int() as usize {
+        if octave_degree != size {
             todo!("Non-octave scales not currently supported");
         }
 
