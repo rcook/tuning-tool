@@ -9,13 +9,13 @@ pub(crate) fn calculate_frequencies(
     scale: &Scale,
     keyboard_mapping: &KeyboardMapping,
 ) -> Vec<Frequency> {
-    let note_count = keyboard_mapping.end_note_number().0.as_int() as usize
-        - keyboard_mapping.start_note_number().0.as_int() as usize
+    let note_count = keyboard_mapping.end_note_number().to_u8() as usize
+        - keyboard_mapping.start_note_number().to_u8() as usize
         + 1;
     let scale_size = scale.intervals().len();
     let equave_ratio = scale.equave_ratio().0;
-    let low = keyboard_mapping.start_note_number().0.as_int() as i32
-        - keyboard_mapping.base_note_number().0.as_int() as i32;
+    let low = keyboard_mapping.start_note_number().to_u8() as i32
+        - keyboard_mapping.base_note_number().to_u8() as i32;
     let equave_count = (low as f64 / scale_size as f64).floor() as i32;
     let offset = (low - equave_count * scale_size as i32) as usize;
     let unison = Interval::unison();
@@ -27,8 +27,8 @@ pub(crate) fn calculate_frequencies(
     let mut frequencies = Vec::with_capacity(note_count);
     let mut f = keyboard_mapping.base_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
-    let note_number_range = keyboard_mapping.start_note_number().0.as_int() as usize
-        ..=keyboard_mapping.end_note_number().0.as_int() as usize;
+    let note_number_range = keyboard_mapping.start_note_number().to_u8() as usize
+        ..=keyboard_mapping.end_note_number().to_u8() as usize;
     for (_, interval) in zip(note_number_range, intervals) {
         frequencies.push(Frequency(f * interval.as_f64()));
         degree += 1;
@@ -43,7 +43,6 @@ pub(crate) fn calculate_frequencies(
 
 #[cfg(test)]
 mod tests {
-    use crate::consts::{U7_MAX, U7_ZERO};
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
@@ -339,8 +338,8 @@ mod tests {
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber(U7_ZERO),
-            NoteNumber(U7_MAX),
+            NoteNumber::ZERO,
+            NoteNumber::MAX,
             base_note_number,
             base_frequency,
         )?;

@@ -1276,6 +1276,8 @@ dependencies = [
  "rstest",
  "rust_decimal",
  "rust_decimal_macros",
+ "tuning-tool-derive",
+ "tuning-tool-lib",
 ]
 
 [[package]]

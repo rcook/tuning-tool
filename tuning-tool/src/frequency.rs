@@ -5,6 +5,7 @@ use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
 use crate::ratio::Ratio;
 use crate::semitones::Semitones;
+use anyhow::Result;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct Frequency(pub(crate) f64);
@@ -49,22 +50,22 @@ impl Frequency {
 
     // c.f. ftom
     #[allow(unused)]
-    pub(crate) fn to_note_number(&self) -> (NoteNumber, CentOffset) {
+    pub(crate) fn to_note_number(&self) -> Result<(NoteNumber, CentOffset)> {
         let semitones = self.semitones_raw();
         let note_number = semitones.0.round();
         let cent_offset = (semitones.0 - note_number) * 100f64;
-        (
-            NoteNumber::new_lossy(note_number as u8),
+        Ok((
+            NoteNumber::try_from(note_number as u8)?,
             CentOffset(cent_offset),
-        )
+        ))
     }
 
-    pub(crate) fn to_mts_entry(&self) -> MtsEntry {
+    pub(crate) fn to_mts_entry(&self) -> Result<MtsEntry> {
         self.to_semitones().to_mts_entry()
     }
 
     fn semitones_raw(&self) -> Semitones {
-        Semitones((NoteNumber::A4.0.as_int() as f64) + 12f64 * (self.0 / Self::A4.0).log2())
+        Semitones((NoteNumber::A4.to_u8() as f64) + 12f64 * (self.0 / Self::A4.0).log2())
     }
 }
 
@@ -75,6 +76,7 @@ mod tests {
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use anyhow::Result;
     use midly::num::u7;
     use rstest::rstest;
 
@@ -150,20 +152,22 @@ mod tests {
     #[case((69, 10, 6), 442f64)]
     #[case((0, 0, 0), -1f64)]
     #[case((127, 127, 126), 14000f64)]
-    fn to_mts_entry(#[case] expected: (u8, u8, u8), #[case] input: f64) {
+    fn to_mts_entry(#[case] expected: (u8, u8, u8), #[case] input: f64) -> Result<()> {
         let input = Frequency(input);
         let expected = MtsEntry {
-            note_number: NoteNumber(expected.0.into()),
+            note_number: NoteNumber::try_from(expected.0)?,
             yy: u7::from_int_lossy(expected.1),
             zz: u7::from_int_lossy(expected.2),
         };
-        assert_eq!(expected, input.to_mts_entry())
+        assert_eq!(expected, input.to_mts_entry()?);
+        Ok(())
     }
 
     #[test]
-    fn to_note_number() {
-        let (note_number, cent_offset) = Frequency(261.625565f64).to_note_number();
-        assert_eq!(60, note_number.0);
+    fn to_note_number() -> Result<()> {
+        let (note_number, cent_offset) = Frequency(261.625565f64).to_note_number()?;
+        assert_eq!(60, note_number.to_u8());
         assert!(cent_offset.0.approx_eq_with_epsilon(0f64, 0.00001f64));
+        Ok(())
     }
 }

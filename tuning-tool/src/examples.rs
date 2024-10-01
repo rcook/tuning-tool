@@ -1,6 +1,6 @@
 use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
-use crate::consts::{U7_MAX, U7_ZERO};
+use crate::consts::U7_ZERO;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
@@ -27,7 +27,7 @@ pub(crate) fn show_all_midi_notes() {
     for midi_note in MidiNote::ALL {
         println!(
             "{note_number}: {name} ({frequency:.1} Hz)",
-            note_number = midi_note.note_number().0,
+            note_number = midi_note.note_number().to_u8(),
             name = midi_note.name(),
             frequency = midi_note.frequency().0
         );
@@ -217,15 +217,15 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let scale = scala_file.scale();
 
     let keyboard_mapping = KeyboardMapping::new(
-        NoteNumber(U7_ZERO),
-        NoteNumber(U7_MAX),
+        NoteNumber::ZERO,
+        NoteNumber::MAX,
         NoteNumber::ZERO,
         Frequency::MIDI_MIN,
     )?;
     let entries = calculate_frequencies(scale, &keyboard_mapping)
         .iter()
         .map(|f| f.to_mts_entry())
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     let entries = entries
         .try_into()
         .expect("Must contain exactly 128 elements");

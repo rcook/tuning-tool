@@ -76,10 +76,10 @@ impl FromStr for KbmFile {
         });
 
         let size = read_u7!(lines);
-        let start_note_number = NoteNumber(read_u7!(lines));
-        let end_note_number = NoteNumber(read_u7!(lines));
-        let middle_note_number = NoteNumber(read_u7!(lines));
-        let base_note_number = NoteNumber(read_u7!(lines));
+        let start_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
+        let end_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
+        let middle_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
+        let base_note_number = NoteNumber::try_from(read_u7!(lines).as_int())?;
         let base_frequency = Frequency(read_f64!(lines));
         let octave_degree = read_usize!(lines);
 

@@ -35,7 +35,7 @@ fn make_note_change_entries(
             Ok(NoteChangeEntry {
                 #[allow(clippy::unnecessary_fallible_conversions)]
                 kk: TryInto::<u8>::try_into(i)?.try_into()?,
-                mts: f.to_mts_entry(),
+                mts: f.to_mts_entry()?,
             })
         })
         .collect::<Result<Vec<_>>>()

@@ -17,7 +17,7 @@ impl KeyboardMapping {
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<Self> {
-        if end_note_number.0 < start_note_number.0 {
+        if end_note_number.checked_sub(start_note_number).is_none() {
             bail!("Invalid end note number");
         }
 

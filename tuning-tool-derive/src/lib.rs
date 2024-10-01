@@ -10,45 +10,41 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
     let panic_message = Literal::string(&format!("Invalid {} constant", ident));
     let output = quote! {
         impl #ident {
+            #vis const ZERO: Self = Self::constant::<0>();
+            #vis const ONE: Self = Self::constant::<1>();
+            #vis const MIN: Self = Self::constant::<0>();
+            #vis const MAX: Self = Self::constant::<127>();
+
             const MASK: u8 = 0x7f;
 
-            pub const fn constant<const N: u8>() -> Self {
+            #vis const fn constant<const N: u8>() -> Self {
                 if N & Self::MASK != N {
                     panic!(#panic_message);
                 }
                 Self(N)
             }
 
-            pub const fn from_u8_lossy(value: u8) -> Self {
+            #vis const fn from_u8_lossy(value: u8) -> Self {
                 Self(value & Self::MASK)
             }
-        }
 
-        impl tuning_tool_lib::u7::U7 for #ident {
-            type Iter = #iter_ident;
-
-            const ZERO: #ident = Self::constant::<0>();
-            const ONE: #ident = Self::constant::<1>();
-            const MIN: #ident = Self::constant::<0>();
-            const MAX: #ident = Self::constant::<127>();
-
-            fn all() -> Self::Iter {
+            #vis fn all() -> #iter_ident {
                 #iter_ident::new(0, 127)
             }
 
-            fn to_u8(self) -> u8 {
+            #vis fn to_u8(self) -> u8 {
                 self.0
             }
 
-            fn widening_succ(self) -> u8 {
+            #vis fn widening_succ(self) -> u8 {
                 self.0 + 1
             }
 
-            fn widening_pred(self) -> i8 {
+            #vis fn widening_pred(self) -> i8 {
                 self.0 as i8 - 1
             }
 
-            fn checked_succ(self) -> Option<Self> {
+            #vis fn checked_succ(self) -> Option<Self> {
                 if self.0 >= Self::MASK {
                     None
                 } else {
@@ -56,7 +52,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn checked_pred(self) -> Option<Self> {
+            #vis fn checked_pred(self) -> Option<Self> {
                 if self.0 > 0 {
                     Some(Self(self.0 - 1))
                 } else {
@@ -64,15 +60,15 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn widening_add(self, rhs: Self) -> u8 {
+            #vis fn widening_add(self, rhs: Self) -> u8 {
                 self.0 + rhs.0
             }
 
-            fn widening_sub(self, rhs: Self) -> i8 {
+            #vis fn widening_sub(self, rhs: Self) -> i8 {
                 self.0 as i8 - rhs.0 as i8
             }
 
-            fn checked_add(self, rhs: Self) -> Option<Self> {
+            #vis fn checked_add(self, rhs: Self) -> Option<Self> {
                 let result = self.0.checked_add(rhs.0)?;
                 if result > Self::MASK {
                     None
@@ -81,7 +77,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn checked_sub(self, rhs: Self) -> Option<Self> {
+            #vis fn checked_sub(self, rhs: Self) -> Option<Self> {
                 let result = self.0.checked_sub(rhs.0)?;
                 if result > Self::MASK {
                     None
@@ -90,9 +86,62 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            fn up_to(self, end: Self) -> Option<Self::Iter> {
+            #vis fn up_to(self, end: Self) -> Option<#iter_ident> {
                 _ = end.checked_sub(self)?;
                 Some(#iter_ident::new(self.0, end.0))
+            }
+        }
+
+        impl tuning_tool_lib::U7 for #ident {
+            type Iter = #iter_ident;
+
+            const ZERO: Self = Self::ZERO;
+            const ONE: Self = Self::ONE;
+            const MIN: Self = Self::MIN;
+            const MAX: Self = Self::MAX;
+
+            fn all() -> Self::Iter {
+                Self::all()
+            }
+
+            fn to_u8(self) -> u8 {
+                Self::to_u8(self)
+            }
+
+            fn widening_succ(self) -> u8 {
+                Self::widening_succ(self)
+            }
+
+            fn widening_pred(self) -> i8 {
+                Self::widening_pred(self)
+            }
+
+            fn checked_succ(self) -> Option<Self> {
+                Self::checked_succ(self)
+            }
+
+            fn checked_pred(self) -> Option<Self> {
+                Self::checked_pred(self)
+            }
+
+            fn widening_add(self, rhs: Self) -> u8 {
+                Self::widening_add(self, rhs)
+            }
+
+            fn widening_sub(self, rhs: Self) -> i8 {
+                Self::widening_sub(self, rhs)
+            }
+
+            fn checked_add(self, rhs: Self) -> Option<Self> {
+                Self::checked_add(self, rhs)
+            }
+
+            fn checked_sub(self, rhs: Self) -> Option<Self> {
+                Self::checked_sub(self, rhs)
+            }
+
+            fn up_to(self, end: Self) -> Option<Self::Iter> {
+                Self::up_to(self, end)
             }
         }
 

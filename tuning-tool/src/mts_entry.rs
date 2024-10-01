@@ -22,7 +22,7 @@ impl MtsEntry {
             self.yy.as_int()
         };
         let mut lsb = self.zz.as_int();
-        let note_number = self.note_number.0;
+        let note_number = u7::from_int_lossy(self.note_number.to_u8());
 
         if note_number == U7_MAX && lsb == U7_MAX {
             lsb = 0x7e;
@@ -46,7 +46,7 @@ impl MtsEntry {
     pub(crate) fn to_hex(&self) -> String {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",
-            xx = self.note_number.0.as_int(),
+            xx = self.note_number.to_u8(),
             yy = self.yy.as_int(),
             zz = self.zz.as_int()
         )
@@ -58,6 +58,7 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
+    use anyhow::Result;
     use midly::num::u7;
     use rstest::rstest;
 
@@ -80,14 +81,15 @@ mod tests {
     #[case(441.999414f64, (69, 10, 6))]
     //#[case(439.998449f64, (68, 199, 199))]
     //#[case(13289.656616f64, (199, 199, 199))]
-    fn to_frequency(#[case] expected: f64, #[case] input: (u8, u8, u8)) {
+    fn to_frequency(#[case] expected: f64, #[case] input: (u8, u8, u8)) -> Result<()> {
         let input = MtsEntry {
-            note_number: NoteNumber(input.0.into()),
+            note_number: NoteNumber::try_from(input.0)?,
             yy: u7::from_int_lossy(input.1),
             zz: u7::from_int_lossy(input.2),
         };
         let expected = Frequency(expected);
         assert_eq!(expected.0, input.to_frequency().0);
+        Ok(())
     }
 
     #[rstest]
@@ -97,12 +99,13 @@ mod tests {
     //#[case("457f06", (69, 240, 6))]
     //#[case("7f7f7f", (128, 255, 128))]
     #[case("7f7f7f", (127, 127, 127))]
-    fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) {
+    fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) -> Result<()> {
         let input = MtsEntry {
-            note_number: NoteNumber(input.0.into()),
+            note_number: NoteNumber::try_from(input.0)?,
             yy: u7::from_int_lossy(input.1),
             zz: u7::from_int_lossy(input.2),
         };
         assert_eq!(expected, input.to_hex());
+        Ok(())
     }
 }

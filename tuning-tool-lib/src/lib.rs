@@ -1,2 +1,5 @@
 pub mod error;
-pub mod u7;
+
+mod u7;
+
+pub use u7::U7;

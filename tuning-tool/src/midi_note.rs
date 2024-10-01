@@ -52,7 +52,7 @@ impl MidiNote {
 
 impl Display for MidiNote {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{} ({} Hz)", self.note_number.0, self.frequency.0)
+        write!(f, "{} ({} Hz)", self.note_number.to_u8(), self.frequency.0)
     }
 }
 
@@ -75,7 +75,7 @@ mod tests {
             MidiNote::nearest_below_or_equal(Frequency(450f64)).expect("Must succeed");
         assert!(rem.0.approx_eq_with_epsilon(10f64, 0.01));
 
-        assert_eq!(69, midi_note.note_number.0);
+        assert_eq!(69, midi_note.note_number.to_u8());
         assert_eq!("A4", midi_note.name());
         assert!(midi_note
             .frequency()
@@ -105,9 +105,9 @@ mod tests {
     #[test]
     fn frequencies() -> Result<()> {
         for i in 0..=127 {
-            let note_number = NoteNumber::new_lossy(i as u8);
+            let note_number = NoteNumber::try_from(i)?;
             let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
-            let midi_note = MidiNote::ALL[i];
+            let midi_note = MidiNote::ALL[i as usize];
             assert_eq!(note_number, midi_note.note_number());
 
             // This must be an exact match

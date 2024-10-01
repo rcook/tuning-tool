@@ -58,7 +58,7 @@ impl NoteChange {
 
         for e in &self.entries {
             values.push(e.kk);
-            values.push(e.mts.note_number.0);
+            values.push(u7::from_int_lossy(e.mts.note_number.to_u8()));
             values.push(e.mts.yy);
             values.push(e.mts.zz);
         }
@@ -71,7 +71,7 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
-    use crate::consts::{U7_MAX, U7_ZERO};
+    use crate::consts::U7_ZERO;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
@@ -122,8 +122,8 @@ mod tests {
             .parse::<SclFile>()?;
 
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber(U7_ZERO),
-            NoteNumber(U7_MAX),
+            NoteNumber::ZERO,
+            NoteNumber::MAX,
             NoteNumber::ZERO,
             Frequency::MIDI_MIN,
         )?;
@@ -135,7 +135,7 @@ mod tests {
                 Ok(NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     kk: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: f.to_mts_entry(),
+                    mts: f.to_mts_entry()?,
                 })
             })
             .collect::<Result<Vec<_>>>()?;

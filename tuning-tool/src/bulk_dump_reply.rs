@@ -122,7 +122,7 @@ impl BulkDumpReply {
                 let yy = read_u7!(iter);
                 let zz = read_u7!(iter);
                 Ok(MtsEntry {
-                    note_number: NoteNumber(xx),
+                    note_number: NoteNumber::try_from(xx.as_int())?,
                     yy,
                     zz,
                 })
@@ -132,7 +132,7 @@ impl BulkDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for e in &entries {
-            _ = calc.update(e.note_number.0);
+            _ = calc.update(u7::from_int_lossy(e.note_number.to_u8()));
             _ = calc.update(e.yy);
             _ = calc.update(e.zz);
         }
@@ -165,7 +165,7 @@ impl BulkDumpReply {
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
         for e in &self.entries {
-            values.push(calc.update(e.note_number.0));
+            values.push(calc.update(u7::from_int_lossy(e.note_number.to_u8())));
             values.push(calc.update(e.yy));
             values.push(calc.update(e.zz));
         }
@@ -191,7 +191,7 @@ impl BulkDumpReply {
 #[cfg(test)]
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
-    use crate::consts::{BULK_DUMP_REPLY_MESSAGE_SIZE, U7_MAX, U7_ZERO};
+    use crate::consts::{BULK_DUMP_REPLY_MESSAGE_SIZE, U7_ZERO};
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
@@ -248,8 +248,8 @@ mod tests {
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber(U7_ZERO),
-            NoteNumber(U7_MAX),
+            NoteNumber::ZERO,
+            NoteNumber::MAX,
             base_note_number,
             base_frequency,
         )?;
@@ -257,7 +257,7 @@ mod tests {
         let entries = calculate_frequencies(scale, &keyboard_mapping)
             .iter()
             .map(|f| f.to_mts_entry())
-            .collect::<Vec<_>>()
+            .collect::<Result<Vec<_>>>()?
             .try_into()
             .expect("Must have exactly 128 elements");
         let reply = BulkDumpReply::new(U7_ZERO, preset, name.parse()?, entries)?;
