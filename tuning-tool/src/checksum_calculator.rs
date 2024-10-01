@@ -1,6 +1,5 @@
 use crate::checksum::Checksum;
 use anyhow::{bail, Result};
-use midly::num::u7;
 use tuning_tool_lib::U7;
 
 pub(crate) struct ChecksumCalculator {
@@ -22,7 +21,7 @@ impl ChecksumCalculator {
         value
     }
 
-    pub(crate) fn update_from_slice<'a>(&mut self, values: &'a [u7]) -> &'a [u7] {
+    pub(crate) fn update_from_slice<'a, U: Copy + U7>(&mut self, values: &'a [U]) -> &'a [U] {
         for value in values {
             _ = self.update(*value);
         }
