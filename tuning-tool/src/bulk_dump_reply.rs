@@ -151,7 +151,7 @@ impl BulkDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for e in &entries {
-            _ = calc.update(e.note_number.to_u7());
+            _ = calc.update(e.note_number);
             _ = calc.update(e.msb);
             _ = calc.update(e.lsb);
         }
@@ -176,20 +176,20 @@ impl BulkDumpReply {
         let mut calc = ChecksumCalculator::new();
         let mut values = MidiMessageBuilder::with_required_len(BULK_DUMP_REPLY_MESSAGE_SIZE);
         values.push(calc.update(UNIVERSAL_NON_REAL_TIME));
-        values.push(calc.update(self.device_id.to_u7()));
+        values.push(calc.update(self.device_id));
         values.push(calc.update(MIDI_TUNING));
         values.push(calc.update(BULK_DUMP_REPLY));
-        values.push(calc.update(self.preset.to_u7()));
+        values.push(calc.update(self.preset));
 
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
         for e in &self.entries {
-            values.push(calc.update(e.note_number.to_u7()));
-            values.push(calc.update(e.msb.to_u7()));
-            values.push(calc.update(e.lsb.to_u7()));
+            values.push(calc.update(e.note_number));
+            values.push(calc.update(e.msb));
+            values.push(calc.update(e.lsb));
         }
 
-        values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.to_u7());
+        values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
 
         values.finalize()
     }

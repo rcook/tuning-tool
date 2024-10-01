@@ -37,7 +37,7 @@ fn make_note_change_entries(
         .map(|(i, f)| {
             Ok(NoteChangeEntry {
                 #[allow(clippy::unnecessary_fallible_conversions)]
-                kk: TryInto::<u8>::try_into(i)?.try_into()?,
+                key_number: TryInto::<u8>::try_into(i)?.try_into()?,
                 mts: f.to_mts_entry()?,
             })
         })

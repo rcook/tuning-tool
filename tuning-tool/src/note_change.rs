@@ -5,7 +5,6 @@ use crate::midi_value::MidiValue;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::preset::Preset;
 use anyhow::{bail, Result};
-use midly::num::u7;
 
 #[derive(Debug)]
 pub(crate) struct NoteChange {
@@ -51,24 +50,23 @@ impl NoteChange {
     #[allow(unused)]
     pub(crate) fn to_vec(&self) -> Result<Vec<MidiValue>> {
         let entry_count = self.entries.len();
+        assert!(entry_count < 128);
         let message_len = 6 + entry_count * 4;
-        let entry_count: u8 = entry_count.try_into()?;
-        #[allow(clippy::unnecessary_fallible_conversions)]
-        let entry_count: u7 = entry_count.try_into()?;
+        let entry_count = MidiValue::from_u8_lossy(entry_count as u8);
 
         let mut values = MidiMessageBuilder::with_required_len(message_len);
         values.push(UNIVERSAL_REAL_TIME);
-        values.push(self.device_id.to_u7());
+        values.push(self.device_id);
         values.push(MIDI_TUNING);
         values.push(NOTE_CHANGE);
-        values.push(self.preset.to_u7());
+        values.push(self.preset);
         values.push(entry_count);
 
         for e in &self.entries {
-            values.push(e.kk);
-            values.push(e.mts.note_number.to_u7());
-            values.push(e.mts.msb.to_u7());
-            values.push(e.mts.lsb.to_u7());
+            values.push(e.key_number);
+            values.push(e.mts.note_number);
+            values.push(e.mts.msb);
+            values.push(e.mts.lsb);
         }
 
         values.finalize()
@@ -140,7 +138,7 @@ mod tests {
             .map(|(i, f)| {
                 Ok(NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
-                    kk: TryInto::<u8>::try_into(i)?.try_into()?,
+                    key_number: TryInto::<u8>::try_into(i)?.try_into()?,
                     mts: f.to_mts_entry()?,
                 })
             })

@@ -23,6 +23,7 @@ mod hex_dump;
 mod interval;
 mod kbm_file;
 mod key;
+mod key_number;
 mod keyboard_mapping;
 mod lsb;
 mod midi_message_builder;
