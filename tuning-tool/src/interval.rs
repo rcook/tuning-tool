@@ -1,11 +1,10 @@
+use crate::cents::Cents;
+use crate::semitones::Semitones;
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
 use rust_decimal::Decimal;
 use std::result::Result as StdResult;
 use std::str::FromStr;
-
-use crate::cents::Cents;
-use crate::semitones::Semitones;
 
 #[derive(Debug, PartialEq)]
 enum Inner {
