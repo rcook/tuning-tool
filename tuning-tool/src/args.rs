@@ -43,7 +43,7 @@ pub(crate) enum Command {
             long = "device",
             short = 'd',
             value_parser = <DeviceId as FromStr>::from_str,
-            default_value_t = DeviceId::constant::<0>()
+            default_value_t = DeviceId::ZERO
         )]
         device_id: DeviceId,
 
@@ -61,7 +61,7 @@ pub(crate) enum Command {
             long = "chunk",
             short = 'c',
             value_parser = <ChunkSize as FromStr>::from_str,
-            default_value_t = ChunkSize::constant::<1>()
+            default_value_t = ChunkSize::ONE
         )]
         chunk_size: ChunkSize,
     },
