@@ -1,0 +1,8 @@
+[package]
+edition = "2021"
+name = "foo-derive-tests"
+version = "0.1.0"
+
+[dependencies]
+foo-derive = { path = "../foo-derive" }
+foo-lib = { path = "../foo-lib" }
