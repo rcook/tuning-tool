@@ -1,20 +1,5 @@
-[package]
-name = "tuning-tool"
-version = "0.1.0"
-edition = "2021"
-
-[dependencies]
-anyhow = "1.0.89"
-clap = { version = "4.5.18", features = ["derive"] }
-derive_builder = "0.20.1"
-include_dir = "0.7.4"
-midir = { git = "https://github.com/rcook/midir.git", rev = "1d53df7041f3f1bfb642f7ff51b30d2fffae1bc6" }
-midly = "0.5.3"
-num = "0.4.3"
-path-absolutize = "3.1.1"
-rstest = "0.22.0"
-rust_decimal = "1.36.0"
-rust_decimal_macros = "1.36.0"
-
-[build-dependencies]
-anyhow = "1.0.89"
+[workspace]
+members = [
+    "tuning-tool",
+]
+resolver = "2"
