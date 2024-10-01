@@ -22,7 +22,9 @@ mod interval;
 mod kbm_file;
 mod key;
 mod keyboard_mapping;
+mod lsb;
 mod midi_note;
+mod msb;
 mod mts_entry;
 mod note_change;
 mod note_change_entry;
@@ -41,8 +43,6 @@ mod string_extras;
 mod sysex_event;
 mod test_util;
 mod u7;
-mod yy;
-mod zz;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

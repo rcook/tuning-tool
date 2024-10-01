@@ -5,12 +5,12 @@ use crate::consts::{
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
 use crate::device_id::DeviceId;
+use crate::lsb::Lsb;
+use crate::msb::Msb;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset::Preset;
 use crate::preset_name::PresetName;
-use crate::yy::YY;
-use crate::zz::ZZ;
 use anyhow::{bail, Result};
 use midly::num::u7;
 use std::io::{Bytes, Read};
@@ -124,12 +124,12 @@ impl BulkDumpReply {
         let entries: MtsEntries = (0..ENTRIES_LEN)
             .map(|_| {
                 let note_number = NoteNumber::try_from(read_u7!(iter).as_int())?;
-                let yy = YY::try_from(read_u7!(iter).as_int())?;
-                let zz = ZZ::try_from(read_u7!(iter).as_int())?;
+                let yy = Msb::try_from(read_u7!(iter).as_int())?;
+                let zz = Lsb::try_from(read_u7!(iter).as_int())?;
                 Ok(MtsEntry {
                     note_number,
-                    yy,
-                    zz,
+                    msb: yy,
+                    lsb: zz,
                 })
             })
             .collect::<Result<Vec<_>>>()?
@@ -138,8 +138,8 @@ impl BulkDumpReply {
 
         for e in &entries {
             _ = calc.update(e.note_number.to_u7());
-            _ = calc.update(e.yy);
-            _ = calc.update(e.zz);
+            _ = calc.update(e.msb);
+            _ = calc.update(e.lsb);
         }
 
         let checksum = read_u7!(iter);
@@ -174,8 +174,8 @@ impl BulkDumpReply {
 
         for e in &self.entries {
             values.push(calc.update(e.note_number.to_u7()));
-            values.push(calc.update(e.yy.to_u7()));
-            values.push(calc.update(e.zz.to_u7()));
+            values.push(calc.update(e.msb.to_u7()));
+            values.push(calc.update(e.lsb.to_u7()));
         }
 
         values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.to_u7());

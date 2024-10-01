@@ -73,11 +73,11 @@ impl Frequency {
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::frequency::Frequency;
+    use crate::lsb::Lsb;
+    use crate::msb::Msb;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
-    use crate::yy::YY;
-    use crate::zz::ZZ;
     use anyhow::Result;
     use rstest::rstest;
 
@@ -157,8 +157,8 @@ mod tests {
         let input = Frequency(input);
         let expected = MtsEntry {
             note_number: NoteNumber::try_from(expected.0)?,
-            yy: YY::try_from(expected.1)?,
-            zz: ZZ::try_from(expected.2)?,
+            msb: Msb::try_from(expected.1)?,
+            lsb: Lsb::try_from(expected.2)?,
         };
         assert_eq!(expected, input.to_mts_entry()?);
         Ok(())

@@ -32,6 +32,14 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 #iter_ident::new(0, 127)
             }
 
+            #vis fn is_min(&self) -> bool {
+                self.0 == Self::MIN.0
+            }
+
+            #vis fn is_max(&self) -> bool {
+                self.0 == Self::MAX.0
+            }
+
             #vis const fn to_u7(self) -> midly::num::u7 {
                 midly::num::u7::from_int_lossy(self.0)
             }

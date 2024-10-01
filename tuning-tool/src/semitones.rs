@@ -1,8 +1,8 @@
 use crate::frequency::Frequency;
+use crate::lsb::Lsb;
+use crate::msb::Msb;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
-use crate::yy::YY;
-use crate::zz::ZZ;
 use anyhow::Result;
 
 pub(crate) struct Semitones(pub(crate) f64);
@@ -15,28 +15,28 @@ impl Semitones {
         if self.0 <= 0f64 {
             return Ok(MtsEntry {
                 note_number: NoteNumber::ZERO,
-                yy: YY::ZERO,
-                zz: ZZ::ZERO,
+                msb: Msb::ZERO,
+                lsb: Lsb::ZERO,
             });
         }
 
         if self.0 > 127.999878f64 {
             return Ok(MtsEntry {
                 note_number: NoteNumber::MAX,
-                yy: YY::MAX,
-                zz: ZZ::constant::<0x7e>(),
+                msb: Msb::MAX,
+                lsb: Lsb::constant::<0x7e>(),
             });
         }
 
         let note_number = self.0.trunc();
         let fine = ((0x4000 as f64) * (self.0 - note_number)).round() as u16;
 
-        let yy = YY::try_from(((fine >> 7) & 0x7f) as u8)?;
-        let zz = ZZ::try_from((fine & 0x7f) as u8)?;
+        let yy = Msb::try_from(((fine >> 7) & 0x7f) as u8)?;
+        let zz = Lsb::try_from((fine & 0x7f) as u8)?;
         Ok(MtsEntry {
             note_number: NoteNumber::try_from(note_number as u8)?,
-            yy,
-            zz,
+            msb: yy,
+            lsb: zz,
         })
     }
 
@@ -48,11 +48,11 @@ impl Semitones {
 
 #[cfg(test)]
 mod tests {
+    use crate::lsb::Lsb;
+    use crate::msb::Msb;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
-    use crate::yy::YY;
-    use crate::zz::ZZ;
     use anyhow::Result;
     use rstest::rstest;
 
@@ -78,8 +78,8 @@ mod tests {
         let input = Semitones(input);
         let expected = MtsEntry {
             note_number: NoteNumber::try_from(expected.0)?,
-            yy: YY::try_from(expected.1)?,
-            zz: ZZ::try_from(expected.2)?,
+            msb: Msb::try_from(expected.1)?,
+            lsb: Lsb::try_from(expected.2)?,
         };
         assert_eq!(expected, input.to_mts_entry()?);
         Ok(())

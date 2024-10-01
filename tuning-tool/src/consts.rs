@@ -11,4 +11,3 @@ pub(crate) const BULK_DUMP_REPLY_MESSAGE_SIZE: usize = BULK_DUMP_REPLY_CHECKSUM_
 pub(crate) const EOX: u8 = 0xf7;
 
 pub(crate) const U7_ZERO: u7 = u7::from_int_lossy(0x00);
-pub(crate) const U7_MAX: u7 = u7::from_int_lossy(0x7f);
