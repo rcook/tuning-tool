@@ -4,4 +4,5 @@ name = "tuning-tool-lib"
 version = "0.1.0"
 
 [dependencies]
+midly = "0.5.3"
 thiserror = "1.0.64"

@@ -1,8 +1,10 @@
-use crate::cli::{parse_absolute_path, parse_u7};
-use crate::consts::U7_ZERO;
+use crate::chunk_size::ChunkSize;
+use crate::cli::parse_absolute_path;
+use crate::device_id::DeviceId;
+use crate::preset::Preset;
 use clap::{Parser, Subcommand};
-use midly::num::u7;
 use std::path::PathBuf;
+use std::str::FromStr;
 
 #[derive(Debug, Parser)]
 #[command(about = "Richard's MIDI Tuning Tool")]
@@ -40,27 +42,27 @@ pub(crate) enum Command {
             help = "Device ID",
             long = "device",
             short = 'd',
-            value_parser = parse_u7,
-            default_value_t = U7_ZERO
+            value_parser = <DeviceId as FromStr>::from_str,
+            default_value_t = DeviceId::constant::<0>()
         )]
-        device_id: u7,
+        device_id: DeviceId,
 
         #[arg(
             help = "Preset",
             long = "preset",
             short = 'p',
-            value_parser = parse_u7,
-            default_value_t = u7::from_int_lossy(8)
+            value_parser = <Preset as FromStr>::from_str,
+            default_value_t = Preset::constant::<8>()
         )]
-        preset: u7,
+        preset: Preset,
 
         #[arg(
             help = "Chunk size",
             long = "chunk",
             short = 'c',
-            value_parser = parse_u7,
-            default_value_t = u7::from_int_lossy(1)
+            value_parser = <ChunkSize as FromStr>::from_str,
+            default_value_t = ChunkSize::constant::<8>()
         )]
-        chunk_size: u7,
+        chunk_size: ChunkSize,
     },
 }

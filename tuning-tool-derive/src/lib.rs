@@ -32,7 +32,11 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 #iter_ident::new(0, 127)
             }
 
-            #vis fn to_u8(self) -> u8 {
+            #vis const fn to_u7(self) -> midly::num::u7 {
+                midly::num::u7::from_int_lossy(self.0)
+            }
+
+            #vis const fn to_u8(self) -> u8 {
                 self.0
             }
 
@@ -102,6 +106,10 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
 
             fn all() -> Self::Iter {
                 Self::all()
+            }
+
+            fn to_u7(self) -> midly::num::u7 {
+                Self::to_u7(self)
             }
 
             fn to_u8(self) -> u8 {

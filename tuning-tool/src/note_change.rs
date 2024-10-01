@@ -1,18 +1,24 @@
 use crate::consts::{MIDI_TUNING, NOTE_CHANGE, UNIVERSAL_REAL_TIME};
+use crate::device_id::DeviceId;
 use crate::note_change_entry::NoteChangeEntry;
+use crate::preset::Preset;
 use anyhow::{bail, Result};
 use midly::num::u7;
 
 #[derive(Debug)]
 pub(crate) struct NoteChange {
-    device_id: u7,
-    preset: u7,
+    device_id: DeviceId,
+    preset: Preset,
     entries: Vec<NoteChangeEntry>,
 }
 
 impl NoteChange {
     #[allow(unused)]
-    pub(crate) fn new(device_id: u7, preset: u7, entries: &[NoteChangeEntry]) -> Result<Self> {
+    pub(crate) fn new(
+        device_id: DeviceId,
+        preset: Preset,
+        entries: &[NoteChangeEntry],
+    ) -> Result<Self> {
         if entries.len() > 127 {
             bail!("Too many note changes")
         }
@@ -24,12 +30,12 @@ impl NoteChange {
     }
 
     #[allow(unused)]
-    pub(crate) const fn device_id(&self) -> u7 {
+    pub(crate) const fn device_id(&self) -> DeviceId {
         self.device_id
     }
 
     #[allow(unused)]
-    pub(crate) const fn preset(&self) -> u7 {
+    pub(crate) const fn preset(&self) -> Preset {
         self.preset
     }
 
@@ -50,10 +56,10 @@ impl NoteChange {
 
         let mut values = Vec::with_capacity(message_len);
         values.push(UNIVERSAL_REAL_TIME);
-        values.push(self.device_id);
+        values.push(self.device_id.to_u7());
         values.push(MIDI_TUNING);
         values.push(NOTE_CHANGE);
-        values.push(self.preset);
+        values.push(self.preset.to_u7());
         values.push(entry_count);
 
         for e in &self.entries {
@@ -71,7 +77,7 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
-    use crate::consts::U7_ZERO;
+    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
@@ -79,11 +85,11 @@ mod tests {
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
+    use crate::preset::Preset;
     use crate::resources::RESOURCE_DIR;
     use crate::scl_file::SclFile;
     use anyhow::{anyhow, Result};
     use midly::live::{LiveEvent, SystemCommon};
-    use midly::num::u7;
     use std::iter::zip;
 
     #[test]
@@ -143,7 +149,7 @@ mod tests {
         let messages = entries
             .chunks(64)
             .map(|chunk| {
-                let message = NoteChange::new(U7_ZERO, u7::from_int_lossy(8), chunk)?;
+                let message = NoteChange::new(DeviceId::ZERO, Preset::constant::<8>(), chunk)?;
                 let values = message.to_vec()?;
                 let event = LiveEvent::Common(SystemCommon::SysEx(&values));
                 let mut buffer = Vec::new();

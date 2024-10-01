@@ -1,13 +1,15 @@
+use crate::chunk_size::ChunkSize;
+use crate::device_id::DeviceId;
 use crate::frequencies::calculate_frequencies;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
+use crate::preset::Preset;
 use crate::scl_file::SclFile;
 use anyhow::{bail, Result};
 use midir::{MidiOutput, MidiOutputPort};
 use midly::live::{LiveEvent, SystemCommon};
-use midly::num::u7;
 use std::path::Path;
 
 fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
@@ -42,13 +44,13 @@ fn make_note_change_entries(
 }
 
 fn make_messages(
-    device_id: u7,
-    preset: u7,
+    device_id: DeviceId,
+    preset: Preset,
     entries: &[NoteChangeEntry],
-    chunk_size: u7,
+    chunk_size: ChunkSize,
 ) -> Result<Vec<Vec<u8>>> {
     let mut messages = Vec::new();
-    for chunk in entries.chunks(chunk_size.as_int() as usize) {
+    for chunk in entries.chunks(chunk_size.to_u8() as usize) {
         let note_change = NoteChange::new(device_id, preset, chunk)?;
         let vec = note_change.to_vec()?;
         let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
@@ -63,9 +65,9 @@ pub(crate) fn send_tuning(
     scl_path: &Path,
     kbm_path: &Path,
     midi_output_port_name: &Option<String>,
-    device_id: u7,
-    preset: u7,
-    chunk_size: u7,
+    device_id: DeviceId,
+    preset: Preset,
+    chunk_size: ChunkSize,
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
     let kbm_file = KbmFile::read(kbm_path)?;
