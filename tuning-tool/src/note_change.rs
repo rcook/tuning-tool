@@ -58,7 +58,7 @@ impl NoteChange {
 
         for e in &self.entries {
             values.push(e.kk);
-            values.push(u7::from_int_lossy(e.mts.note_number.to_u8()));
+            values.push(e.mts.note_number.to_u7());
             values.push(e.mts.yy);
             values.push(e.mts.zz);
         }

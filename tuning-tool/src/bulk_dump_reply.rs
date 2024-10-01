@@ -132,7 +132,7 @@ impl BulkDumpReply {
             .expect("Vector must have exactly 128 elements");
 
         for e in &entries {
-            _ = calc.update(u7::from_int_lossy(e.note_number.to_u8()));
+            _ = calc.update(e.note_number.to_u7());
             _ = calc.update(e.yy);
             _ = calc.update(e.zz);
         }
@@ -165,7 +165,7 @@ impl BulkDumpReply {
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
         for e in &self.entries {
-            values.push(calc.update(u7::from_int_lossy(e.note_number.to_u8())));
+            values.push(calc.update(e.note_number.to_u7()));
             values.push(calc.update(e.yy));
             values.push(calc.update(e.zz));
         }

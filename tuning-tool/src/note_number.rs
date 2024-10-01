@@ -1,5 +1,6 @@
 use crate::frequency::Frequency;
 use crate::semitones::Semitones;
+use midly::num::u7;
 use tuning_tool_derive::U7;
 
 #[derive(Clone, Copy, Debug, PartialEq, U7)]
@@ -7,6 +8,10 @@ pub(crate) struct NoteNumber(u8);
 
 impl NoteNumber {
     pub(crate) const A4: Self = Self::constant::<69>();
+
+    pub(crate) const fn to_u7(self) -> u7 {
+        u7::from_int_lossy(self.0)
+    }
 
     // c.f. mtof
     #[allow(unused)]
