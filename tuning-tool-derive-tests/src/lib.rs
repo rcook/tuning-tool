@@ -1,5 +1,6 @@
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
     use tuning_tool_derive::U7;
     use tuning_tool_lib::u7::U7;
 
@@ -12,6 +13,31 @@ mod tests {
         assert_eq!(1, MyU7::ONE.to_u8());
         assert_eq!(0, MyU7::MIN.to_u8());
         assert_eq!(127, MyU7::MAX.to_u8());
+    }
+
+    #[test]
+    #[should_panic]
+    fn constant_panic() {
+        MyU7::constant::<128>();
+    }
+
+    #[test]
+    fn constant_no_panic() {
+        MyU7::constant::<127>();
+    }
+
+    #[test]
+    fn from_str() {
+        let value: MyU7 = "123".parse().expect("Should succeed");
+        assert_eq!(123, value.to_u8());
+
+        let value: MyU7 = MyU7::from_str("123").expect("Should succeed");
+        assert_eq!(123, value.to_u8());
+    }
+
+    #[test]
+    fn from_str_failure() {
+        assert!(MyU7::from_str("1234").is_err());
     }
 
     #[test]
@@ -100,8 +126,8 @@ mod tests {
     #[test]
     fn up_to() {
         let mut result = Vec::new();
-        for (i, value) in MyU7::panicking_new(10)
-            .up_to(MyU7::panicking_new(15))
+        for (i, value) in MyU7::from_u8_lossy(10)
+            .up_to(MyU7::from_u8_lossy(15))
             .expect("Must be valid")
             .enumerate()
         {
@@ -113,14 +139,8 @@ mod tests {
 
     #[test]
     fn up_to_invalid() {
-        assert!(MyU7::panicking_new(20)
-            .up_to(MyU7::panicking_new(15))
+        assert!(MyU7::from_u8_lossy(20)
+            .up_to(MyU7::from_u8_lossy(15))
             .is_none());
-    }
-
-    #[test]
-    #[should_panic]
-    fn panicking_new() {
-        MyU7::panicking_new(128);
     }
 }

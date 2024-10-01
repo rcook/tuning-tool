@@ -1,5 +1,5 @@
 use proc_macro::TokenStream;
-use proc_macro2::Span;
+use proc_macro2::{Literal, Span};
 use quote::quote;
 use syn::{parse_macro_input, DeriveInput, Ident};
 
@@ -7,18 +7,19 @@ use syn::{parse_macro_input, DeriveInput, Ident};
 pub fn u7_derive(input: TokenStream) -> TokenStream {
     let DeriveInput { vis, ident, .. } = parse_macro_input!(input);
     let iter_ident = Ident::new(&format!("{}Iterator", ident), Span::call_site());
+    let panic_message = Literal::string(&format!("Invalid {} constant", ident));
     let output = quote! {
         impl #ident {
             const MASK: u8 = 0x7f;
 
-            pub const fn panicking_new(value: u8) -> Self {
-                if value & Self::MASK != value {
-                    panic!("Invalid u7 constant");
+            pub const fn constant<const N: u8>() -> Self {
+                if N & Self::MASK != N {
+                    panic!(#panic_message);
                 }
-                Self(value)
+                Self(N)
             }
 
-            pub const fn new_lossy(value: u8) -> Self {
+            pub const fn from_u8_lossy(value: u8) -> Self {
                 Self(value & Self::MASK)
             }
         }
@@ -26,10 +27,10 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
         impl tuning_tool_lib::u7::U7 for #ident {
             type Iter = #iter_ident;
 
-            const ZERO: #ident = #ident::panicking_new(0);
-            const ONE: #ident = #ident::panicking_new(1);
-            const MIN: #ident = #ident::panicking_new(0);
-            const MAX: #ident = #ident::panicking_new(127);
+            const ZERO: #ident = Self::constant::<0>();
+            const ONE: #ident = Self::constant::<1>();
+            const MIN: #ident = Self::constant::<0>();
+            const MAX: #ident = Self::constant::<127>();
 
             fn all() -> Self::Iter {
                 #iter_ident::new(0, 127)
@@ -138,7 +139,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 let value = self.curr;
                 if value <= self.end {
                     self.curr += 1;
-                    Some(#ident::panicking_new(value))
+                    Some(#ident(value))
                 } else {
                     None
                 }
