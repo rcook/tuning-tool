@@ -15,9 +15,9 @@ use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset::Preset;
 use crate::preset_name::PresetName;
+use crate::read::{read, read_multi};
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
-use tuning_tool_lib::{TryFromU8Error, U7};
 
 macro_rules! read_u8 {
     ($iter: expr) => {{
@@ -85,29 +85,6 @@ impl BulkDumpReply {
 
 impl BulkDumpReply {
     pub(crate) fn from_bytes<R: Read>(bytes: Bytes<R>) -> Result<Self> {
-        fn read<U, I>(iter: &mut I) -> Result<U>
-        where
-            U: TryFrom<u8, Error = TryFromU8Error> + U7,
-            I: Iterator<Item = u8>,
-        {
-            let byte: u8 = iter
-                .next()
-                .ok_or_else(|| ::anyhow::anyhow!("Failed to read byte"))?;
-            Ok(byte.try_into()?)
-        }
-
-        fn read_n<U, I, const N: usize>(iter: &mut I) -> Result<[U; N]>
-        where
-            U: TryFrom<u8, Error = TryFromU8Error> + U7,
-            I: Iterator<Item = u8>,
-        {
-            let mut result = [U::ZERO; N];
-            for blah in result.iter_mut() {
-                *blah = read::<U, I>(iter)?;
-            }
-            Ok(result)
-        }
-
         let mut calc = ChecksumCalculator::new();
 
         let mut iter = bytes.filter_map(Result::<_, _>::ok).peekable();
@@ -132,7 +109,7 @@ impl BulkDumpReply {
 
         let preset = calc.update(read::<Preset, _>(&mut iter)?);
 
-        let name = PresetName::new(read_n::<AsciiChar, _, { PresetName::LEN }>(&mut iter)?);
+        let name = PresetName::new(read_multi::<AsciiChar, _, { PresetName::LEN }>(&mut iter)?);
         _ = calc.update_from_slice(name.as_array());
 
         let entries: MtsEntries = (0..ENTRIES_LEN)

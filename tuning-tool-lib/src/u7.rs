@@ -1,4 +1,6 @@
-pub trait U7: Copy + Sized {
+use crate::TryFromU8Error;
+
+pub trait U7: Copy + Sized + TryFrom<u8, Error = TryFromU8Error> {
     type Iter: Iterator<Item = Self>;
     const ZERO: Self;
     const ONE: Self;
