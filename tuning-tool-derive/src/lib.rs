@@ -162,7 +162,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
         }
 
         impl std::convert::TryFrom<u8> for #ident {
-            type Error = tuning_tool_lib::error::TryFromU8Error;
+            type Error = tuning_tool_lib::TryFromU8Error;
 
             fn try_from(value: u8) -> std::result::Result<Self, Self::Error> {
                 if value > Self::MASK {
@@ -192,7 +192,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
         }
 
         impl std::str::FromStr for #ident {
-            type Err = tuning_tool_lib::error::FromStrError;
+            type Err = tuning_tool_lib::FromStrError;
 
             fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
                 let value = s.parse().map_err(|e| Self::Err::Other(e))?;

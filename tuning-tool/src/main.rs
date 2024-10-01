@@ -2,6 +2,7 @@
 
 mod approx_eq;
 mod args;
+mod ascii_char;
 mod bulk_dump_reply;
 mod cent_offset;
 mod cents;
@@ -9,6 +10,7 @@ mod checksum;
 mod checksum_calculator;
 mod chunk_size;
 mod cli;
+mod coerce;
 mod consts;
 mod device_id;
 mod dump_sysex_file;
@@ -23,7 +25,9 @@ mod kbm_file;
 mod key;
 mod keyboard_mapping;
 mod lsb;
+mod midi_message_builder;
 mod midi_note;
+mod midi_value;
 mod msb;
 mod mts_entry;
 mod note_change;

@@ -1,6 +1,6 @@
 use midly::num::u7;
 
-pub trait U7: Sized {
+pub trait U7: Copy + Sized {
     type Iter: Iterator<Item = Self>;
     const ZERO: Self;
     const ONE: Self;

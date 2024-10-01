@@ -1,5 +1,7 @@
 use crate::consts::{MIDI_TUNING, NOTE_CHANGE, UNIVERSAL_REAL_TIME};
 use crate::device_id::DeviceId;
+use crate::midi_message_builder::MidiMessageBuilder;
+use crate::midi_value::MidiValue;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::preset::Preset;
 use anyhow::{bail, Result};
@@ -47,14 +49,14 @@ impl NoteChange {
 
 impl NoteChange {
     #[allow(unused)]
-    pub(crate) fn to_vec(&self) -> Result<Vec<u7>> {
+    pub(crate) fn to_vec(&self) -> Result<Vec<MidiValue>> {
         let entry_count = self.entries.len();
         let message_len = 6 + entry_count * 4;
         let entry_count: u8 = entry_count.try_into()?;
         #[allow(clippy::unnecessary_fallible_conversions)]
         let entry_count: u7 = entry_count.try_into()?;
 
-        let mut values = Vec::with_capacity(message_len);
+        let mut values = MidiMessageBuilder::with_required_len(message_len);
         values.push(UNIVERSAL_REAL_TIME);
         values.push(self.device_id.to_u7());
         values.push(MIDI_TUNING);
@@ -69,15 +71,12 @@ impl NoteChange {
             values.push(e.mts.lsb.to_u7());
         }
 
-        assert_eq!(message_len, values.len());
-
-        Ok(values)
+        values.finalize()
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
@@ -88,6 +87,7 @@ mod tests {
     use crate::preset::Preset;
     use crate::resources::RESOURCE_DIR;
     use crate::scl_file::SclFile;
+    use crate::{coerce::unsafe_coerce_slice_to_u7_slice, device_id::DeviceId};
     use anyhow::{anyhow, Result};
     use midly::live::{LiveEvent, SystemCommon};
     use std::iter::zip;
@@ -151,7 +151,9 @@ mod tests {
             .map(|chunk| {
                 let message = NoteChange::new(DeviceId::ZERO, Preset::constant::<8>(), chunk)?;
                 let values = message.to_vec()?;
-                let event = LiveEvent::Common(SystemCommon::SysEx(&values));
+                let event = LiveEvent::Common(SystemCommon::SysEx(
+                    unsafe_coerce_slice_to_u7_slice(&values),
+                ));
                 let mut buffer = Vec::new();
                 event.write_std(&mut buffer)?;
                 Ok(buffer)

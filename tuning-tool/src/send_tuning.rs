@@ -1,4 +1,5 @@
 use crate::chunk_size::ChunkSize;
+use crate::coerce::unsafe_coerce_slice_to_u7_slice;
 use crate::device_id::DeviceId;
 use crate::frequencies::calculate_frequencies;
 use crate::hex_dump::to_hex_dump;
@@ -53,7 +54,7 @@ fn make_messages(
     for chunk in entries.chunks(chunk_size.to_u8() as usize) {
         let note_change = NoteChange::new(device_id, preset, chunk)?;
         let vec = note_change.to_vec()?;
-        let event = LiveEvent::Common(SystemCommon::SysEx(&vec));
+        let event = LiveEvent::Common(SystemCommon::SysEx(unsafe_coerce_slice_to_u7_slice(&vec)));
         let mut buffer = Vec::new();
         event.write_std(&mut buffer)?;
         messages.push(buffer);
