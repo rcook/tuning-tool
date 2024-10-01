@@ -165,6 +165,12 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl std::fmt::Display for #ident {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{}", self.0)
+            }
+        }
+
         impl std::str::FromStr for #ident {
             type Err = tuning_tool_lib::error::FromStrError;
 

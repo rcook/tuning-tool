@@ -1,9 +1,8 @@
 use crate::frequency::Frequency;
 use crate::semitones::Semitones;
-use tuning_tool_derive::U7;
+use crate::u7::u7_newtype;
 
-#[derive(Clone, Copy, Debug, PartialEq, U7)]
-pub(crate) struct NoteNumber(u8);
+u7_newtype!(NoteNumber, pub(crate));
 
 impl NoteNumber {
     pub(crate) const A4: Self = Self::constant::<69>();

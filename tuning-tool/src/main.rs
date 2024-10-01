@@ -40,6 +40,7 @@ mod send_tuning;
 mod string_extras;
 mod sysex_event;
 mod test_util;
+mod u7;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()
