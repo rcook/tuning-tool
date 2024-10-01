@@ -1,3 +1,4 @@
+use crate::checksum::Checksum;
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
@@ -143,7 +144,10 @@ impl BulkDumpReply {
             bail!("EOX not found");
         }
 
-        calc.verify(checksum, Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?;
+        calc.verify(
+            Checksum::from_u8_lossy(checksum.as_int()),
+            Some(BULK_DUMP_REPLY_CHECKSUM_COUNT),
+        )?;
 
         Ok(Self {
             device_id,
@@ -170,7 +174,7 @@ impl BulkDumpReply {
             values.push(calc.update(e.zz));
         }
 
-        values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?);
+        values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.to_u7());
 
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE, values.len());
         Ok(values)
