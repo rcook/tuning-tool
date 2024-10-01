@@ -61,7 +61,7 @@ pub(crate) enum Command {
             long = "chunk",
             short = 'c',
             value_parser = <ChunkSize as FromStr>::from_str,
-            default_value_t = ChunkSize::constant::<8>()
+            default_value_t = ChunkSize::constant::<1>()
         )]
         chunk_size: ChunkSize,
     },
