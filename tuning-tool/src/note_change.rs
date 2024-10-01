@@ -65,8 +65,8 @@ impl NoteChange {
         for e in &self.entries {
             values.push(e.kk);
             values.push(e.mts.note_number.to_u7());
-            values.push(e.mts.yy);
-            values.push(e.mts.zz);
+            values.push(e.mts.yy.to_u7());
+            values.push(e.mts.zz.to_u7());
         }
 
         assert_eq!(message_len, values.len());

@@ -9,6 +9,8 @@ use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset::Preset;
 use crate::preset_name::PresetName;
+use crate::yy::YY;
+use crate::zz::ZZ;
 use anyhow::{bail, Result};
 use midly::num::u7;
 use std::io::{Bytes, Read};
@@ -121,11 +123,11 @@ impl BulkDumpReply {
 
         let entries: MtsEntries = (0..ENTRIES_LEN)
             .map(|_| {
-                let xx = read_u7!(iter);
-                let yy = read_u7!(iter);
-                let zz = read_u7!(iter);
+                let note_number = NoteNumber::try_from(read_u7!(iter).as_int())?;
+                let yy = YY::try_from(read_u7!(iter).as_int())?;
+                let zz = ZZ::try_from(read_u7!(iter).as_int())?;
                 Ok(MtsEntry {
-                    note_number: NoteNumber::try_from(xx.as_int())?,
+                    note_number,
                     yy,
                     zz,
                 })
@@ -172,8 +174,8 @@ impl BulkDumpReply {
 
         for e in &self.entries {
             values.push(calc.update(e.note_number.to_u7()));
-            values.push(calc.update(e.yy));
-            values.push(calc.update(e.zz));
+            values.push(calc.update(e.yy.to_u7()));
+            values.push(calc.update(e.zz.to_u7()));
         }
 
         values.push(calc.finalize(Some(BULK_DUMP_REPLY_CHECKSUM_COUNT))?.to_u7());

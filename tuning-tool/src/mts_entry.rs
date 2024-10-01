@@ -3,25 +3,25 @@ use crate::frequency::Frequency;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
 use crate::semitones::Semitones;
+use crate::yy::YY;
+use crate::zz::ZZ;
 use midly::num::u7;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct MtsEntry {
     pub(crate) note_number: NoteNumber,
-    pub(crate) yy: u7,
-    pub(crate) zz: u7,
+    pub(crate) yy: YY,
+    pub(crate) zz: ZZ,
 }
 
 impl MtsEntry {
     // c.f. mtsBytesToMts
     #[allow(unused)]
     pub(crate) fn to_semitones(&self) -> Semitones {
-        let msb = if self.yy > 0x7f {
-            0x7f
-        } else {
-            self.yy.as_int()
-        };
-        let mut lsb = self.zz.as_int();
+        let yy = self.yy.to_u8();
+        let zz = self.zz.to_u8();
+        let msb = if yy > 0x7f { 0x7f } else { yy };
+        let mut lsb = zz;
         let note_number = u7::from_int_lossy(self.note_number.to_u8());
 
         if note_number == U7_MAX && lsb == U7_MAX {
@@ -36,7 +36,6 @@ impl MtsEntry {
     #[allow(unused)]
     pub(crate) fn to_frequency(&self) -> Frequency {
         let mts = self.to_semitones();
-        println!("mts={:?}", mts.0);
         let frequency = mts.to_frequency();
         Frequency(round_default_scale(frequency.0))
     }
@@ -47,8 +46,8 @@ impl MtsEntry {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",
             xx = self.note_number,
-            yy = self.yy.as_int(),
-            zz = self.zz.as_int()
+            yy = self.yy,
+            zz = self.zz
         )
     }
 }
@@ -58,8 +57,9 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
+    use crate::yy::YY;
+    use crate::zz::ZZ;
     use anyhow::Result;
-    use midly::num::u7;
     use rstest::rstest;
 
     #[rstest]
@@ -84,8 +84,8 @@ mod tests {
     fn to_frequency(#[case] expected: f64, #[case] input: (u8, u8, u8)) -> Result<()> {
         let input = MtsEntry {
             note_number: NoteNumber::try_from(input.0)?,
-            yy: u7::from_int_lossy(input.1),
-            zz: u7::from_int_lossy(input.2),
+            yy: YY::try_from(input.1)?,
+            zz: ZZ::try_from(input.2)?,
         };
         let expected = Frequency(expected);
         assert_eq!(expected.0, input.to_frequency().0);
@@ -102,8 +102,8 @@ mod tests {
     fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) -> Result<()> {
         let input = MtsEntry {
             note_number: NoteNumber::try_from(input.0)?,
-            yy: u7::from_int_lossy(input.1),
-            zz: u7::from_int_lossy(input.2),
+            yy: YY::try_from(input.1)?,
+            zz: ZZ::try_from(input.2)?,
         };
         assert_eq!(expected, input.to_hex());
         Ok(())

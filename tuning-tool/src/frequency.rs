@@ -76,8 +76,9 @@ mod tests {
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use crate::yy::YY;
+    use crate::zz::ZZ;
     use anyhow::Result;
-    use midly::num::u7;
     use rstest::rstest;
 
     #[test]
@@ -156,8 +157,8 @@ mod tests {
         let input = Frequency(input);
         let expected = MtsEntry {
             note_number: NoteNumber::try_from(expected.0)?,
-            yy: u7::from_int_lossy(expected.1),
-            zz: u7::from_int_lossy(expected.2),
+            yy: YY::try_from(expected.1)?,
+            zz: ZZ::try_from(expected.2)?,
         };
         assert_eq!(expected, input.to_mts_entry()?);
         Ok(())

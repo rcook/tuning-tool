@@ -41,6 +41,8 @@ mod string_extras;
 mod sysex_event;
 mod test_util;
 mod u7;
+mod yy;
+mod zz;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

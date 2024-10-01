@@ -1,9 +1,9 @@
-use crate::consts::{U7_MAX, U7_ZERO};
 use crate::frequency::Frequency;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
+use crate::yy::YY;
+use crate::zz::ZZ;
 use anyhow::Result;
-use midly::num::u7;
 
 pub(crate) struct Semitones(pub(crate) f64);
 
@@ -15,24 +15,24 @@ impl Semitones {
         if self.0 <= 0f64 {
             return Ok(MtsEntry {
                 note_number: NoteNumber::ZERO,
-                yy: U7_ZERO,
-                zz: U7_ZERO,
+                yy: YY::ZERO,
+                zz: ZZ::ZERO,
             });
         }
 
         if self.0 > 127.999878f64 {
             return Ok(MtsEntry {
                 note_number: NoteNumber::MAX,
-                yy: U7_MAX,
-                zz: u7::from_int_lossy(0x7e),
+                yy: YY::MAX,
+                zz: ZZ::constant::<0x7e>(),
             });
         }
 
         let note_number = self.0.trunc();
         let fine = ((0x4000 as f64) * (self.0 - note_number)).round() as u16;
 
-        let yy = u7::from_int_lossy(((fine >> 7) & 0x7f) as u8);
-        let zz = u7::from_int_lossy((fine & 0x7f) as u8);
+        let yy = YY::try_from(((fine >> 7) & 0x7f) as u8)?;
+        let zz = ZZ::try_from((fine & 0x7f) as u8)?;
         Ok(MtsEntry {
             note_number: NoteNumber::try_from(note_number as u8)?,
             yy,
@@ -51,8 +51,9 @@ mod tests {
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use crate::yy::YY;
+    use crate::zz::ZZ;
     use anyhow::Result;
-    use midly::num::u7;
     use rstest::rstest;
 
     #[rstest]
@@ -77,8 +78,8 @@ mod tests {
         let input = Semitones(input);
         let expected = MtsEntry {
             note_number: NoteNumber::try_from(expected.0)?,
-            yy: u7::from_int_lossy(expected.1),
-            zz: u7::from_int_lossy(expected.2),
+            yy: YY::try_from(expected.1)?,
+            zz: ZZ::try_from(expected.2)?,
         };
         assert_eq!(expected, input.to_mts_entry()?);
         Ok(())
