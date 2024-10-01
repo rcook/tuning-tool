@@ -1,6 +1,7 @@
 use crate::checksum::Checksum;
 use anyhow::{bail, Result};
 use midly::num::u7;
+use tuning_tool_lib::U7;
 
 pub(crate) struct ChecksumCalculator {
     count: usize,
@@ -15,9 +16,9 @@ impl ChecksumCalculator {
         }
     }
 
-    pub(crate) fn update(&mut self, value: u7) -> u7 {
+    pub(crate) fn update<U: Copy + U7>(&mut self, value: U) -> U {
         self.count += 1;
-        self.value = Checksum::from_u8_lossy(self.value.to_u8() ^ value.as_int());
+        self.value = Checksum::from_u8_lossy(self.value.to_u8() ^ value.to_u8());
         value
     }
 

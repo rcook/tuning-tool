@@ -1,6 +1,6 @@
 use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
-use crate::consts::U7_ZERO;
+use crate::device_id::DeviceId;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
@@ -8,13 +8,13 @@ use crate::hex_dump::to_hex_dump;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::note_number::NoteNumber;
+use crate::preset::Preset;
 use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
 use crate::sysex_event::SysExEvent;
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
-use midly::num::u7;
 use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
@@ -230,8 +230,8 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
         .try_into()
         .expect("Must contain exactly 128 elements");
     let reply = BulkDumpReply::new(
-        U7_ZERO,
-        u7::from_int_lossy(8),
+        DeviceId::ZERO,
+        Preset::constant::<8>(),
         "carlos_super.mid".parse()?,
         entries,
     )?;

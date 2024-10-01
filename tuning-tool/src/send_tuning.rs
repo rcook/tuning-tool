@@ -84,7 +84,7 @@ pub(crate) fn send_tuning(
         }
     } else {
         for (i, message) in messages.iter().enumerate() {
-            println!("{i:>3}: {}", to_hex_dump(&message, None)?);
+            println!("{i:>3}: {}", to_hex_dump(message, None)?);
         }
     }
 

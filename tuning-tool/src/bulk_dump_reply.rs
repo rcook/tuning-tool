@@ -4,8 +4,10 @@ use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
+use crate::device_id::DeviceId;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
+use crate::preset::Preset;
 use crate::preset_name::PresetName;
 use anyhow::{bail, Result};
 use midly::num::u7;
@@ -46,16 +48,16 @@ pub(crate) type MtsEntries = [MtsEntry; ENTRIES_LEN];
 
 #[derive(Debug)]
 pub(crate) struct BulkDumpReply {
-    device_id: u7,
-    preset: u7,
+    device_id: DeviceId,
+    preset: Preset,
     name: PresetName,
     entries: MtsEntries,
 }
 
 impl BulkDumpReply {
     pub(crate) fn new(
-        device_id: u7,
-        preset: u7,
+        device_id: DeviceId,
+        preset: Preset,
         name: PresetName,
         entries: MtsEntries,
     ) -> Result<Self> {
@@ -68,12 +70,12 @@ impl BulkDumpReply {
     }
 
     #[allow(unused)]
-    pub(crate) const fn device_id(&self) -> u7 {
+    pub(crate) const fn device_id(&self) -> DeviceId {
         self.device_id
     }
 
     #[allow(unused)]
-    pub(crate) const fn preset(&self) -> u7 {
+    pub(crate) const fn preset(&self) -> Preset {
         self.preset
     }
 
@@ -102,7 +104,7 @@ impl BulkDumpReply {
             bail!("Unsupported header");
         }
 
-        let device_id = calc.update(read_u7!(iter));
+        let device_id = calc.update(DeviceId::from_u8_lossy(read_u7!(iter).as_int()));
 
         if calc.update(read_u7!(iter)) != MIDI_TUNING {
             bail!("Expected MIDI Tuning")
@@ -112,7 +114,7 @@ impl BulkDumpReply {
             bail!("Expected Bulk Dump reply")
         }
 
-        let preset = calc.update(read_u7!(iter));
+        let preset = calc.update(Preset::from_u8_lossy(read_u7!(iter).as_int()));
 
         let name = PresetName::new(read_u7!(iter, PresetName::LEN));
         _ = calc.update_from_slice(name.as_array());
@@ -161,10 +163,10 @@ impl BulkDumpReply {
         let mut calc = ChecksumCalculator::new();
         let mut values = Vec::with_capacity(BULK_DUMP_REPLY_MESSAGE_SIZE + 2);
         values.push(calc.update(UNIVERSAL_NON_REAL_TIME));
-        values.push(calc.update(self.device_id));
+        values.push(calc.update(self.device_id.to_u7()));
         values.push(calc.update(MIDI_TUNING));
         values.push(calc.update(BULK_DUMP_REPLY));
-        values.push(calc.update(self.preset));
+        values.push(calc.update(self.preset.to_u7()));
 
         values.extend_from_slice(calc.update_from_slice(self.name.as_array()));
 
@@ -195,14 +197,15 @@ impl BulkDumpReply {
 #[cfg(test)]
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
-    use crate::consts::{BULK_DUMP_REPLY_MESSAGE_SIZE, U7_ZERO};
+    use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
+    use crate::preset::Preset;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
     use anyhow::Result;
-    use midly::num::u7;
     use std::io::Read;
     use std::path::Path;
 
@@ -221,7 +224,7 @@ mod tests {
     fn base_note_number_0() -> Result<()> {
         check_bytes(
             "carlos_super.syx",
-            u7::from_int_lossy(8),
+            Preset::constant::<8>(),
             "carlos_super.mid",
             NoteNumber::ZERO,
             Frequency::MIDI_MIN,
@@ -233,7 +236,7 @@ mod tests {
     fn base_note_number_69() -> Result<()> {
         check_bytes(
             "carlos_super_a4.syx",
-            u7::from_int_lossy(0),
+            Preset::ZERO,
             "carlos_super_a4 ",
             NoteNumber::A4,
             NoteNumber::A4.to_frequency(),
@@ -243,7 +246,7 @@ mod tests {
 
     fn check_bytes<P: AsRef<Path>>(
         expected_syx_path: P,
-        preset: u7,
+        preset: Preset,
         name: &str,
         base_note_number: NoteNumber,
         base_frequency: Frequency,
@@ -264,7 +267,7 @@ mod tests {
             .collect::<Result<Vec<_>>>()?
             .try_into()
             .expect("Must have exactly 128 elements");
-        let reply = BulkDumpReply::new(U7_ZERO, preset, name.parse()?, entries)?;
+        let reply = BulkDumpReply::new(DeviceId::ZERO, preset, name.parse()?, entries)?;
 
         let ref_bytes = read_test_syx_file(expected_syx_path)?;
         let bytes = reply.to_bytes_with_start_and_end()?;
