@@ -5,7 +5,7 @@ pub trait U7: Sized {
     const MIN: Self;
     const MAX: Self;
     fn all() -> Self::Iter;
-    fn as_u8(self) -> u8;
+    fn to_u8(self) -> u8;
     fn widening_succ(self) -> u8;
     fn widening_pred(self) -> i8;
     fn checked_succ(self) -> Option<Self>;
@@ -14,5 +14,5 @@ pub trait U7: Sized {
     fn widening_sub(self, rhs: Self) -> i8;
     fn checked_add(self, rhs: Self) -> Option<Self>;
     fn checked_sub(self, rhs: Self) -> Option<Self>;
-    fn iter_up_to(self, end: Self) -> Option<Self::Iter>;
+    fn up_to(self, end: Self) -> Option<Self::Iter>;
 }

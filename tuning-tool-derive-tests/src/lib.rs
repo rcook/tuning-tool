@@ -1,17 +1,17 @@
 #[cfg(test)]
 mod tests {
-    use foo_derive::U7;
-    use foo_lib::u7::U7;
+    use tuning_tool_derive::U7;
+    use tuning_tool_lib::u7::U7;
 
     #[derive(Clone, Copy, Debug, PartialEq, U7)]
     struct MyU7(u8);
 
     #[test]
     fn basics() {
-        assert_eq!(0, MyU7::ZERO.as_u8());
-        assert_eq!(1, MyU7::ONE.as_u8());
-        assert_eq!(0, MyU7::MIN.as_u8());
-        assert_eq!(127, MyU7::MAX.as_u8());
+        assert_eq!(0, MyU7::ZERO.to_u8());
+        assert_eq!(1, MyU7::ONE.to_u8());
+        assert_eq!(0, MyU7::MIN.to_u8());
+        assert_eq!(127, MyU7::MAX.to_u8());
     }
 
     #[test]
@@ -91,30 +91,36 @@ mod tests {
     fn all() {
         let mut result = Vec::new();
         for (i, value) in MyU7::all().enumerate() {
-            assert_eq!(i, value.as_u8() as usize);
+            assert_eq!(i, value.to_u8() as usize);
             result.push(value);
         }
         assert_eq!(128, result.len());
     }
 
     #[test]
-    fn iter_up_to() {
+    fn up_to() {
         let mut result = Vec::new();
-        for (i, value) in MyU7::new_lossy(10)
-            .iter_up_to(MyU7::new_lossy(15))
+        for (i, value) in MyU7::panicking_new(10)
+            .up_to(MyU7::panicking_new(15))
             .expect("Must be valid")
             .enumerate()
         {
-            assert_eq!(i + 10, value.as_u8() as usize);
-            result.push(value.as_u8());
+            assert_eq!(i + 10, value.to_u8() as usize);
+            result.push(value.to_u8());
         }
         assert_eq!(6, result.len())
     }
 
     #[test]
-    fn iter_up_to_invalid() {
-        assert!(MyU7::new_lossy(20)
-            .iter_up_to(MyU7::new_lossy(15))
+    fn up_to_invalid() {
+        assert!(MyU7::panicking_new(20)
+            .up_to(MyU7::panicking_new(15))
             .is_none());
+    }
+
+    #[test]
+    #[should_panic]
+    fn panicking_new() {
+        MyU7::panicking_new(128);
     }
 }

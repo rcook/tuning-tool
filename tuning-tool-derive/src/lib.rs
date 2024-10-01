@@ -1,4 +1,3 @@
-extern crate proc_macro;
 use proc_macro::TokenStream;
 use proc_macro2::Span;
 use quote::quote;
@@ -10,24 +9,33 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
     let iter_ident = Ident::new(&format!("{}Iterator", ident), Span::call_site());
     let output = quote! {
         impl #ident {
+            const MASK: u8 = 0x7f;
+
+            pub const fn panicking_new(value: u8) -> Self {
+                if value & Self::MASK != value {
+                    panic!("Invalid u7 constant");
+                }
+                Self(value)
+            }
+
             pub const fn new_lossy(value: u8) -> Self {
-                Self(value & 0x7f)
+                Self(value & Self::MASK)
             }
         }
 
-        impl foo_lib::u7::U7 for #ident {
+        impl tuning_tool_lib::u7::U7 for #ident {
             type Iter = #iter_ident;
 
-            const ZERO: #ident = #ident::new_lossy(0);
-            const ONE: #ident = #ident::new_lossy(1);
-            const MIN: #ident = #ident::new_lossy(0);
-            const MAX: #ident = #ident::new_lossy(127);
+            const ZERO: #ident = #ident::panicking_new(0);
+            const ONE: #ident = #ident::panicking_new(1);
+            const MIN: #ident = #ident::panicking_new(0);
+            const MAX: #ident = #ident::panicking_new(127);
 
             fn all() -> Self::Iter {
                 #iter_ident::new(0, 127)
             }
 
-            fn as_u8(self) -> u8 {
+            fn to_u8(self) -> u8 {
                 self.0
             }
 
@@ -40,7 +48,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
             }
 
             fn checked_succ(self) -> Option<Self> {
-                if self.0 >= 0x7f {
+                if self.0 >= Self::MASK {
                     None
                 } else {
                     Some(Self(self.0 + 1))
@@ -65,7 +73,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
 
             fn checked_add(self, rhs: Self) -> Option<Self> {
                 let result = self.0.checked_add(rhs.0)?;
-                if result > 0x7f {
+                if result > Self::MASK {
                     None
                 } else {
                     Some(Self(result))
@@ -74,24 +82,24 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
 
             fn checked_sub(self, rhs: Self) -> Option<Self> {
                 let result = self.0.checked_sub(rhs.0)?;
-                if result > 0x7f {
+                if result > Self::MASK {
                     None
                 } else {
                     Some(Self(result))
                 }
             }
 
-            fn iter_up_to(self, end: Self) -> Option<Self::Iter> {
+            fn up_to(self, end: Self) -> Option<Self::Iter> {
                 _ = end.checked_sub(self)?;
                 Some(#iter_ident::new(self.0, end.0))
             }
         }
 
         impl std::convert::TryFrom<u8> for #ident {
-            type Error = foo_lib::error::TryFromU8Error;
+            type Error = tuning_tool_lib::error::TryFromU8Error;
 
             fn try_from(value: u8) -> std::result::Result<Self, Self::Error> {
-                if value > 0x7f {
+                if value > Self::MASK {
                     Err(Self::Error::OutOfRange(value))
                 } else {
                     Ok(Self(value))
@@ -100,11 +108,11 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
         }
 
         impl std::str::FromStr for #ident {
-            type Err = foo_lib::error::FromStrError;
+            type Err = tuning_tool_lib::error::FromStrError;
 
             fn from_str(s: &str) -> std::result::Result<Self, Self::Err> {
                 let value = s.parse().map_err(|e| Self::Err::Other(e))?;
-                if value > 0x7f {
+                if value > Self::MASK {
                     Err(Self::Err::OutOfRange(value))
                 } else {
                     Ok(Self(value))
@@ -130,7 +138,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 let value = self.curr;
                 if value <= self.end {
                     self.curr += 1;
-                    Some(#ident::new_lossy(value))
+                    Some(#ident::panicking_new(value))
                 } else {
                     None
                 }

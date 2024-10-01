@@ -1,5 +1,8 @@
 [workspace]
 members = [
     "tuning-tool",
+    "tuning-tool-derive",
+    "tuning-tool-derive-tests",
+    "tuning-tool-lib",
 ]
 resolver = "2"
