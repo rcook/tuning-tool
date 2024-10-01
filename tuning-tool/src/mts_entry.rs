@@ -46,7 +46,7 @@ impl MtsEntry {
     pub(crate) fn to_hex(&self) -> String {
         format!(
             "{xx:02x}{yy:02x}{zz:02x}",
-            xx = self.note_number.to_u8(),
+            xx = self.note_number,
             yy = self.yy.as_int(),
             zz = self.zz.as_int()
         )

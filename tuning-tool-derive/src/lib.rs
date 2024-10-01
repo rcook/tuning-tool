@@ -171,6 +171,18 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
             }
         }
 
+        impl std::fmt::LowerHex for #ident {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{value:02x}", value = self.0)
+            }
+        }
+
+        impl std::fmt::UpperHex for #ident {
+            fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                write!(f, "{value:02X}", value = self.0)
+            }
+        }
+
         impl std::str::FromStr for #ident {
             type Err = tuning_tool_lib::error::FromStrError;
 
