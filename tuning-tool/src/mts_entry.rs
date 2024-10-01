@@ -42,10 +42,10 @@ impl MtsEntry {
     #[allow(unused)]
     pub(crate) fn to_hex(&self) -> String {
         format!(
-            "{xx:02x}{yy:02x}{zz:02x}",
-            xx = self.note_number,
-            yy = self.msb,
-            zz = self.lsb
+            "{note_number:02x}{msb:02x}{lsb:02x}",
+            note_number = self.note_number,
+            msb = self.msb,
+            lsb = self.lsb
         )
     }
 }

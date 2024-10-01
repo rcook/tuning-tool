@@ -124,12 +124,12 @@ impl BulkDumpReply {
         let entries: MtsEntries = (0..ENTRIES_LEN)
             .map(|_| {
                 let note_number = NoteNumber::try_from(read_u7!(iter).as_int())?;
-                let yy = Msb::try_from(read_u7!(iter).as_int())?;
-                let zz = Lsb::try_from(read_u7!(iter).as_int())?;
+                let msb = Msb::try_from(read_u7!(iter).as_int())?;
+                let lsb = Lsb::try_from(read_u7!(iter).as_int())?;
                 Ok(MtsEntry {
                     note_number,
-                    msb: yy,
-                    lsb: zz,
+                    msb,
+                    lsb,
                 })
             })
             .collect::<Result<Vec<_>>>()?

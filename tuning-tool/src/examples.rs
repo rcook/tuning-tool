@@ -96,8 +96,8 @@ pub(crate) fn generate_message() -> Result<()> {
         let xx = target_midi as i32; // i.e. 69
         let semitones = target_midi - xx as f64; // i.e. 0.33
         let semitones_14bit = (semitones * (0x4000 as f64)) as u16; // i.e. 5406
-        let yy = semitones_14bit / 0x80; // i.e. 42
-        let zz = semitones_14bit - 0x80 * yy; // i.e. 30
+        let msb = semitones_14bit / 0x80; // i.e. 42
+        let lsb = semitones_14bit - 0x80 * msb; // i.e. 30
 
         // Single Note Tuning Change Real-Time message
         const LL: u8 = 1;
@@ -128,8 +128,8 @@ pub(crate) fn generate_message() -> Result<()> {
 
         // Frequency data
         data.push(xx as u8);
-        data.push(yy as u8);
-        data.push(zz as u8);
+        data.push(msb as u8);
+        data.push(lsb as u8);
 
         // End
         data.push(0xf7);

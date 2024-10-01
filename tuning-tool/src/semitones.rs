@@ -31,12 +31,12 @@ impl Semitones {
         let note_number = self.0.trunc();
         let fine = ((0x4000 as f64) * (self.0 - note_number)).round() as u16;
 
-        let yy = Msb::try_from(((fine >> 7) & 0x7f) as u8)?;
-        let zz = Lsb::try_from((fine & 0x7f) as u8)?;
+        let msb = Msb::try_from(((fine >> 7) & 0x7f) as u8)?;
+        let lsb = Lsb::try_from((fine & 0x7f) as u8)?;
         Ok(MtsEntry {
             note_number: NoteNumber::try_from(note_number as u8)?,
-            msb: yy,
-            lsb: zz,
+            msb,
+            lsb,
         })
     }
 

@@ -83,10 +83,10 @@ impl<'a> SysExEvent<'a> {
         println!("Name: {name}");
 
         for i in 0..128 {
-            let xx = pull_u7!(iter);
-            let yy = pull_u7!(iter);
-            let zz = pull_u7!(iter);
-            println!("Note {i}: {xx} {yy} {zz}")
+            let note_number = pull_u7!(iter);
+            let msb = pull_u7!(iter);
+            let lsb = pull_u7!(iter);
+            println!("Note {i}: {note_number} {msb} {lsb}")
         }
 
         let checksum = pull_u7!(iter);
