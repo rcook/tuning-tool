@@ -1,3 +1,4 @@
+#![cfg(test)]
 use std::str;
 use tuning_tool_lib::U7;
 

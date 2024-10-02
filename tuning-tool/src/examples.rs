@@ -1,20 +1,12 @@
 use crate::args::Args;
-use crate::bulk_dump_reply::BulkDumpReply;
 use crate::dump_sysex_file::dump_sysex_file;
-use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
-use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
-use crate::note_number::NoteNumber;
-use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
-use crate::sysex_event::SysExEvent;
-use crate::types::{DeviceId, Preset};
-use anyhow::{anyhow, bail, Result};
+use anyhow::{bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
-use midly::Smf;
 use std::ffi::OsStr;
 use std::fs::read_dir;
 use std::path::Path;
@@ -40,8 +32,19 @@ pub(crate) fn nearest_below_or_equal() {
     println!("{name} + {rem} Hz", name = midi_note.name(), rem = rem.0);
 }
 
+#[cfg(test)]
 #[allow(unused)]
 pub(crate) fn decode_sysex_events() -> Result<()> {
+    use crate::bulk_dump_reply::BulkDumpReply;
+    use crate::frequencies::calculate_frequencies;
+    use crate::keyboard_mapping::KeyboardMapping;
+    use crate::note_number::NoteNumber;
+    use crate::resources::RESOURCE_DIR;
+    use crate::sysex_event::SysExEvent;
+    use crate::types::{DeviceId, Preset};
+    use anyhow::anyhow;
+    use midly::Smf;
+
     let mid_dir = RESOURCE_DIR
         .get_dir("mid")
         .ok_or_else(|| anyhow!("Could not get mid directory"))?;
@@ -195,7 +198,16 @@ pub(crate) fn play_note() -> Result<()> {
 }
 
 #[allow(unused)]
+#[cfg(test)]
 pub(crate) fn send_tuning_sysex() -> Result<()> {
+    use crate::bulk_dump_reply::BulkDumpReply;
+    use crate::frequencies::calculate_frequencies;
+    use crate::keyboard_mapping::KeyboardMapping;
+    use crate::note_number::NoteNumber;
+    use crate::resources::RESOURCE_DIR;
+    use crate::types::{DeviceId, Preset};
+    use anyhow::anyhow;
+
     fn get_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
         for p in midi_output.ports() {
             if midi_output.port_name(&p)? == name {

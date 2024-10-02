@@ -1,3 +1,4 @@
+#![cfg(test)]
 use crate::interval::Interval;
 use crate::resources::RESOURCE_DIR;
 use crate::scale::Scale;

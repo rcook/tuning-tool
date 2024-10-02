@@ -42,6 +42,7 @@ pub(crate) struct BulkDumpReply {
 }
 
 impl BulkDumpReply {
+    #[allow(unused)]
     pub(crate) fn new(
         device_id: DeviceId,
         preset: Preset,
@@ -143,6 +144,7 @@ impl BulkDumpReply {
         })
     }
 
+    #[allow(unused)]
     pub(crate) fn to_vec(&self) -> Result<Vec<MidiValue>> {
         let mut calc = ChecksumCalculator::new();
         let mut values = MidiMessageBuilder::with_required_len(BULK_DUMP_REPLY_MESSAGE_SIZE);
@@ -165,6 +167,7 @@ impl BulkDumpReply {
         values.finalize()
     }
 
+    #[allow(unused)]
     pub(crate) fn to_bytes_with_start_and_end(&self) -> Result<Vec<u8>> {
         let vec = self.to_vec()?;
         let inner_bytes = MidiValue::to_u8_slice(&vec);

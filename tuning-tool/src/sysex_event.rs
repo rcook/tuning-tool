@@ -1,3 +1,4 @@
+#![cfg(test)]
 use crate::consts::{BULK_DUMP_REPLY, EOX, MIDI_TUNING, UNIVERSAL_NON_REAL_TIME};
 use crate::hex_dump::to_hex_dump;
 use crate::string_extras::StringExtras;

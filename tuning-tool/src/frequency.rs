@@ -12,7 +12,10 @@ f64_newtype!(Frequency, pub(crate));
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);
+
+    #[allow(unused)]
     pub(crate) const MIDI_MIN: Self = MidiNote::ALL[0].frequency();
+
     pub(crate) const MIDI_MAX: Self = Self(13289.656616f64);
 
     // c.f. frequencyToCentOffset
