@@ -28,6 +28,7 @@ impl Scale {
 
         if !last_interval
             .as_ratio()
+            .0
             .approx_eq_with_epsilon(2f64, 0.0000001f64)
         {
             return false;

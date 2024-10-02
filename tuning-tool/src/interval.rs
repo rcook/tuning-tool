@@ -1,4 +1,5 @@
 use crate::cents::Cents;
+use crate::ratio::Ratio;
 use crate::semitones::Semitones;
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
@@ -21,11 +22,11 @@ impl Interval {
         Self(Inner::Ratio(BigRational::one()))
     }
 
-    pub(crate) fn as_ratio(&self) -> f64 {
-        match &self.0 {
+    pub(crate) fn as_ratio(&self) -> Ratio {
+        Ratio(match &self.0 {
             Inner::Cents(value) => 2f64.powf(value.to_f64().expect("Must be f64") / 1200f64),
             Inner::Ratio(value) => value.to_f64().expect("Must be f64"),
-        }
+        })
     }
 
     pub(crate) fn as_cents(&self) -> Cents {
@@ -77,6 +78,7 @@ mod tests {
         const EPSILON: f64 = 0.0000001f64;
         assert!(Interval::unison()
             .as_ratio()
+            .0
             .approx_eq_with_epsilon(1f64, EPSILON));
         assert!(Interval::unison()
             .as_cents()
@@ -87,6 +89,7 @@ mod tests {
         let interval = "150.5".parse::<Interval>()?;
         assert!(interval
             .as_ratio()
+            .0
             .approx_eq_with_epsilon(1.0908227291337902, EPSILON));
         assert_eq!(150.5f64, interval.as_cents().0);
         assert!(interval
@@ -98,6 +101,7 @@ mod tests {
         let interval = "19/17".parse::<Interval>()?;
         assert!(interval
             .as_ratio()
+            .0
             .approx_eq_with_epsilon(1.1176470588235294f64, EPSILON));
         assert!(interval
             .as_cents()
@@ -105,6 +109,16 @@ mod tests {
             .approx_eq_with_epsilon(192.55760663189534, EPSILON));
         assert_eq!("19/17", interval.to_string());
 
+        Ok(())
+    }
+
+    #[test]
+    fn ratio() -> Result<()> {
+        let interval = "2/1".parse::<Interval>()?;
+        let ratio1 = interval.as_ratio();
+        let cents = interval.as_cents();
+        let ratio2 = cents.to_ratio();
+        assert_eq!(ratio1.0, ratio2.0);
         Ok(())
     }
 }

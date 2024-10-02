@@ -33,7 +33,7 @@ pub(crate) fn calculate_frequencies(
     let mut f = keyboard_mapping.base_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
     for (_, interval) in zip(start..=end, intervals) {
-        frequencies.push(Frequency(f * interval.as_ratio()));
+        frequencies.push(Frequency(f * interval.as_ratio().0));
         degree += 1;
         if degree >= scale_size {
             degree -= scale_size;
