@@ -1,9 +1,7 @@
 use crate::consts::{MIDI_TUNING, NOTE_CHANGE, UNIVERSAL_REAL_TIME};
-use crate::device_id::DeviceId;
 use crate::midi_message_builder::MidiMessageBuilder;
-use crate::midi_value::MidiValue;
 use crate::note_change_entry::NoteChangeEntry;
-use crate::preset::Preset;
+use crate::types::{DeviceId, MidiValue, Preset};
 use anyhow::{bail, Result};
 
 #[derive(Debug)]
@@ -75,18 +73,16 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
-    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
     use crate::keyboard_mapping::KeyboardMapping;
-    use crate::midi_value::MidiValue;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
-    use crate::preset::Preset;
     use crate::scale::Scale;
     use crate::test_util::make_test_scale;
+    use crate::types::{DeviceId, MidiValue, Preset};
     use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;

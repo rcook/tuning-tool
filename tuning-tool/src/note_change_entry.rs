@@ -1,5 +1,5 @@
-use crate::key_number::KeyNumber;
 use crate::mts_entry::MtsEntry;
+use crate::types::KeyNumber;
 
 #[derive(Clone, Debug)]
 pub(crate) struct NoteChangeEntry {

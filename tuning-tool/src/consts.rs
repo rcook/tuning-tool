@@ -1,4 +1,4 @@
-use crate::midi_value::MidiValue;
+use crate::types::MidiValue;
 
 pub(crate) const SYSEX: u8 = 0xf0;
 pub(crate) const UNIVERSAL_REAL_TIME: MidiValue = MidiValue::constant::<0x7f>();

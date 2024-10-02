@@ -1,4 +1,4 @@
-use crate::midi_value::MidiValue;
+use crate::types::MidiValue;
 use anyhow::{bail, Result};
 use tuning_tool_lib::U7;
 

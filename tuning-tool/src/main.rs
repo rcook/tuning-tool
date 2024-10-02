@@ -2,20 +2,16 @@
 
 mod approx_eq;
 mod args;
-mod ascii_char;
 mod bulk_dump_reply;
 mod cent_offset;
 mod cents;
 mod checksum;
 mod checksum_calculator;
-mod chunk_size;
 mod cli;
 mod consts;
-mod device_id;
 mod dump_sysex_file;
 mod equave_ratio;
 mod examples;
-mod f64_newtype;
 mod frequencies;
 mod frequency;
 mod fs;
@@ -23,19 +19,14 @@ mod hex_dump;
 mod interval;
 mod kbm_file;
 mod key;
-mod key_number;
 mod keyboard_mapping;
-mod lsb;
 mod midi_message_builder;
 mod midi_note;
-mod midi_value;
-mod msb;
 mod mts_entry;
 mod note_change;
 mod note_change_entry;
 mod note_number;
 mod num;
-mod preset;
 mod preset_name;
 mod ratio;
 mod read;
@@ -48,7 +39,7 @@ mod send_tuning;
 mod string_extras;
 mod sysex_event;
 mod test_util;
-mod u7_newtype;
+mod types;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

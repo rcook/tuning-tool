@@ -1,9 +1,8 @@
 use crate::frequency::Frequency;
-use crate::lsb::Lsb;
-use crate::msb::Msb;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
 use crate::semitones::Semitones;
+use crate::types::{Lsb, Msb};
 
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub(crate) struct MtsEntry {
@@ -53,10 +52,9 @@ impl MtsEntry {
 #[cfg(test)]
 mod tests {
     use crate::frequency::Frequency;
-    use crate::lsb::Lsb;
-    use crate::msb::Msb;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
+    use crate::types::{Lsb, Msb};
     use anyhow::Result;
     use rstest::rstest;
 

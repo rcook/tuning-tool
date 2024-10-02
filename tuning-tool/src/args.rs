@@ -1,7 +1,5 @@
-use crate::chunk_size::ChunkSize;
 use crate::cli::parse_absolute_path;
-use crate::device_id::DeviceId;
-use crate::preset::Preset;
+use crate::types::{ChunkSize, DeviceId, Preset};
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 use std::str::FromStr;

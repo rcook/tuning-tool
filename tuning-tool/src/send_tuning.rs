@@ -1,13 +1,11 @@
-use crate::device_id::DeviceId;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
-use crate::preset::Preset;
 use crate::scl_file::SclFile;
-use crate::{chunk_size::ChunkSize, midi_value::MidiValue};
+use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
 use anyhow::{bail, Result};
 use midir::{MidiOutput, MidiOutputPort};
 use midly::live::{LiveEvent, SystemCommon};

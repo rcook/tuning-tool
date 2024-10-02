@@ -1,4 +1,4 @@
-use crate::ascii_char::AsciiChar;
+use crate::types::AsciiChar;
 use anyhow::{bail, Error};
 use std::result::Result as StdResult;
 use std::str::FromStr;

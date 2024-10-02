@@ -1,8 +1,7 @@
 use crate::frequency::Frequency;
-use crate::lsb::Lsb;
-use crate::msb::Msb;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
+use crate::types::{Lsb, Msb};
 use anyhow::Result;
 
 pub(crate) struct Semitones(pub(crate) f64);
@@ -48,11 +47,10 @@ impl Semitones {
 
 #[cfg(test)]
 mod tests {
-    use crate::lsb::Lsb;
-    use crate::msb::Msb;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use crate::types::{Lsb, Msb};
     use anyhow::Result;
     use rstest::rstest;
 

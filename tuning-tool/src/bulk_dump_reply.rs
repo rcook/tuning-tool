@@ -1,20 +1,15 @@
-use crate::ascii_char::AsciiChar;
 use crate::checksum::Checksum;
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
 };
-use crate::device_id::DeviceId;
-use crate::lsb::Lsb;
 use crate::midi_message_builder::MidiMessageBuilder;
-use crate::midi_value::MidiValue;
-use crate::msb::Msb;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
-use crate::preset::Preset;
 use crate::preset_name::PresetName;
 use crate::read::{read, read_multi};
+use crate::types::{AsciiChar, DeviceId, Lsb, MidiValue, Msb, Preset};
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
@@ -186,13 +181,12 @@ impl BulkDumpReply {
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
-    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
-    use crate::preset::Preset;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
+    use crate::types::{DeviceId, Preset};
     use anyhow::Result;
     use std::io::Read;
     use std::path::Path;

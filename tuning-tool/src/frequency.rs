@@ -5,9 +5,10 @@ use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
 use crate::ratio::Ratio;
 use crate::semitones::Semitones;
+use crate::types::f64_newtype;
 use anyhow::Result;
 
-crate::f64_newtype::f64_newtype!(Frequency, pub(crate));
+f64_newtype!(Frequency, pub(crate));
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);
@@ -72,11 +73,10 @@ impl Frequency {
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::frequency::Frequency;
-    use crate::lsb::Lsb;
-    use crate::msb::Msb;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
     use crate::semitones::Semitones;
+    use crate::types::{Lsb, Msb};
     use anyhow::Result;
     use rstest::rstest;
 

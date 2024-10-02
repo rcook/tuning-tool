@@ -8,8 +8,7 @@ use std::slice::Iter;
 
 macro_rules! pull_u7 {
     ($iter: expr) => {
-        std::convert::TryInto::<crate::midi_value::MidiValue>::try_into(pull_u8!($iter))
-            .expect("TBD")
+        std::convert::TryInto::<crate::types::MidiValue>::try_into(pull_u8!($iter)).expect("TBD")
     };
 }
 

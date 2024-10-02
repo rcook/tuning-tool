@@ -1,6 +1,5 @@
 use crate::args::Args;
 use crate::bulk_dump_reply::BulkDumpReply;
-use crate::device_id::DeviceId;
 use crate::dump_sysex_file::dump_sysex_file;
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
@@ -8,10 +7,10 @@ use crate::hex_dump::to_hex_dump;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::note_number::NoteNumber;
-use crate::preset::Preset;
 use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
 use crate::sysex_event::SysExEvent;
+use crate::types::{DeviceId, Preset};
 use anyhow::{anyhow, bail, Result};
 use clap::Parser;
 use midir::{MidiOutput, MidiOutputConnection, MidiOutputPort};
