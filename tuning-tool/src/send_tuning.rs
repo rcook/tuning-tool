@@ -114,9 +114,9 @@ pub(crate) fn send_tuning(
     } else {
         for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
             println!(
-                "{i:>3}: {hex} ({frequency} Hz)",
+                "{i:>3}: {hex} ({frequency:.1} Hz)",
                 hex = to_hex_dump(&message, None)?,
-                frequency = frequency
+                frequency = frequency.0
             );
         }
     }

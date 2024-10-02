@@ -27,8 +27,8 @@ impl Scale {
         };
 
         if !last_interval
-            .as_f64()
-            .approx_eq_with_epsilon(2f64, 0.0001f64)
+            .as_ratio()
+            .approx_eq_with_epsilon(2f64, 0.0000001f64)
         {
             return false;
         }

@@ -43,7 +43,7 @@ impl SclFile {
         );
 
         for (i, note) in self.scale.intervals().iter().enumerate() {
-            println!("(note {i}): {cents}", cents = note.cents().0);
+            println!("(note {i}): {cents}", cents = note.as_cents().0);
         }
     }
 }

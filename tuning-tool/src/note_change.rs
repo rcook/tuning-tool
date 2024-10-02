@@ -75,21 +75,29 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
+    use crate::device_id::DeviceId;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::midi_value::MidiValue;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
     use crate::preset::Preset;
-    use crate::resources::RESOURCE_DIR;
-    use crate::scl_file::SclFile;
-    use crate::{device_id::DeviceId, midi_value::MidiValue};
-    use anyhow::{anyhow, Result};
+    use crate::scale::Scale;
+    use crate::test_util::make_test_scale;
+    use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;
     use std::iter::zip;
+    use std::sync::LazyLock;
+
+    static CARLOS_SUPER: LazyLock<Scale> = LazyLock::new(|| {
+        make_test_scale([
+            "17/16", "9/8", "6/5", "5/4", "4/3", "11/8", "3/2", "13/8", "5/3", "7/4", "15/8", "2/1",
+        ])
+    });
 
     #[test]
     fn basics() -> Result<()> {
@@ -119,13 +127,6 @@ mod tests {
             Ok(bytes == expected_bytes)
         }
 
-        let scala_file = RESOURCE_DIR
-            .get_file("scl/carlos_super.scl")
-            .ok_or_else(|| anyhow!("Could not get scl file"))?
-            .contents_utf8()
-            .ok_or_else(|| anyhow!("Could not convert to string"))?
-            .parse::<SclFile>()?;
-
         let keyboard_mapping = KeyboardMapping::new(
             NoteNumber::ZERO,
             NoteNumber::MAX,
@@ -133,7 +134,7 @@ mod tests {
             Frequency::MIDI_MIN,
         )?;
 
-        let entries = calculate_frequencies(scala_file.scale(), &keyboard_mapping)
+        let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)
             .iter()
             .enumerate()
             .map(|(i, f)| {

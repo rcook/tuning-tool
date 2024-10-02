@@ -4,33 +4,36 @@ use crate::keyboard_mapping::KeyboardMapping;
 use crate::scale::Scale;
 use std::iter::once;
 use std::iter::zip;
+use std::ops::Rem;
 
 pub(crate) fn calculate_frequencies(
     scale: &Scale,
     keyboard_mapping: &KeyboardMapping,
 ) -> Vec<Frequency> {
-    let note_count = keyboard_mapping.end_note_number().to_u8() as usize
-        - keyboard_mapping.start_note_number().to_u8() as usize
-        + 1;
+    let start = keyboard_mapping.start_note_number().to_u8() as i32;
+    let end = keyboard_mapping.end_note_number().to_u8() as i32;
+    let base = keyboard_mapping.base_note_number().to_u8() as i32;
+
+    let note_count = (end - start + 1) as usize;
     let scale_size = scale.intervals().len();
     let equave_ratio = scale.equave_ratio().0;
-    let low = keyboard_mapping.start_note_number().to_u8() as i32
-        - keyboard_mapping.base_note_number().to_u8() as i32;
+    let low = start - base;
     let equave_count = (low as f64 / scale_size as f64).floor() as i32;
     let offset = (low - equave_count * scale_size as i32) as usize;
     let unison = Interval::unison();
-    let intervals = once(&unison)
-        .chain(scale.intervals().iter().take(scale_size - 1))
+    let intervals = scale
+        .intervals()
+        .iter()
+        .take(scale_size - 1)
+        .chain(once(&unison))
         .cycle()
-        .skip(offset);
+        .skip((offset + scale_size - 1).rem(scale_size));
 
     let mut frequencies = Vec::with_capacity(note_count);
     let mut f = keyboard_mapping.base_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
-    let note_number_range = keyboard_mapping.start_note_number().to_u8() as usize
-        ..=keyboard_mapping.end_note_number().to_u8() as usize;
-    for (_, interval) in zip(note_number_range, intervals) {
-        frequencies.push(Frequency(f * interval.as_f64()));
+    for (_, interval) in zip(start..=end, intervals) {
+        frequencies.push(Frequency(f * interval.as_ratio()));
         degree += 1;
         if degree >= scale_size {
             degree -= scale_size;
@@ -47,12 +50,169 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
-    use crate::test_util::read_test_scl_file;
+    use crate::scale::Scale;
+    use crate::test_util::make_test_scale;
     use anyhow::Result;
     use std::iter::zip;
+    use std::sync::LazyLock;
+
+    static SCALE_12EDO2: LazyLock<Scale> = LazyLock::new(|| {
+        make_test_scale([
+            "100.0", "200.0", "300.0", "400.0", "500.0", "600.0", "700.0", "800.0", "900.0",
+            "1000.0", "1100.0", "2/1",
+        ])
+    });
+
+    static CARLOS_SUPER: LazyLock<Scale> = LazyLock::new(|| {
+        make_test_scale([
+            "17/16", "9/8", "6/5", "5/4", "4/3", "11/8", "3/2", "13/8", "5/3", "7/4", "15/8", "2/1",
+        ])
+    });
 
     #[test]
-    fn base_note_number_0() -> Result<()> {
+    fn scale_12edo2_a4_at_69() -> Result<()> {
+        const EXPECTED_FREQUENCIES: [f64; 128] = [
+            8.175798915643707f64,
+            8.661957218027252f64,
+            9.177023997418987f64,
+            9.722718241315029f64,
+            10.300861153527185f64,
+            10.913382232281371f64,
+            11.562325709738575f64,
+            12.249857374429665f64,
+            12.978271799373285f64,
+            13.75f64,
+            14.56761754744031f64,
+            15.433853164253879f64,
+            16.351597831287414f64,
+            17.323914436054505f64,
+            18.354047994837973f64,
+            19.445436482630058f64,
+            20.60172230705437f64,
+            21.826764464562743f64,
+            23.12465141947715f64,
+            24.49971474885933f64,
+            25.95654359874657f64,
+            27.5f64,
+            29.13523509488062f64,
+            30.867706328507758f64,
+            32.70319566257483f64,
+            34.64782887210901f64,
+            36.70809598967595f64,
+            38.890872965260115f64,
+            41.20344461410874f64,
+            43.653528929125486f64,
+            46.2493028389543f64,
+            48.99942949771866f64,
+            51.91308719749314f64,
+            55f64,
+            58.27047018976124f64,
+            61.735412657015516f64,
+            65.40639132514966f64,
+            69.29565774421802f64,
+            73.4161919793519f64,
+            77.78174593052023f64,
+            82.40688922821748f64,
+            87.30705785825097f64,
+            92.4986056779086f64,
+            97.99885899543732f64,
+            103.82617439498628f64,
+            110f64,
+            116.54094037952248f64,
+            123.47082531403103f64,
+            130.8127826502993f64,
+            138.59131548843604f64,
+            146.8323839587038f64,
+            155.56349186104046f64,
+            164.81377845643496f64,
+            174.61411571650194f64,
+            184.9972113558172f64,
+            195.99771799087463f64,
+            207.65234878997256f64,
+            220f64,
+            233.08188075904496f64,
+            246.94165062806206f64,
+            261.6255653005986f64,
+            277.1826309768721f64,
+            293.6647679174076f64,
+            311.1269837220809f64,
+            329.6275569128699f64,
+            349.2282314330039f64,
+            369.9944227116344f64,
+            391.99543598174927f64,
+            415.3046975799451f64,
+            440f64,
+            466.1637615180899f64,
+            493.8833012561241f64,
+            523.2511306011972f64,
+            554.3652619537442f64,
+            587.3295358348151f64,
+            622.2539674441618f64,
+            659.2551138257398f64,
+            698.4564628660078f64,
+            739.9888454232688f64,
+            783.9908719634985f64,
+            830.6093951598903f64,
+            880f64,
+            932.3275230361799f64,
+            987.7666025122483f64,
+            1046.5022612023945f64,
+            1108.7305239074883f64,
+            1174.6590716696303f64,
+            1244.5079348883237f64,
+            1318.5102276514797f64,
+            1396.9129257320155f64,
+            1479.9776908465376f64,
+            1567.981743926997f64,
+            1661.2187903197805f64,
+            1760f64,
+            1864.6550460723597f64,
+            1975.5332050244965f64,
+            2093.004522404789f64,
+            2217.4610478149766f64,
+            2349.3181433392606f64,
+            2489.0158697766474f64,
+            2637.0204553029594f64,
+            2793.825851464031f64,
+            2959.955381693075f64,
+            3135.963487853994f64,
+            3322.437580639561f64,
+            3520f64,
+            3729.3100921447194f64,
+            3951.066410048993f64,
+            4186.009044809578f64,
+            4434.922095629953f64,
+            4698.636286678521f64,
+            4978.031739553295f64,
+            5274.040910605919f64,
+            5587.651702928062f64,
+            5919.91076338615f64,
+            6271.926975707988f64,
+            6644.875161279122f64,
+            7040f64,
+            7458.620184289439f64,
+            7902.132820097986f64,
+            8372.018089619156f64,
+            8869.844191259906f64,
+            9397.272573357042f64,
+            9956.06347910659f64,
+            10548.081821211837f64,
+            11175.303405856124f64,
+            11839.8215267723f64,
+            12543.853951415977f64,
+        ];
+
+        check_frequencies(
+            &EXPECTED_FREQUENCIES,
+            &SCALE_12EDO2,
+            NoteNumber::A4,
+            Frequency::A4,
+        )?;
+        Ok(())
+    }
+
+    #[test]
+    fn carlos_super_at_0() -> Result<()> {
         const EXPECTED_FREQUENCIES: [f64; 128] = [
             8.175798915643707f64,
             8.686786347871438f64,
@@ -184,12 +344,17 @@ mod tests {
             12558.027134428734f64,
         ];
 
-        check_frequencies(&EXPECTED_FREQUENCIES, NoteNumber::ZERO, Frequency::MIDI_MIN)?;
+        check_frequencies(
+            &EXPECTED_FREQUENCIES,
+            &CARLOS_SUPER,
+            NoteNumber::ZERO,
+            Frequency::MIDI_MIN,
+        )?;
         Ok(())
     }
 
     #[test]
-    fn base_note_number_69() -> Result<()> {
+    fn carlos_super_at_69() -> Result<()> {
         const EXPECTED_FREQUENCIES: [f64; 128] = [
             8.25f64,
             8.59375f64,
@@ -323,6 +488,7 @@ mod tests {
 
         check_frequencies(
             &EXPECTED_FREQUENCIES,
+            &CARLOS_SUPER,
             NoteNumber::A4,
             NoteNumber::A4.to_frequency(),
         )?;
@@ -331,12 +497,10 @@ mod tests {
 
     fn check_frequencies(
         expected_frequencies: &[f64],
+        scale: &Scale,
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scl_file("scl/carlos_super.scl")?;
-        let scale = scala_file.scale();
-
         let keyboard_mapping = KeyboardMapping::new(
             NoteNumber::ZERO,
             NoteNumber::MAX,

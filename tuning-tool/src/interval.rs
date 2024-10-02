@@ -3,6 +3,7 @@ use crate::semitones::Semitones;
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
 use rust_decimal::Decimal;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
@@ -20,30 +21,14 @@ impl Interval {
         Self(Inner::Ratio(BigRational::one()))
     }
 
-    #[allow(unused)]
-    pub(crate) fn as_cents(&self) -> Option<&Decimal> {
+    pub(crate) fn as_ratio(&self) -> f64 {
         match &self.0 {
-            Inner::Cents(value) => Some(value),
-            _ => None,
+            Inner::Cents(value) => 2f64.powf(value.to_f64().expect("Must be f64") / 1200f64),
+            Inner::Ratio(value) => value.to_f64().expect("Must be f64"),
         }
     }
 
-    #[allow(unused)]
-    pub(crate) fn as_ratio(&self) -> Option<&BigRational> {
-        match &self.0 {
-            Inner::Ratio(value) => Some(value),
-            _ => None,
-        }
-    }
-
-    pub(crate) fn as_f64(&self) -> f64 {
-        match &self.0 {
-            Inner::Cents(value) => value.to_f64().expect("Must be f64") / 1200f64,
-            Inner::Ratio(value) => value.to_f64().expect("TBD"),
-        }
-    }
-
-    pub(crate) fn cents(&self) -> Cents {
+    pub(crate) fn as_cents(&self) -> Cents {
         Cents(match &self.0 {
             Inner::Cents(value) => value.to_f64().expect("Must be f64"),
             Inner::Ratio(value) => value.to_f64().expect("Must be f64").log2() * 1200f64,
@@ -52,7 +37,16 @@ impl Interval {
 
     #[allow(unused)]
     pub(crate) fn semitones(&self) -> Semitones {
-        Semitones(self.cents().0 / 100f64)
+        Semitones(self.as_cents().0 / 100f64)
+    }
+}
+
+impl Display for Interval {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        match &self.0 {
+            Inner::Cents(value) => write!(f, "{}", value),
+            Inner::Ratio(value) => write!(f, "{}/{}", value.numer(), value.denom()),
+        }
     }
 }
 
@@ -77,23 +71,39 @@ mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::interval::Interval;
     use anyhow::Result;
-    use num::{BigRational, One};
-    use rust_decimal_macros::dec;
 
     #[test]
     fn basics() -> Result<()> {
-        assert_eq!(Some(&BigRational::one()), Interval::unison().as_ratio());
+        const EPSILON: f64 = 0.0000001f64;
+        assert!(Interval::unison()
+            .as_ratio()
+            .approx_eq_with_epsilon(1f64, EPSILON));
+        assert!(Interval::unison()
+            .as_cents()
+            .0
+            .approx_eq_with_epsilon(0f64, EPSILON));
+        assert_eq!("1/1", Interval::unison().to_string());
 
         let interval = "150.5".parse::<Interval>()?;
-        assert_eq!(Some(&dec!(150.5)), interval.as_cents());
-        assert!(interval.cents().0.approx_eq_with_epsilon(150.50, 0.01));
+        assert!(interval
+            .as_ratio()
+            .approx_eq_with_epsilon(1.0908227291337902, EPSILON));
+        assert_eq!(150.5f64, interval.as_cents().0);
+        assert!(interval
+            .as_cents()
+            .0
+            .approx_eq_with_epsilon(150.50f64, 0.01f64));
+        assert_eq!("150.5", interval.to_string());
 
         let interval = "19/17".parse::<Interval>()?;
-        assert_eq!(
-            Some(&BigRational::new(19.into(), 17.into())),
-            interval.as_ratio()
-        );
-        assert!(interval.cents().0.approx_eq_with_epsilon(192.56, 0.01));
+        assert!(interval
+            .as_ratio()
+            .approx_eq_with_epsilon(1.1176470588235294f64, EPSILON));
+        assert!(interval
+            .as_cents()
+            .0
+            .approx_eq_with_epsilon(192.55760663189534, EPSILON));
+        assert_eq!("19/17", interval.to_string());
 
         Ok(())
     }
