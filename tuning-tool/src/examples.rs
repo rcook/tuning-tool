@@ -32,34 +32,6 @@ pub(crate) fn nearest_below_or_equal() {
     println!("{name} + {rem} Hz", name = midi_note.name(), rem = rem.0);
 }
 
-#[cfg(test)]
-#[allow(unused)]
-pub(crate) fn decode_sysex_events() -> Result<()> {
-    use crate::bulk_dump_reply::BulkDumpReply;
-    use crate::frequencies::calculate_frequencies;
-    use crate::keyboard_mapping::KeyboardMapping;
-    use crate::note_number::NoteNumber;
-    use crate::resources::RESOURCE_DIR;
-    use crate::sysex_event::SysExEvent;
-    use crate::types::{DeviceId, Preset};
-    use anyhow::anyhow;
-    use midly::Smf;
-
-    let mid_dir = RESOURCE_DIR
-        .get_dir("mid")
-        .ok_or_else(|| anyhow!("Could not get mid directory"))?;
-    for f in mid_dir.files() {
-        println!("{}:", f.path().display());
-        let bytes = f.contents();
-        let smf = Smf::parse(bytes)?;
-        for event in SysExEvent::find_all(&smf) {
-            event.dump();
-            event.decode();
-        }
-    }
-    Ok(())
-}
-
 #[allow(unused)]
 pub(crate) fn cli(start_path: &Path) -> Result<()> {
     fn dump(path: &Path) -> Result<()> {

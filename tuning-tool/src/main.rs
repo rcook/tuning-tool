@@ -35,8 +35,6 @@ mod scale;
 mod scl_file;
 mod semitones;
 mod send_tuning;
-mod string_extras;
-mod sysex_event;
 mod test_util;
 mod types;
 
