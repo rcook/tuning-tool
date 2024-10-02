@@ -20,6 +20,8 @@ macro_rules! u7_newtype {
 }
 pub(crate) use u7_newtype;
 
+f64_newtype!(EquaveRatio, pub(crate));
+
 u7_newtype!(AsciiChar, pub(crate));
 u7_newtype!(ChunkSize, pub(crate));
 u7_newtype!(DeviceId, pub(crate));

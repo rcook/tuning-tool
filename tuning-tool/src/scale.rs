@@ -1,6 +1,6 @@
 use crate::approx_eq::ApproxEq;
-use crate::equave_ratio::EquaveRatio;
 use crate::interval::Interval;
+use crate::types::EquaveRatio;
 
 #[derive(Debug)]
 pub(crate) struct Scale {

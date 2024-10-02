@@ -1,8 +1,8 @@
 use crate::cents::Cents;
 use crate::frequency::Frequency;
+use crate::types::f64_newtype;
 
-#[allow(unused)]
-pub(crate) struct CentOffset(pub(crate) f64);
+f64_newtype!(CentOffset, pub(crate));
 
 impl CentOffset {
     // c.f. centOffsetToFrequency

@@ -1,10 +1,10 @@
 use crate::frequency::Frequency;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
-use crate::types::{Lsb, Msb};
+use crate::types::{f64_newtype, Lsb, Msb};
 use anyhow::Result;
 
-pub(crate) struct Semitones(pub(crate) f64);
+f64_newtype!(Semitones, pub(crate));
 
 impl Semitones {
     pub(crate) const MAX: Self = Self(127.999878f64);

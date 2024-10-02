@@ -1,6 +1,7 @@
 use crate::cents::Cents;
+use crate::types::f64_newtype;
 
-pub(crate) struct Ratio(pub(crate) f64);
+f64_newtype!(Ratio, pub(crate));
 
 impl Ratio {
     // c.f. valueToCents
