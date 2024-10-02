@@ -1,7 +1,5 @@
 #![cfg(test)]
-use crate::interval::Interval;
 use crate::resources::RESOURCE_DIR;
-use crate::scale::Scale;
 use crate::scl_file::SclFile;
 use anyhow::{anyhow, Result};
 use std::path::Path;
@@ -29,14 +27,4 @@ pub(crate) fn read_test_scl_file<P: AsRef<Path>>(path: P) -> Result<SclFile> {
         )
     })?;
     s.parse::<SclFile>()
-}
-
-#[allow(unused)]
-pub(crate) fn make_test_scale<const N: usize>(strs: [&str; N]) -> Scale {
-    Scale::new(
-        strs.iter()
-            .map(|s| s.parse::<Interval>())
-            .collect::<Result<Vec<_>>>()
-            .expect("Must be a valid scale"),
-    )
 }
