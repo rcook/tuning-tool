@@ -98,7 +98,7 @@ impl FromStr for SclFile {
         Ok(Self {
             file_name,
             description: String::from(description),
-            scale: Scale::new(intervals),
+            scale: Scale::new(intervals)?,
         })
     }
 }

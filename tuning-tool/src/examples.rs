@@ -12,7 +12,6 @@ use std::fs::read_dir;
 use std::path::Path;
 use std::thread::sleep;
 use std::time::Duration;
-use tuning_tool_macros::scale;
 
 #[allow(unused)]
 pub(crate) fn show_all_midi_notes() {
@@ -229,19 +228,5 @@ pub(crate) fn send_tuning_sysex() -> Result<()> {
     let mut conn = midi_output.connect(&port, "test")?;
     println!("Sending {} bytes", bytes.len());
     conn.send(&bytes)?;
-    Ok(())
-}
-
-pub(crate) fn scratch() -> Result<()> {
-    let scale = scale![12.3];
-    for interval in scale.intervals() {
-        println!("interval {interval}");
-    }
-
-    let scale = scale![12.3 3.45];
-    for interval in scale.intervals() {
-        println!("interval {interval}");
-    }
-
     Ok(())
 }

@@ -1,6 +1,6 @@
-use crate::approx_eq::ApproxEq;
 use crate::interval::Interval;
-use crate::types::EquaveRatio;
+use crate::ratio::Ratio;
+use anyhow::{bail, Result};
 
 #[derive(Debug)]
 pub(crate) struct Scale {
@@ -8,32 +8,22 @@ pub(crate) struct Scale {
 }
 
 impl Scale {
-    pub(crate) fn new(intervals: Vec<Interval>) -> Self {
-        Self { intervals }
+    pub(crate) fn new(intervals: Vec<Interval>) -> Result<Self> {
+        if intervals.is_empty() {
+            bail!("Need at least one interval");
+        }
+        Ok(Self { intervals })
     }
 
     pub(crate) fn intervals(&self) -> &Vec<Interval> {
         &self.intervals
     }
 
-    pub(crate) fn equave_ratio(&self) -> EquaveRatio {
-        assert!(self.is_octave_repeating());
-        EquaveRatio(2f64) // TBD
-    }
-
-    fn is_octave_repeating(&self) -> bool {
-        let Some(last_interval) = self.intervals.last() else {
-            return false;
-        };
-
-        if !last_interval
-            .as_ratio()
-            .0
-            .approx_eq_with_epsilon(2f64, 0.0000001f64)
-        {
-            return false;
-        }
-
-        true
+    pub(crate) fn equave_ratio(&self) -> Ratio {
+        let last_interval = self
+            .intervals
+            .last()
+            .expect("Must have at least one interval");
+        last_interval.as_ratio()
     }
 }

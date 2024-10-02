@@ -269,7 +269,7 @@ pub fn scale(input: TokenStream) -> TokenStream {
         fn inner() -> anyhow::Result<Vec<crate::interval::Interval>> {
             Ok(vec![#(#parse_exprs),*])
         }
-        inner().map(|intervals| crate::scale::Scale::new(intervals)).expect("Must be a valid scale")
+        inner().and_then(|intervals| crate::scale::Scale::new(intervals)).expect("Must be a valid scale")
     }};
 
     output.into()

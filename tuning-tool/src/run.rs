@@ -14,8 +14,7 @@ pub(crate) fn run() -> Result<()> {
             //crate::examples::misc();
             //crate::examples::play_note()?;
             //crate::examples::send_tuning_sysex()
-            //crate::examples::enumerate_midi_outputs()
-            crate::examples::scratch()
+            crate::examples::enumerate_midi_outputs()
         }
         Command::SendTuning {
             scl_path,
