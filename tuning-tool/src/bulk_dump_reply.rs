@@ -1,4 +1,3 @@
-use crate::checksum::Checksum;
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
@@ -9,7 +8,7 @@ use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset_name::PresetName;
 use crate::read::{read, read_multi};
-use crate::types::{AsciiChar, DeviceId, Lsb, MidiValue, Msb, Preset};
+use crate::types::{AsciiChar, Checksum, DeviceId, Lsb, MidiValue, Msb, Preset};
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 

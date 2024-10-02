@@ -14,7 +14,7 @@ pub(crate) use f64_newtype;
 
 macro_rules! u7_newtype {
     ($ident: ident, $vis: vis) => {
-        #[derive(Clone, Copy, Debug, PartialEq, tuning_tool_derive::U7)]
+        #[derive(Clone, Copy, Debug, PartialEq, tuning_tool_macros::U7)]
         $vis struct $ident(u8);
     };
 }
@@ -23,6 +23,7 @@ pub(crate) use u7_newtype;
 f64_newtype!(EquaveRatio, pub(crate));
 
 u7_newtype!(AsciiChar, pub(crate));
+u7_newtype!(Checksum, pub(crate));
 u7_newtype!(ChunkSize, pub(crate));
 u7_newtype!(DeviceId, pub(crate));
 u7_newtype!(KeyNumber, pub(crate));

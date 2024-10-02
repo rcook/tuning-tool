@@ -5,7 +5,6 @@ mod args;
 mod bulk_dump_reply;
 mod cent_offset;
 mod cents;
-mod checksum;
 mod checksum_calculator;
 mod cli;
 mod consts;

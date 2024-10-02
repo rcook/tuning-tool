@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "tuning-tool-derive"
+name = "tuning-tool-macros"
 version = "0.1.0"
 
 [dependencies]

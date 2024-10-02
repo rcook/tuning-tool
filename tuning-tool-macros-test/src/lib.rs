@@ -2,8 +2,8 @@
 mod tests {
     use std::fmt::Debug;
     use std::str::FromStr;
-    use tuning_tool_derive::U7;
     use tuning_tool_lib::U7;
+    use tuning_tool_macros::U7;
 
     #[derive(Clone, Copy, Debug, PartialEq, U7)]
     struct MyU7(u8);

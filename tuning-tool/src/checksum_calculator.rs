@@ -1,4 +1,4 @@
-use crate::checksum::Checksum;
+use crate::types::Checksum;
 use anyhow::{bail, Result};
 use tuning_tool_lib::U7;
 

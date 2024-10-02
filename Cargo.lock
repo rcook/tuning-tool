@@ -1276,26 +1276,8 @@ dependencies = [
  "rstest",
  "rust_decimal",
  "rust_decimal_macros",
- "tuning-tool-derive",
  "tuning-tool-lib",
-]
-
-[[package]]
-name = "tuning-tool-derive"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.79",
-]
-
-[[package]]
-name = "tuning-tool-derive-tests"
-version = "0.1.0"
-dependencies = [
- "midly",
- "tuning-tool-derive",
- "tuning-tool-lib",
+ "tuning-tool-macros",
 ]
 
 [[package]]
@@ -1304,6 +1286,24 @@ version = "0.1.0"
 dependencies = [
  "midly",
  "thiserror",
+]
+
+[[package]]
+name = "tuning-tool-macros"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.79",
+]
+
+[[package]]
+name = "tuning-tool-macros-test"
+version = "0.1.0"
+dependencies = [
+ "midly",
+ "tuning-tool-lib",
+ "tuning-tool-macros",
 ]
 
 [[package]]
