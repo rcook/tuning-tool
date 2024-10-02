@@ -50,34 +50,32 @@ mod tests {
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_number::NoteNumber;
-    use crate::scale::{scale, Scale};
+    use crate::scale::Scale;
     use anyhow::Result;
     use std::iter::zip;
     use std::sync::LazyLock;
+    use tuning_tool_macros::scale;
 
     static SCALE_24EDO2: LazyLock<Scale> = LazyLock::new(|| {
         scale![
-            "50.0", "100.0", "150.0", "200.0", "250.0", "300.0", "350.0", "400.0", "450.0",
-            "500.0", "550.0", "600.0", "650.0", "700.0", "750.0", "800.0", "850.0", "900.0",
-            "950.0", "1000.0", "1050.0", "1100.0", "1150.0", "2/1",
+            50.0 100.0 150.0 200.0 250.0 300.0 350.0 400.0 450.0
+            500.0 550.0 600.0 650.0 700.0 750.0 800.0 850.0 900.0
+            950.0 1000.0 1050.0 1100.0 1150.0 2/1
         ]
-        .expect("Must be valid")
     });
 
     static SCALE_12EDO2: LazyLock<Scale> = LazyLock::new(|| {
         scale![
-            "100.0", "200.0", "300.0", "400.0", "500.0", "600.0", "700.0", "800.0", "900.0",
-            "1000.0", "1100.0", "2/1",
+            100.0 200.0 300.0 400.0 500.0 600.0 700.0 800.0 900.0
+            1000.0 1100.0 2/1
         ]
-        .expect("Must be valid")
     });
 
     static CARLOS_SUPER: LazyLock<Scale> = LazyLock::new(|| {
         scale![
-            "17/16", "9/8", "6/5", "5/4", "4/3", "11/8", "3/2", "13/8", "5/3", "7/4", "15/8",
-            "2/1",
+            17/16 9/8 6/5 5/4 4/3 11/8 3/2 13/8 5/3 7/4 15/8
+            2/1
         ]
-        .expect("Must be valid")
     });
 
     #[test]

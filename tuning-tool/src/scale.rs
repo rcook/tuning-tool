@@ -2,11 +2,6 @@ use crate::approx_eq::ApproxEq;
 use crate::interval::Interval;
 use crate::types::EquaveRatio;
 
-macro_rules! scale {
-    ($($x: expr),+ $(,)?) => { vec![$($x),+].iter().map(|s|s.parse()).collect::<Result<Vec<_>>>().map(|intervals| crate::scale::Scale::new(intervals)) };
-}
-pub(crate) use scale;
-
 #[derive(Debug)]
 pub(crate) struct Scale {
     intervals: Vec<Interval>,

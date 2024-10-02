@@ -80,20 +80,20 @@ mod tests {
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::note_number::NoteNumber;
-    use crate::scale::{scale, Scale};
+    use crate::scale::Scale;
     use crate::types::{DeviceId, MidiValue, Preset};
     use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;
     use std::iter::zip;
     use std::sync::LazyLock;
+    use tuning_tool_macros::scale;
 
     static CARLOS_SUPER: LazyLock<Scale> = LazyLock::new(|| {
         scale![
-            "17/16", "9/8", "6/5", "5/4", "4/3", "11/8", "3/2", "13/8", "5/3", "7/4", "15/8",
-            "2/1",
+            17/16 9/8 6/5 5/4 4/3 11/8 3/2 13/8 5/3 7/4 15/8
+            2/1
         ]
-        .expect("Must be valid")
     });
 
     #[test]
