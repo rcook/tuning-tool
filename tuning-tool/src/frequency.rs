@@ -7,8 +7,7 @@ use crate::ratio::Ratio;
 use crate::semitones::Semitones;
 use anyhow::Result;
 
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct Frequency(pub(crate) f64);
+crate::f64_newtype::f64_newtype!(Frequency, pub(crate));
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);

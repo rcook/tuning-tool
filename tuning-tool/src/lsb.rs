@@ -1,1 +1,1 @@
-crate::u7::u7_newtype!(Lsb, pub(crate));
+crate::u7_newtype::u7_newtype!(Lsb, pub(crate));

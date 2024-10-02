@@ -15,6 +15,7 @@ mod device_id;
 mod dump_sysex_file;
 mod equave_ratio;
 mod examples;
+mod f64_newtype;
 mod frequencies;
 mod frequency;
 mod fs;
@@ -47,7 +48,7 @@ mod send_tuning;
 mod string_extras;
 mod sysex_event;
 mod test_util;
-mod u7;
+mod u7_newtype;
 
 fn main() -> anyhow::Result<()> {
     crate::run::run()

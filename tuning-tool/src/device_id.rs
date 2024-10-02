@@ -1,1 +1,1 @@
-crate::u7::u7_newtype!(DeviceId, pub(crate));
+crate::u7_newtype::u7_newtype!(DeviceId, pub(crate));

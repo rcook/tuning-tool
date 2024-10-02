@@ -1,6 +1,6 @@
 use crate::frequency::Frequency;
 use crate::semitones::Semitones;
-use crate::u7::u7_newtype;
+use crate::u7_newtype::u7_newtype;
 
 u7_newtype!(NoteNumber, pub(crate));
 

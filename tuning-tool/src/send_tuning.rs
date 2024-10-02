@@ -1,5 +1,6 @@
 use crate::device_id::DeviceId;
 use crate::frequencies::calculate_frequencies;
+use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
@@ -11,6 +12,7 @@ use anyhow::{bail, Result};
 use midir::{MidiOutput, MidiOutputPort};
 use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
+use std::iter::zip;
 use std::path::Path;
 
 fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
@@ -30,16 +32,19 @@ fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutp
 fn make_note_change_entries(
     scl_file: &SclFile,
     kbm_file: &KbmFile,
-) -> Result<Vec<NoteChangeEntry>> {
+) -> Result<Vec<(Frequency, NoteChangeEntry)>> {
     calculate_frequencies(scl_file.scale(), kbm_file.keyboard_mapping())
         .iter()
         .enumerate()
         .map(|(i, f)| {
-            Ok(NoteChangeEntry {
-                #[allow(clippy::unnecessary_fallible_conversions)]
-                key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                mts: f.to_mts_entry()?,
-            })
+            Ok((
+                *f,
+                NoteChangeEntry {
+                    #[allow(clippy::unnecessary_fallible_conversions)]
+                    key_number: TryInto::<u8>::try_into(i)?.try_into()?,
+                    mts: f.to_mts_entry()?,
+                },
+            ))
         })
         .collect::<Result<Vec<_>>>()
 }
@@ -73,7 +78,29 @@ pub(crate) fn send_tuning(
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
     let kbm_file = KbmFile::read(kbm_path)?;
-    let entries = make_note_change_entries(&scl_file, &kbm_file)?;
+
+    let keyboard_mapping = kbm_file.keyboard_mapping();
+    println!(
+        "Start MIDI note: {value} (0x{value:02x})",
+        value = keyboard_mapping.start_note_number()
+    );
+    println!(
+        "End MIDI note: {value} (0x{value:02x})",
+        value = keyboard_mapping.end_note_number()
+    );
+    println!(
+        "Base MIDI note: {value} (0x{value:02x})",
+        value = keyboard_mapping.base_note_number()
+    );
+    println!(
+        "Base frequency: {value} Hz",
+        value = keyboard_mapping.base_frequency()
+    );
+
+    let data = make_note_change_entries(&scl_file, &kbm_file)?;
+    let frequencies = data.iter().map(|x| x.0).collect::<Vec<_>>();
+    let entries = data.into_iter().map(|x| x.1).collect::<Vec<_>>();
+
     let messages = make_messages(device_id, preset, &entries, chunk_size)?;
 
     if let Some(midi_output_port_name) = midi_output_port_name {
@@ -85,8 +112,12 @@ pub(crate) fn send_tuning(
             conn.send(&message)?;
         }
     } else {
-        for (i, message) in messages.iter().enumerate() {
-            println!("{i:>3}: {}", to_hex_dump(message, None)?);
+        for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
+            println!(
+                "{i:>3}: {hex} ({frequency} Hz)",
+                hex = to_hex_dump(&message, None)?,
+                frequency = frequency
+            );
         }
     }
 
