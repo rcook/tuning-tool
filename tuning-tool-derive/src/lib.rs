@@ -32,6 +32,10 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 #iter_ident::new(0, 127)
             }
 
+            #vis fn to_u8_slice(slice: &[Self]) -> &[u8] {
+                unsafe { &*(slice as *const [#ident] as *const [u8]) }
+            }
+
             #vis fn is_min(&self) -> bool {
                 self.0 == Self::MIN.0
             }
@@ -110,6 +114,18 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
 
             fn all() -> Self::Iter {
                 Self::all()
+            }
+
+            fn to_u8_slice(slice: &[Self]) -> &[u8] {
+                #ident::to_u8_slice(slice)
+            }
+
+            fn is_min(&self) -> bool {
+                Self::is_min(self)
+            }
+
+            fn is_max(&self) -> bool {
+                Self::is_max(self)
             }
 
             fn to_u8(self) -> u8 {

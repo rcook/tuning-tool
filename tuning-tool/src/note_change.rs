@@ -85,9 +85,10 @@ mod tests {
     use crate::preset::Preset;
     use crate::resources::RESOURCE_DIR;
     use crate::scl_file::SclFile;
-    use crate::{coerce::unsafe_coerce_slice_to_u7_slice, device_id::DeviceId};
+    use crate::{device_id::DeviceId, midi_value::MidiValue};
     use anyhow::{anyhow, Result};
     use midly::live::{LiveEvent, SystemCommon};
+    use midly::num::u7;
     use std::iter::zip;
 
     #[test]
@@ -149,9 +150,8 @@ mod tests {
             .map(|chunk| {
                 let message = NoteChange::new(DeviceId::ZERO, Preset::constant::<8>(), chunk)?;
                 let values = message.to_vec()?;
-                let event = LiveEvent::Common(SystemCommon::SysEx(
-                    unsafe_coerce_slice_to_u7_slice(&values),
-                ));
+                let u7_slice = u7::slice_from_int(MidiValue::to_u8_slice(&values));
+                let event = LiveEvent::Common(SystemCommon::SysEx(u7_slice));
                 let mut buffer = Vec::new();
                 event.write_std(&mut buffer)?;
                 Ok(buffer)

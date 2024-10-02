@@ -1,4 +1,4 @@
-use crate::{coerce::really_really_unsafe_coerce_slice, midi_value::MidiValue};
+use crate::midi_value::MidiValue;
 use anyhow::{bail, Result};
 use tuning_tool_lib::U7;
 
@@ -21,8 +21,8 @@ impl MidiMessageBuilder {
     }
 
     pub(crate) fn extend_from_slice<U: U7>(&mut self, other: &[U]) {
-        let other = really_really_unsafe_coerce_slice(other);
-        self.values.extend_from_slice(other)
+        self.values
+            .extend(other.iter().map(|x| MidiValue::from_u8_lossy(x.to_u8())))
     }
 
     pub(crate) fn finalize(self) -> Result<Vec<MidiValue>> {

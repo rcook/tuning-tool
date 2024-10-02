@@ -1,7 +1,6 @@
 use crate::ascii_char::AsciiChar;
 use crate::checksum::Checksum;
 use crate::checksum_calculator::ChecksumCalculator;
-use crate::coerce::unsafe_coerce_slice_to_u8_slice;
 use crate::consts::{
     BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
     MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
@@ -173,7 +172,7 @@ impl BulkDumpReply {
 
     pub(crate) fn to_bytes_with_start_and_end(&self) -> Result<Vec<u8>> {
         let vec = self.to_vec()?;
-        let inner_bytes = unsafe_coerce_slice_to_u8_slice(&vec);
+        let inner_bytes = MidiValue::to_u8_slice(&vec);
         let mut bytes = Vec::with_capacity(inner_bytes.len() + 2);
         bytes.push(SYSEX);
         bytes.extend_from_slice(inner_bytes);

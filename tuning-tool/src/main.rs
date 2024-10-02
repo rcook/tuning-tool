@@ -10,7 +10,6 @@ mod checksum;
 mod checksum_calculator;
 mod chunk_size;
 mod cli;
-mod coerce;
 mod consts;
 mod device_id;
 mod dump_sysex_file;

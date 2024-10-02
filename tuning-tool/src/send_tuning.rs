@@ -1,5 +1,3 @@
-use crate::chunk_size::ChunkSize;
-use crate::coerce::unsafe_coerce_slice_to_u7_slice;
 use crate::device_id::DeviceId;
 use crate::frequencies::calculate_frequencies;
 use crate::hex_dump::to_hex_dump;
@@ -8,9 +6,11 @@ use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::preset::Preset;
 use crate::scl_file::SclFile;
+use crate::{chunk_size::ChunkSize, midi_value::MidiValue};
 use anyhow::{bail, Result};
 use midir::{MidiOutput, MidiOutputPort};
 use midly::live::{LiveEvent, SystemCommon};
+use midly::num::u7;
 use std::path::Path;
 
 fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
@@ -54,7 +54,8 @@ fn make_messages(
     for chunk in entries.chunks(chunk_size.to_u8() as usize) {
         let note_change = NoteChange::new(device_id, preset, chunk)?;
         let vec = note_change.to_vec()?;
-        let event = LiveEvent::Common(SystemCommon::SysEx(unsafe_coerce_slice_to_u7_slice(&vec)));
+        let u7_slice = u7::slice_from_int(MidiValue::to_u8_slice(&vec));
+        let event = LiveEvent::Common(SystemCommon::SysEx(u7_slice));
         let mut buffer = Vec::new();
         event.write_std(&mut buffer)?;
         messages.push(buffer);

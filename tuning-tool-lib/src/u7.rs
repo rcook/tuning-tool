@@ -7,6 +7,9 @@ pub trait U7: Copy + Sized + TryFrom<u8, Error = TryFromU8Error> {
     const MIN: Self;
     const MAX: Self;
     fn all() -> Self::Iter;
+    fn to_u8_slice(slice: &[Self]) -> &[u8];
+    fn is_min(&self) -> bool;
+    fn is_max(&self) -> bool;
     fn to_u8(self) -> u8;
     fn widening_succ(self) -> u8;
     fn widening_pred(self) -> i8;
