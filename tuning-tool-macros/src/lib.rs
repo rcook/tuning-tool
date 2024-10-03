@@ -1,12 +1,11 @@
 use proc_macro::TokenStream;
-use proc_macro2::{Literal, Span};
+use proc_macro2::Literal;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, Ident};
+use syn::{parse_macro_input, DeriveInput};
 
 #[proc_macro_derive(U7)]
 pub fn u7_derive(input: TokenStream) -> TokenStream {
     let DeriveInput { vis, ident, .. } = parse_macro_input!(input);
-    let iter_ident = Ident::new(&format!("{}Iterator", ident), Span::call_site());
     let panic_message = Literal::string(&format!("Invalid {} constant", ident));
     let output = quote! {
         impl #ident {
@@ -28,8 +27,8 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 Self(value & Self::MASK)
             }
 
-            #vis fn all() -> #iter_ident {
-                #iter_ident::new(0, 127)
+            #vis fn all() -> impl std::iter::Iterator<Item = Self> {
+                std::iter::successors(Some(Self::ZERO), |x| x.checked_successor())
             }
 
             #vis fn to_u8_slice(slice: &[Self]) -> &[u8] {
@@ -48,15 +47,15 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 self.0
             }
 
-            #vis fn widening_succ(self) -> u8 {
+            #vis fn widening_successor(self) -> u8 {
                 self.0 + 1
             }
 
-            #vis fn widening_pred(self) -> i8 {
+            #vis fn widening_predecessor(self) -> i8 {
                 self.0 as i8 - 1
             }
 
-            #vis fn checked_succ(self) -> Option<Self> {
+            #vis fn checked_successor(self) -> Option<Self> {
                 if self.0 >= Self::MASK {
                     None
                 } else {
@@ -64,7 +63,7 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            #vis fn checked_pred(self) -> Option<Self> {
+            #vis fn checked_predecessor(self) -> Option<Self> {
                 if self.0 > 0 {
                     Some(Self(self.0 - 1))
                 } else {
@@ -98,9 +97,15 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 }
             }
 
-            #vis fn up_to(self, end: Self) -> Option<#iter_ident> {
+            #vis fn up_to(self, end: Self) -> Option<impl std::iter::Iterator<Item = Self>> {
                 _ = end.checked_sub(self)?;
-                Some(#iter_ident::new(self.0, end.0))
+                Some(std::iter::successors(Some(self), move |x| {
+                    if x.0 < end.0 {
+                        Some(Self(x.0 + 1))
+                    } else {
+                        None
+                    }
+                }))
             }
         }
 
@@ -152,31 +157,6 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
 
             fn to_u8(self) -> u8 {
                 Self::to_u8(self)
-            }
-        }
-
-        #vis struct #iter_ident {
-            curr: u8,
-            end: u8,
-        }
-
-        impl #iter_ident {
-            fn new(start: u8, end: u8) -> Self {
-                Self { curr: start, end }
-            }
-        }
-
-        impl Iterator for #iter_ident {
-            type Item = #ident;
-
-            fn next(&mut self) -> Option<Self::Item> {
-                let value = self.curr;
-                if value <= self.end {
-                    self.curr += 1;
-                    Some(#ident(value))
-                } else {
-                    None
-                }
             }
         }
     };

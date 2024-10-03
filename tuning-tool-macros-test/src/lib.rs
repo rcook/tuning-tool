@@ -42,28 +42,28 @@ mod tests {
     }
 
     #[test]
-    fn widening_succ() {
-        assert_eq!(1, MyU7::ZERO.widening_succ());
-        assert_eq!(2, MyU7::ONE.widening_succ());
-        assert_eq!(1, MyU7::MIN.widening_succ());
-        assert_eq!(128, MyU7::MAX.widening_succ());
+    fn widening_successor() {
+        assert_eq!(1, MyU7::ZERO.widening_successor());
+        assert_eq!(2, MyU7::ONE.widening_successor());
+        assert_eq!(1, MyU7::MIN.widening_successor());
+        assert_eq!(128, MyU7::MAX.widening_successor());
     }
 
     #[test]
-    fn widening_pred() {
-        assert_eq!(-1, MyU7::ZERO.widening_pred());
-        assert_eq!(0, MyU7::ONE.widening_pred());
-        assert_eq!(-1, MyU7::MIN.widening_pred());
-        assert_eq!(126, MyU7::MAX.widening_pred());
+    fn widening_predecessor() {
+        assert_eq!(-1, MyU7::ZERO.widening_predecessor());
+        assert_eq!(0, MyU7::ONE.widening_predecessor());
+        assert_eq!(-1, MyU7::MIN.widening_predecessor());
+        assert_eq!(126, MyU7::MAX.widening_predecessor());
     }
 
     #[test]
-    fn checked_succ() {
+    fn checked_successor() {
         let mut result = Vec::new();
         let mut cursor = Some(MyU7::ZERO);
         while let Some(note_number) = cursor {
             result.push(note_number.0);
-            cursor = note_number.checked_succ();
+            cursor = note_number.checked_successor();
         }
 
         assert_eq!(128, result.len());
@@ -73,12 +73,12 @@ mod tests {
     }
 
     #[test]
-    fn checked_pred() {
+    fn checked_predecessor() {
         let mut result = Vec::new();
         let mut cursor = Some(MyU7::MAX);
         while let Some(note_number) = cursor {
             result.push(note_number.0);
-            cursor = note_number.checked_pred();
+            cursor = note_number.checked_predecessor();
         }
 
         assert_eq!(128, result.len());
@@ -127,8 +127,8 @@ mod tests {
     #[test]
     fn up_to() {
         let mut result = Vec::new();
-        for (i, value) in MyU7::from_u8_lossy(10)
-            .up_to(MyU7::from_u8_lossy(15))
+        for (i, value) in MyU7::constant::<10>()
+            .up_to(MyU7::constant::<15>())
             .expect("Must be valid")
             .enumerate()
         {
