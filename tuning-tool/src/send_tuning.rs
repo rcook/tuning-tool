@@ -1,3 +1,4 @@
+use crate::devices::{get_midi_output_port, make_midi_output};
 use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
@@ -6,26 +7,11 @@ use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
 use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
-use anyhow::{bail, Result};
-use midir::{MidiOutput, MidiOutputPort};
+use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
 use std::iter::zip;
 use std::path::Path;
-
-fn get_midi_output_port(midi_output: &MidiOutput, name: &str) -> Result<MidiOutputPort> {
-    let mut names = Vec::new();
-    for p in midi_output.ports() {
-        let temp = midi_output.port_name(&p)?;
-        if midi_output.port_name(&p)? == name {
-            return Ok(p);
-        }
-        names.push(temp);
-    }
-
-    let s = names.join(", ");
-    bail!("No MIDI output port with name {name} found: choose from {s}");
-}
 
 fn make_note_change_entries(
     scl_file: &SclFile,
@@ -102,7 +88,7 @@ pub(crate) fn send_tuning(
     let messages = make_messages(device_id, preset, &entries, chunk_size)?;
 
     if let Some(midi_output_port_name) = midi_output_port_name {
-        let midi_output = MidiOutput::new("MIDI output")?;
+        let midi_output = make_midi_output()?;
         let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
         let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
         for message in messages {

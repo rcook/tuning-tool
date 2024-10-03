@@ -13,6 +13,9 @@ pub(crate) struct Args {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
+    #[command(name = "list-devices", about = "List MIDI devices")]
+    ListDevices,
+
     #[command(name = "other", about = "Other")]
     Other {
         #[arg(help = "Start directory or file", value_parser = parse_absolute_path)]
