@@ -8,7 +8,7 @@ pub(crate) const NOTE_CHANGE: MidiValue = MidiValue::constant::<2>();
 pub(crate) const BULK_DUMP_REPLY: MidiValue = MidiValue::constant::<1>();
 pub(crate) const BULK_DUMP_REPLY_CHECKSUM_COUNT: usize = 405;
 
-#[allow(unused)]
+#[cfg(test)]
 pub(crate) const BULK_DUMP_REPLY_MESSAGE_SIZE: usize = BULK_DUMP_REPLY_CHECKSUM_COUNT + 1;
 
 pub(crate) const EOX: u8 = 0xf7;

@@ -9,7 +9,7 @@ pub(crate) fn list_ports() -> Result<()> {
         let mut names = midi_input
             .ports()
             .iter()
-            .map(|p| midi_input.port_name(&p).map_err(|e| anyhow!(e)))
+            .map(|p| midi_input.port_name(p).map_err(|e| anyhow!(e)))
             .collect::<Result<Vec<_>>>()?;
         names.sort();
         println!("MIDI inputs:");
@@ -25,7 +25,7 @@ pub(crate) fn list_ports() -> Result<()> {
         let mut names = midi_output
             .ports()
             .iter()
-            .map(|p| midi_output.port_name(&p).map_err(|e| anyhow!(e)))
+            .map(|p| midi_output.port_name(p).map_err(|e| anyhow!(e)))
             .collect::<Result<Vec<_>>>()?;
         names.sort();
         println!("MIDI outputs:");

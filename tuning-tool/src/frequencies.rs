@@ -49,6 +49,7 @@ mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use crate::scale::Scale;
     use anyhow::Result;
@@ -659,7 +660,7 @@ mod tests {
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
             NoteNumber::ZERO,
-            Frequency::MIDI_MIN,
+            Frequency::MIN,
         )?;
         Ok(())
     }
@@ -801,7 +802,7 @@ mod tests {
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
             NoteNumber::A4,
-            NoteNumber::A4.to_frequency(),
+            MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
         )?;
         Ok(())
     }

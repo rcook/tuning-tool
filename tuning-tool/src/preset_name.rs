@@ -1,4 +1,4 @@
-use crate::types::AsciiChar;
+use crate::types::Char7;
 use anyhow::{bail, Error};
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
@@ -6,7 +6,7 @@ use std::str::FromStr;
 
 const PRESET_NAME_LEN: usize = 16;
 
-type PresetNameArray = [AsciiChar; PRESET_NAME_LEN];
+type PresetNameArray = [Char7; PRESET_NAME_LEN];
 
 #[derive(Debug)]
 pub(crate) struct PresetName(PresetNameArray);
@@ -25,7 +25,7 @@ impl PresetName {
 
 impl Display for PresetName {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        let s = String::from_utf8_lossy(AsciiChar::to_u8_slice(&self.0));
+        let s = String::from_utf8_lossy(Char7::to_u8_slice(&self.0));
         write!(f, "{}", s)
     }
 }
@@ -42,7 +42,7 @@ impl FromStr for PresetName {
         }
 
         // Terribly inefficient, but at least it's safe!
-        let mut array = [AsciiChar::ZERO; Self::LEN];
+        let mut array = [Char7::ZERO; Self::LEN];
         for (i, c) in s.bytes().enumerate() {
             array[i] = c.try_into()?;
         }

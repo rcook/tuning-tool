@@ -1,14 +1,13 @@
 use crate::checksum_calculator::ChecksumCalculator;
 use crate::consts::{
-    BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, BULK_DUMP_REPLY_MESSAGE_SIZE, EOX,
-    MIDI_TUNING, SYSEX, UNIVERSAL_NON_REAL_TIME,
+    BULK_DUMP_REPLY, BULK_DUMP_REPLY_CHECKSUM_COUNT, EOX, MIDI_TUNING, SYSEX,
+    UNIVERSAL_NON_REAL_TIME,
 };
-use crate::midi_message_builder::MidiMessageBuilder;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::preset_name::PresetName;
 use crate::read::{read, read_multi};
-use crate::types::{AsciiChar, Checksum, DeviceId, Lsb, MidiValue, Msb, Preset};
+use crate::types::{Char7, Checksum, DeviceId, Lsb, MidiValue, Msb, Preset};
 use anyhow::{bail, Result};
 use std::io::{Bytes, Read};
 
@@ -41,7 +40,7 @@ pub(crate) struct BulkDumpReply {
 }
 
 impl BulkDumpReply {
-    #[allow(unused)]
+    #[cfg(test)]
     pub(crate) fn new(
         device_id: DeviceId,
         preset: Preset,
@@ -56,22 +55,18 @@ impl BulkDumpReply {
         })
     }
 
-    #[allow(unused)]
     pub(crate) const fn device_id(&self) -> DeviceId {
         self.device_id
     }
 
-    #[allow(unused)]
     pub(crate) const fn preset(&self) -> Preset {
         self.preset
     }
 
-    #[allow(unused)]
     pub(crate) fn name(&self) -> &PresetName {
         &self.name
     }
 
-    #[allow(unused)]
     pub(crate) fn entries(&self) -> &MtsEntries {
         &self.entries
     }
@@ -103,7 +98,7 @@ impl BulkDumpReply {
 
         let preset = calc.update(read::<Preset, _>(&mut iter)?);
 
-        let name = PresetName::new(read_multi::<AsciiChar, _, { PresetName::LEN }>(&mut iter)?);
+        let name = PresetName::new(read_multi::<Char7, _, { PresetName::LEN }>(&mut iter)?);
         _ = calc.update_from_slice(name.as_array());
 
         let entries: MtsEntries = (0..ENTRIES_LEN)
@@ -143,8 +138,11 @@ impl BulkDumpReply {
         })
     }
 
-    #[allow(unused)]
+    #[cfg(test)]
     pub(crate) fn to_vec(&self) -> Result<Vec<MidiValue>> {
+        use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+        use crate::midi_message_builder::MidiMessageBuilder;
+
         let mut calc = ChecksumCalculator::new();
         let mut values = MidiMessageBuilder::with_required_len(BULK_DUMP_REPLY_MESSAGE_SIZE);
         values.push(calc.update(UNIVERSAL_NON_REAL_TIME));
@@ -166,8 +164,10 @@ impl BulkDumpReply {
         values.finalize()
     }
 
-    #[allow(unused)]
+    #[cfg(test)]
     pub(crate) fn to_bytes_with_start_and_end(&self) -> Result<Vec<u8>> {
+        use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+
         let vec = self.to_vec()?;
         let inner_bytes = MidiValue::to_u8_slice(&vec);
         let mut bytes = Vec::with_capacity(inner_bytes.len() + 2);
@@ -186,6 +186,7 @@ mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
     use crate::types::{DeviceId, Preset};
@@ -211,7 +212,7 @@ mod tests {
             Preset::constant::<8>(),
             "carlos_super.mid",
             NoteNumber::ZERO,
-            Frequency::MIDI_MIN,
+            Frequency::MIN,
         )?;
         Ok(())
     }
@@ -223,7 +224,7 @@ mod tests {
             Preset::ZERO,
             "carlos_super_a4 ",
             NoteNumber::A4,
-            NoteNumber::A4.to_frequency(),
+            MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
         )?;
         Ok(())
     }

@@ -13,7 +13,6 @@ pub(crate) struct MtsEntry {
 
 impl MtsEntry {
     // c.f. mtsBytesToMts
-    #[allow(unused)]
     pub(crate) fn to_semitones(&self) -> Semitones {
         fn make_14_bit(msb: Msb, lsb: Lsb) -> u16 {
             ((msb.to_u8() as u16) << 7) + lsb.to_u8() as u16
@@ -30,22 +29,10 @@ impl MtsEntry {
     }
 
     // c.f. mtsBytesToFrequency
-    #[allow(unused)]
     pub(crate) fn to_frequency(&self) -> Frequency {
         let mts = self.to_semitones();
         let frequency = mts.to_frequency();
         Frequency(round_default_scale(frequency.0))
-    }
-
-    // c.f. mtsBytesToHex
-    #[allow(unused)]
-    pub(crate) fn to_hex(&self) -> String {
-        format!(
-            "{note_number:02x}{msb:02x}{lsb:02x}",
-            note_number = self.note_number,
-            msb = self.msb,
-            lsb = self.lsb
-        )
     }
 }
 
@@ -85,23 +72,6 @@ mod tests {
         };
         let expected = Frequency(expected);
         assert_eq!(expected.0, input.to_frequency().0);
-        Ok(())
-    }
-
-    #[rstest]
-    #[case("3c0000", (60, 0, 0))]
-    #[case("450000", (69, 0, 0))]
-    #[case("450a06", (69, 10, 6))]
-    //#[case("457f06", (69, 240, 6))]
-    //#[case("7f7f7f", (128, 255, 128))]
-    #[case("7f7f7f", (127, 127, 127))]
-    fn to_hex(#[case] expected: &str, #[case] input: (u8, u8, u8)) -> Result<()> {
-        let input = MtsEntry {
-            note_number: NoteNumber::try_from(input.0)?,
-            msb: Msb::try_from(input.1)?,
-            lsb: Lsb::try_from(input.2)?,
-        };
-        assert_eq!(expected, input.to_hex());
         Ok(())
     }
 }

@@ -28,7 +28,7 @@ fn main() -> anyhow::Result<()> {
 
     writeln!(
         f,
-        "const ALL_MIDI_NOTES: [{MIDI_NOTE_TYPE_NAME}; {MIDI_NOTE_COUNT}] = ["
+        "const ALL: [{MIDI_NOTE_TYPE_NAME}; {MIDI_NOTE_COUNT}] = ["
     )?;
 
     for i in 0..MIDI_NOTE_COUNT {

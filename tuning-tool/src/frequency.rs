@@ -1,9 +1,6 @@
-use crate::cent_offset::CentOffset;
-use crate::midi_note::MidiNote;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
-use crate::ratio::Ratio;
 use crate::semitones::Semitones;
 use crate::types::f64_newtype;
 use anyhow::Result;
@@ -12,25 +9,10 @@ f64_newtype!(Frequency, pub(crate));
 
 impl Frequency {
     pub(crate) const A4: Self = Self(440f64);
+    pub(crate) const MAX: Self = Self(13289.656616f64);
 
-    #[allow(unused)]
-    pub(crate) const MIDI_MIN: Self = MidiNote::ALL[0].frequency();
-
-    pub(crate) const MIDI_MAX: Self = Self(13289.656616f64);
-
-    // c.f. frequencyToCentOffset
-    #[allow(unused)]
-    pub(crate) fn to_cent_offset(&self) -> CentOffset {
-        self.to_cent_offset_with_base_frequency(Self::A4)
-    }
-
-    #[allow(unused)]
-    pub(crate) fn to_cent_offset_with_base_frequency(
-        &self,
-        base_frequency: Frequency,
-    ) -> CentOffset {
-        CentOffset(Ratio(self.0 / base_frequency.0).to_cents().0)
-    }
+    #[cfg(test)]
+    pub(crate) const MIN: Frequency = crate::midi_note::MidiNote::ALL[0].frequency();
 
     // c.f. ftomts
     pub(crate) fn to_semitones(&self) -> Semitones {
@@ -42,25 +24,13 @@ impl Frequency {
             return Semitones(0f64);
         }
 
-        if self.0 > Self::MIDI_MAX.0 && !ignore_limit {
+        if self.0 > Self::MAX.0 && !ignore_limit {
             return Semitones::MAX;
         }
 
         let semitones = self.semitones_raw().0;
         let value = round_default_scale(semitones);
         Semitones(value)
-    }
-
-    // c.f. ftom
-    #[allow(unused)]
-    pub(crate) fn to_note_number(&self) -> Result<(NoteNumber, CentOffset)> {
-        let semitones = self.semitones_raw();
-        let note_number = semitones.0.round();
-        let cent_offset = (semitones.0 - note_number) * 100f64;
-        Ok((
-            NoteNumber::try_from(note_number as u8)?,
-            CentOffset(cent_offset),
-        ))
     }
 
     pub(crate) fn to_mts_entry(&self) -> Result<MtsEntry> {
@@ -74,7 +44,6 @@ impl Frequency {
 
 #[cfg(test)]
 mod tests {
-    use crate::approx_eq::ApproxEq;
     use crate::frequency::Frequency;
     use crate::mts_entry::MtsEntry;
     use crate::note_number::NoteNumber;
@@ -82,15 +51,6 @@ mod tests {
     use crate::types::{Lsb, Msb};
     use anyhow::Result;
     use rstest::rstest;
-
-    #[test]
-    fn basics() {
-        assert!(Frequency(220f64).to_cent_offset().0.approx_eq(-1200f64));
-        assert!(Frequency(220f64)
-            .to_cent_offset_with_base_frequency(Frequency(220f64))
-            .0
-            .approx_eq(0f64));
-    }
 
     #[rstest]
     #[case(0f64, 8.175799f64)]
@@ -163,14 +123,6 @@ mod tests {
             lsb: Lsb::try_from(expected.2)?,
         };
         assert_eq!(expected, input.to_mts_entry()?);
-        Ok(())
-    }
-
-    #[test]
-    fn to_note_number() -> Result<()> {
-        let (note_number, cent_offset) = Frequency(261.625565f64).to_note_number()?;
-        assert_eq!(60, note_number.to_u8());
-        assert!(cent_offset.0.approx_eq_with_epsilon(0f64, 0.00001f64));
         Ok(())
     }
 }

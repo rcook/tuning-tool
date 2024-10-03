@@ -12,7 +12,6 @@ pub(crate) struct NoteChange {
 }
 
 impl NoteChange {
-    #[allow(unused)]
     pub(crate) fn new(
         device_id: DeviceId,
         preset: Preset,
@@ -42,9 +41,7 @@ impl NoteChange {
     pub(crate) fn entries(&self) -> &Vec<NoteChangeEntry> {
         &self.entries
     }
-}
 
-impl NoteChange {
     #[allow(unused)]
     pub(crate) fn to_vec(&self) -> Result<Vec<MidiValue>> {
         let entry_count = self.entries.len();
@@ -128,7 +125,7 @@ mod tests {
             NoteNumber::ZERO,
             NoteNumber::MAX,
             NoteNumber::ZERO,
-            Frequency::MIDI_MIN,
+            Frequency::MIN,
         )?;
 
         let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)

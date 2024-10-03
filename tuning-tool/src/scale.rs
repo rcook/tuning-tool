@@ -1,5 +1,5 @@
 use crate::interval::Interval;
-use crate::ratio::Ratio;
+use crate::types::Ratio;
 use anyhow::{bail, Result};
 
 #[derive(Debug)]

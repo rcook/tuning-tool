@@ -1,4 +1,5 @@
 #![cfg(test)]
+
 use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
 use anyhow::{anyhow, Result};

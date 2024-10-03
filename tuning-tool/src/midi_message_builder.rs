@@ -20,7 +20,7 @@ impl MidiMessageBuilder {
         value
     }
 
-    #[allow(unused)]
+    #[cfg(test)]
     pub(crate) fn extend_from_slice<U: U7>(&mut self, other: &[U]) {
         self.values
             .extend(other.iter().map(|x| MidiValue::from_u8_lossy(x.to_u8())))

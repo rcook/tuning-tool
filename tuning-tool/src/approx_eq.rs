@@ -1,5 +1,6 @@
+#![cfg(test)]
+
 pub(crate) trait ApproxEq {
-    #[allow(unused)]
     fn approx_eq(&self, other: Self) -> bool;
     fn approx_eq_with_epsilon(&self, other: Self, epsilon: Self) -> bool;
 }

@@ -3,8 +3,6 @@
 mod approx_eq;
 mod args;
 mod bulk_dump_reply;
-mod cent_offset;
-mod cents;
 mod checksum_calculator;
 mod cli;
 mod consts;
@@ -28,7 +26,6 @@ mod note_change_entry;
 mod note_number;
 mod num;
 mod preset_name;
-mod ratio;
 mod read;
 mod resources;
 mod run;
