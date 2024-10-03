@@ -13,14 +13,17 @@ pub(crate) struct Args {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
-    #[command(name = "list-devices", about = "List MIDI devices")]
-    ListDevices,
+    #[command(name = "list-ports", about = "List MIDI input and output ports")]
+    ListPorts,
+
+    #[command(name = "monitor-port", about = "Monitor MIDI input port")]
+    MonitorPort {
+        #[arg(help = "MIDI input port name")]
+        midi_input_port_name: String,
+    },
 
     #[command(name = "other", about = "Other")]
-    Other {
-        #[arg(help = "Start directory or file", value_parser = parse_absolute_path)]
-        start_path: PathBuf,
-    },
+    Other,
 
     #[command(name = "send-tuning", about = "Send tuning SysEx to MIDI device")]
     SendTuning {

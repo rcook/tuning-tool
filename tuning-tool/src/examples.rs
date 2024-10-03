@@ -120,20 +120,6 @@ pub(crate) fn generate_message() -> Result<()> {
 }
 
 #[allow(unused)]
-pub(crate) fn enumerate_midi_outputs() -> Result<()> {
-    let midi_output = MidiOutput::new("MIDI output")?;
-    if midi_output.port_count() == 0 {
-        println!("You have no MIDI output ports");
-    } else {
-        for p in midi_output.ports() {
-            let name = midi_output.port_name(&p)?;
-            println!("MIDI output port: {name}");
-        }
-    }
-    Ok(())
-}
-
-#[allow(unused)]
 pub(crate) fn play_note() -> Result<()> {
     fn get_output_port(midi_output: &MidiOutput, name: &str) -> Result<Option<MidiOutputPort>> {
         for p in midi_output.ports() {
