@@ -1,5 +1,6 @@
 use crate::types::AsciiChar;
 use anyhow::{bail, Error};
+use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
 
@@ -19,6 +20,13 @@ impl PresetName {
 
     pub(crate) const fn as_array(&self) -> &PresetNameArray {
         &self.0
+    }
+}
+
+impl Display for PresetName {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        let s = String::from_utf8_lossy(AsciiChar::to_u8_slice(&self.0));
+        write!(f, "{}", s)
     }
 }
 

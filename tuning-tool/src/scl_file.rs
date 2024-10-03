@@ -30,22 +30,6 @@ impl SclFile {
     pub(crate) fn scale(&self) -> &Scale {
         &self.scale
     }
-
-    pub(crate) fn dump(&self) {
-        if let Some(file_name) = &self.file_name {
-            println!("File name: {file_name}");
-        }
-
-        println!("Description: {description}", description = self.description);
-        println!(
-            "Intervals: {interval_count}",
-            interval_count = self.scale.intervals().len()
-        );
-
-        for (i, note) in self.scale.intervals().iter().enumerate() {
-            println!("(note {i}): {cents}", cents = note.as_cents().0);
-        }
-    }
 }
 
 impl FromStr for SclFile {

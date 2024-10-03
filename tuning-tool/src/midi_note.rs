@@ -14,6 +14,7 @@ pub(crate) struct MidiNote {
 impl MidiNote {
     pub(crate) const ALL: [MidiNote; 128] = ALL_MIDI_NOTES;
 
+    #[allow(unused)]
     pub(crate) fn nearest_below_or_equal(frequency: Frequency) -> Option<(MidiNote, Frequency)> {
         let mut i = 127;
         while i > 0 && ALL_MIDI_NOTES[i].frequency().0 > frequency.0 {
@@ -29,10 +30,12 @@ impl MidiNote {
         }
     }
 
+    #[allow(unused)]
     pub(crate) const fn note_number(&self) -> NoteNumber {
         self.note_number
     }
 
+    #[allow(unused)]
     pub(crate) const fn name(&self) -> &str {
         self.name
     }

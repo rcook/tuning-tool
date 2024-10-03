@@ -13,6 +13,18 @@ pub(crate) struct Args {
 
 #[derive(Debug, Subcommand)]
 pub(crate) enum Command {
+    #[command(
+        name = "decode-bulk-dump",
+        about = "Decode MIDI bulk tuning dump reply"
+    )]
+    DecodeBulkDump {
+        #[arg(
+        help = "Path to .syx file",
+        value_parser = parse_absolute_path
+    )]
+        syx_path: PathBuf,
+    },
+
     #[command(name = "list-ports", about = "List MIDI input and output ports")]
     ListPorts,
 
@@ -21,9 +33,6 @@ pub(crate) enum Command {
         #[arg(help = "MIDI input port name")]
         midi_input_port_name: String,
     },
-
-    #[command(name = "other", about = "Other")]
-    Other,
 
     #[command(name = "send-tuning", about = "Send tuning SysEx to MIDI device")]
     SendTuning {
