@@ -104,71 +104,6 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
             }
         }
 
-        impl tuning_tool_lib::U7 for #ident {
-            type Iter = #iter_ident;
-
-            const ZERO: Self = Self::ZERO;
-            const ONE: Self = Self::ONE;
-            const MIN: Self = Self::MIN;
-            const MAX: Self = Self::MAX;
-
-            fn all() -> Self::Iter {
-                Self::all()
-            }
-
-            fn to_u8_slice(slice: &[Self]) -> &[u8] {
-                #ident::to_u8_slice(slice)
-            }
-
-            fn is_min(&self) -> bool {
-                Self::is_min(self)
-            }
-
-            fn is_max(&self) -> bool {
-                Self::is_max(self)
-            }
-
-            fn to_u8(self) -> u8 {
-                Self::to_u8(self)
-            }
-
-            fn widening_succ(self) -> u8 {
-                Self::widening_succ(self)
-            }
-
-            fn widening_pred(self) -> i8 {
-                Self::widening_pred(self)
-            }
-
-            fn checked_succ(self) -> Option<Self> {
-                Self::checked_succ(self)
-            }
-
-            fn checked_pred(self) -> Option<Self> {
-                Self::checked_pred(self)
-            }
-
-            fn widening_add(self, rhs: Self) -> u8 {
-                Self::widening_add(self, rhs)
-            }
-
-            fn widening_sub(self, rhs: Self) -> i8 {
-                Self::widening_sub(self, rhs)
-            }
-
-            fn checked_add(self, rhs: Self) -> Option<Self> {
-                Self::checked_add(self, rhs)
-            }
-
-            fn checked_sub(self, rhs: Self) -> Option<Self> {
-                Self::checked_sub(self, rhs)
-            }
-
-            fn up_to(self, end: Self) -> Option<Self::Iter> {
-                Self::up_to(self, end)
-            }
-        }
-
         impl std::convert::TryFrom<u8> for #ident {
             type Error = tuning_tool_lib::TryFromU8Error;
 
@@ -209,6 +144,14 @@ pub fn u7_derive(input: TokenStream) -> TokenStream {
                 } else {
                     Ok(Self(value))
                 }
+            }
+        }
+
+        impl tuning_tool_lib::U7 for #ident {
+            const ZERO: Self = Self::ZERO;
+
+            fn to_u8(self) -> u8 {
+                Self::to_u8(self)
             }
         }
 

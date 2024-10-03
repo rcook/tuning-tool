@@ -147,37 +147,8 @@ mod tests {
 
     #[test]
     fn u7_trait() {
-        /*
-        fn checked_add(self, rhs: Self) -> Option<Self>;
-        fn checked_sub(self, rhs: Self) -> Option<Self>;
-        fn up_to(self, end: Self) -> Option<Self::Iter>;
-             */
         fn test<U: Debug + PartialEq + U7>() {
             assert_eq!(0, U::ZERO.to_u8());
-            assert_eq!(1, U::ONE.to_u8());
-            assert_eq!(0, U::MIN.to_u8());
-            assert_eq!(127, U::MAX.to_u8());
-            assert_eq!(128, U::all().collect::<Vec<_>>().len());
-            assert_eq!(128, U::MAX.widening_succ());
-            assert_eq!(-1, U::MIN.widening_pred());
-            assert!(U::MAX.checked_succ().is_none());
-            assert_eq!(Some(U::ONE), U::ZERO.checked_succ());
-            assert!(U::MIN.checked_pred().is_none());
-            assert_eq!(Some(U::ZERO), U::ONE.checked_pred());
-            assert_eq!(128, U::MAX.widening_add(U::ONE));
-            assert_eq!(-1, U::MIN.widening_sub(U::ONE));
-            assert!(U::MAX.checked_add(U::ONE).is_none());
-            assert_eq!(Some(U::ONE), U::ZERO.checked_add(U::ONE));
-            assert!(U::MIN.checked_sub(U::ONE).is_none());
-            assert_eq!(Some(U::ZERO), U::ONE.checked_sub(U::ONE));
-            assert_eq!(
-                2,
-                U::ZERO
-                    .up_to(U::ONE)
-                    .expect("Must succeed")
-                    .collect::<Vec<_>>()
-                    .len()
-            );
         }
         test::<MyU7>();
     }
