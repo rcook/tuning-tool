@@ -2,6 +2,7 @@ use crate::args::Args;
 use crate::decode_bulk_dump::decode_bulk_dump;
 use crate::list_ports::list_ports;
 use crate::monitor_port::monitor_port;
+use crate::save_tunings::save_tunings;
 use crate::send_tuning::send_tuning;
 use anyhow::Result;
 use clap::Parser;
@@ -15,6 +16,9 @@ pub(crate) fn run() -> Result<()> {
         MonitorPort {
             midi_input_port_name,
         } => monitor_port(&midi_input_port_name),
+        SaveTunings {
+            midi_output_port_name,
+        } => save_tunings(&midi_output_port_name),
         SendTuning {
             scl_path,
             kbm_path,

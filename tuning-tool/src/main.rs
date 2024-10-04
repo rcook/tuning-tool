@@ -29,6 +29,7 @@ mod preset_name;
 mod read;
 mod resources;
 mod run;
+mod save_tunings;
 mod scale;
 mod scl_file;
 mod semitones;

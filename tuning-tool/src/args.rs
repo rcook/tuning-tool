@@ -34,6 +34,15 @@ pub(crate) enum Command {
         midi_input_port_name: String,
     },
 
+    #[command(
+        name = "save-tunings",
+        about = "Save tuning tables on Novation Bass Station II"
+    )]
+    SaveTunings {
+        #[arg(help = "MIDI output port name")]
+        midi_output_port_name: String,
+    },
+
     #[command(name = "send-tuning", about = "Send tuning SysEx to MIDI device")]
     SendTuning {
         #[arg(
