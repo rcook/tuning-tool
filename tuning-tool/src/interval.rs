@@ -42,7 +42,7 @@ impl FromStr for Interval {
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
         let Some(temp) = s.split_whitespace().next() else {
-            bail!("Invalid note specification {s}")
+            bail!("Invalid interval {s}")
         };
 
         if temp.contains(".") {
