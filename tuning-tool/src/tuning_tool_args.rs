@@ -25,6 +25,9 @@ pub(crate) enum Command {
         syx_path: PathBuf,
     },
 
+    #[command(name = "experimental", about = "Experimental stuff")]
+    Experimental,
+
     #[command(name = "list-ports", about = "List MIDI input and output ports")]
     ListPorts,
 
