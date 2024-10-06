@@ -829,49 +829,4 @@ mod tests {
 
         Ok(())
     }
-
-    /*
-    pub(crate) fn show_scale_frequencies() -> anyhow::Result<()> {
-        use crate::frequencies::calculate_frequencies;
-        use crate::frequency::Frequency;
-        use crate::keyboard_mapping::KeyboardMapping;
-        use crate::note_number::NoteNumber;
-        use tuning_tool_macros::scale;
-
-        let bohlen_p = scale![
-            27/25
-            25/21
-            9/7
-            7/5
-            75/49
-            5/3
-            9/5
-            49/25
-            15/7
-            7/3
-            63/25
-            25/9
-            3/1
-        ];
-
-        let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber::ZERO,
-            NoteNumber::MAX,
-            NoteNumber::A4,
-            Frequency::A4,
-        )?;
-
-        let frequencies = calculate_frequencies(&bohlen_p, &keyboard_mapping);
-        for (i, f) in frequencies.iter().enumerate() {
-            println!("{i:>3}: {f} Hz,");
-        }
-        println!("const EXPECTED_FREQUENCIES: [f64; 128] = [");
-        for f in frequencies {
-            println!("  {f}f64,");
-        }
-        println!("];");
-
-        Ok(())
-    }
-    */
 }
