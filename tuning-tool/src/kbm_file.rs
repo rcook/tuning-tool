@@ -5,6 +5,7 @@ use crate::keyboard_mapping::KeyboardMapping;
 use crate::note_number::NoteNumber;
 use anyhow::bail;
 use anyhow::{Error, Result};
+use log::trace;
 use std::path::Path;
 use std::result::Result as StdResult;
 use std::str::FromStr;
@@ -54,7 +55,8 @@ pub(crate) struct KbmFile {
 }
 
 impl KbmFile {
-    pub(crate) fn read(path: &Path) -> Result<Self> {
+    pub(crate) fn read<P: AsRef<Path>>(path: P) -> Result<Self> {
+        trace!("Reading .kbm file {path}", path = path.as_ref().display());
         read_to_string_lossy(path)?.parse()
     }
 
