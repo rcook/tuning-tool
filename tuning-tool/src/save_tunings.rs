@@ -17,7 +17,7 @@ const SAVE_TUNINGS_MESSAGE: [MidiValue; 4] = [
     MidiValue::constant::<0x48>(),
 ];
 
-pub(crate) fn save_tunings(midi_output_port_name: &str) -> Result<()> {
+pub(crate) fn save_tunings(output_port: &str) -> Result<()> {
     let values = NOVATION_ID
         .iter()
         .chain(SAVE_TUNINGS_MESSAGE.iter())
@@ -30,7 +30,7 @@ pub(crate) fn save_tunings(midi_output_port_name: &str) -> Result<()> {
     event.write_std(&mut message)?;
 
     let midi_output = make_midi_output()?;
-    let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
+    let midi_output_port = get_midi_output_port(&midi_output, output_port)?;
     let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
     conn.send(&message)?;
     Ok(())

@@ -6,10 +6,13 @@ use crate::kbm_file::KbmFile;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
+use crate::tuning_tool_args::SendTuningOutput;
 use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
 use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
 use midly::num::u7;
+use std::fs::File;
+use std::io::Write;
 use std::iter::zip;
 use std::path::Path;
 
@@ -55,7 +58,7 @@ fn make_messages(
 pub(crate) fn send_tuning(
     scl_path: &Path,
     kbm_path: &Path,
-    midi_output_port_name: &Option<String>,
+    output: &SendTuningOutput,
     device_id: DeviceId,
     preset: Preset,
     chunk_size: ChunkSize,
@@ -87,22 +90,32 @@ pub(crate) fn send_tuning(
 
     let messages = make_messages(device_id, preset, &entries, chunk_size)?;
 
-    if let Some(midi_output_port_name) = midi_output_port_name {
-        let midi_output = make_midi_output()?;
-        let midi_output_port = get_midi_output_port(&midi_output, midi_output_port_name)?;
-        let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
-        for message in messages {
-            println!("{}", to_hex_dump(&message, None)?);
-            conn.send(&message)?;
+    match (&output.output_port, &output.syx_path) {
+        (Some(output_port), None) => {
+            let midi_output = make_midi_output()?;
+            let midi_output_port = get_midi_output_port(&midi_output, output_port)?;
+            let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
+            for message in messages {
+                println!("{}", to_hex_dump(&message, None)?);
+                conn.send(&message)?;
+            }
         }
-    } else {
-        for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
-            println!(
-                "{i:>3}: {hex} ({frequency:.1} Hz)",
-                hex = to_hex_dump(&message, None)?,
-                frequency = frequency.0
-            );
+        (None, Some(syx_path)) => {
+            let mut f = File::create_new(syx_path)?;
+            for message in messages {
+                f.write_all(&message)?;
+            }
         }
+        (None, None) => {
+            for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
+                println!(
+                    "{i:>3}: {hex} ({frequency:.1} Hz)",
+                    hex = to_hex_dump(&message, None)?,
+                    frequency = frequency.0
+                );
+            }
+        }
+        _ => unreachable!(),
     }
 
     Ok(())

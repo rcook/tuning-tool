@@ -1,38 +1,26 @@
-use crate::args::Args;
 use crate::decode_bulk_dump::decode_bulk_dump;
 use crate::list_ports::list_ports;
 use crate::monitor_port::monitor_port;
 use crate::save_tunings::save_tunings;
 use crate::send_tuning::send_tuning;
+use crate::tuning_tool_args::Command::*;
+use crate::tuning_tool_args::TuningToolArgs;
 use anyhow::Result;
 use clap::Parser;
 
 pub(crate) fn run() -> Result<()> {
-    use crate::args::Command::*;
-
-    match Args::parse().command {
+    match TuningToolArgs::parse().command {
         DecodeBulkDump { syx_path } => decode_bulk_dump(&syx_path),
         ListPorts => list_ports(),
-        MonitorPort {
-            midi_input_port_name,
-        } => monitor_port(&midi_input_port_name),
-        SaveTunings {
-            midi_output_port_name,
-        } => save_tunings(&midi_output_port_name),
+        MonitorPort { input_port } => monitor_port(&input_port),
+        SaveTunings { output_port } => save_tunings(&output_port),
         SendTuning {
             scl_path,
             kbm_path,
-            midi_output_port_name,
+            output,
             device_id,
             preset,
             chunk_size,
-        } => send_tuning(
-            &scl_path,
-            &kbm_path,
-            &midi_output_port_name,
-            device_id,
-            preset,
-            chunk_size,
-        ),
+        } => send_tuning(&scl_path, &kbm_path, &output, device_id, preset, chunk_size),
     }
 }

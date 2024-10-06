@@ -1,7 +1,6 @@
 #![allow(clippy::wrong_self_convention)]
 
 mod approx_eq;
-mod args;
 mod bulk_dump_reply;
 mod checksum_calculator;
 mod cli;
@@ -35,6 +34,7 @@ mod scl_file;
 mod semitones;
 mod send_tuning;
 mod test_util;
+mod tuning_tool_args;
 mod types;
 
 fn main() -> anyhow::Result<()> {

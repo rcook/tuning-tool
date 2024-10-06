@@ -1,12 +1,12 @@
 use crate::cli::parse_absolute_path;
 use crate::types::{ChunkSize, DeviceId, Preset};
-use clap::{Parser, Subcommand};
+use clap::{Args, Parser, Subcommand};
 use std::path::PathBuf;
 use std::str::FromStr;
 
 #[derive(Debug, Parser)]
 #[command(about = "Richard's MIDI Tuning Tool")]
-pub(crate) struct Args {
+pub(crate) struct TuningToolArgs {
     #[command(subcommand)]
     pub(crate) command: Command,
 }
@@ -31,7 +31,7 @@ pub(crate) enum Command {
     #[command(name = "monitor-port", about = "Monitor MIDI input port")]
     MonitorPort {
         #[arg(help = "MIDI input port name")]
-        midi_input_port_name: String,
+        input_port: String,
     },
 
     #[command(
@@ -40,7 +40,7 @@ pub(crate) enum Command {
     )]
     SaveTunings {
         #[arg(help = "MIDI output port name")]
-        midi_output_port_name: String,
+        output_port: String,
     },
 
     #[command(name = "send-tuning", about = "Send tuning SysEx to MIDI device")]
@@ -57,8 +57,8 @@ pub(crate) enum Command {
         )]
         kbm_path: PathBuf,
 
-        #[arg(long = "output", short = 'o', help = "MIDI output port name")]
-        midi_output_port_name: Option<String>,
+        #[command(flatten)]
+        output: SendTuningOutput,
 
         #[arg(
             help = "Device ID",
@@ -87,4 +87,14 @@ pub(crate) enum Command {
         )]
         chunk_size: ChunkSize,
     },
+}
+
+#[derive(Args, Debug)]
+#[group(required = false, multiple = false)]
+pub(crate) struct SendTuningOutput {
+    #[arg(long = "output", short = 'o', help = "MIDI output port name")]
+    pub(crate) output_port: Option<String>,
+
+    #[arg(long = "file", short = 'f', help = "Path to SysEx file")]
+    pub(crate) syx_path: Option<String>,
 }
