@@ -126,23 +126,6 @@ impl FromStr for KbmFile {
         let keyboard_mapping =
             KeyboardMapping::new(start_key, end_key, reference_key, reference_frequency)?;
 
-        // <LIMITATIONS>
-
-        if equave_degree != size {
-            todo!("Non-octave scales not currently supported");
-        }
-
-        for (i, key) in keys.iter().enumerate() {
-            let Key::Degree(degree) = key else {
-                todo!("Nontrivial keyboard mappings not yet supported");
-            };
-            if *degree != i {
-                todo!("Nontrivial keyboard mappings not yet supported");
-            }
-        }
-
-        // </LIMITATIONS>
-
         Ok(Self {
             _size: size,
             _middle_key: middle_key,
