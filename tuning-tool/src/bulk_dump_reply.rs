@@ -185,6 +185,7 @@ mod tests {
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
@@ -244,6 +245,7 @@ mod tests {
             KeyNumber::MAX,
             reference_key,
             reference_frequency,
+            KeyMappings::Linear,
         )?;
 
         let entries = calculate_frequencies(scale, &keyboard_mapping)

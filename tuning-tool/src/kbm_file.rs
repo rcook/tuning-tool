@@ -1,6 +1,7 @@
 use crate::frequency::Frequency;
 use crate::fs::read_to_string_lossy;
 use crate::key_mapping::KeyMapping;
+use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::types::KeyNumber;
 use anyhow::bail;
@@ -50,7 +51,6 @@ pub(crate) struct KbmFile {
     _size: usize,
     _middle_key: KeyNumber,
     _equave_degree: usize,
-    _key_mappings: Vec<KeyMapping>,
     keyboard_mapping: KeyboardMapping,
 }
 
@@ -107,30 +107,48 @@ impl FromStr for KbmFile {
         let equave_degree = read_usize!(lines);
         trace!("Parsed equave degree {equave_degree}");
 
-        let mut keys = Vec::with_capacity(size);
-        for _ in 0..size {
+        let mut is_linear = true;
+        let mut key_mappings = Vec::with_capacity(size);
+        for i in 0..size {
             let s = read_str!(lines);
             let key = if s == "x" {
+                is_linear = false;
                 KeyMapping::Unmapped
             } else {
-                KeyMapping::Degree(s.parse()?)
+                let degree = s.parse()?;
+                if is_linear && degree != i {
+                    is_linear = false;
+                }
+                KeyMapping::Degree(degree)
             };
             trace!("Parsed key mapping {key}");
-            keys.push(key);
+            key_mappings.push(key);
         }
+
+        assert!(is_linear);
 
         if lines.next().is_some() {
             bail!("Invalid .kbm file")
         }
 
-        let keyboard_mapping =
-            KeyboardMapping::new(start_key, end_key, reference_key, reference_frequency)?;
+        let key_mappings = if is_linear {
+            KeyMappings::Linear
+        } else {
+            KeyMappings::Custom(key_mappings)
+        };
+
+        let keyboard_mapping = KeyboardMapping::new(
+            start_key,
+            end_key,
+            reference_key,
+            reference_frequency,
+            key_mappings,
+        )?;
 
         Ok(Self {
             _size: size,
             _middle_key: middle_key,
             _equave_degree: equave_degree,
-            _key_mappings: keys,
             keyboard_mapping,
         })
     }

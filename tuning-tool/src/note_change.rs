@@ -73,6 +73,7 @@ mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
+    use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
@@ -125,6 +126,7 @@ mod tests {
             KeyNumber::MAX,
             KeyNumber::ZERO,
             Frequency::MIN,
+            KeyMappings::Linear,
         )?;
 
         let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)

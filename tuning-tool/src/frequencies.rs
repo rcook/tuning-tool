@@ -12,7 +12,7 @@ pub(crate) fn calculate_frequencies(
 ) -> Vec<Frequency> {
     let start = keyboard_mapping.start_key().to_u8() as i32;
     let end = keyboard_mapping.end_key().to_u8() as i32;
-    let base = keyboard_mapping.base_note_number().to_u8() as i32;
+    let base = keyboard_mapping.reference_key().to_u8() as i32;
 
     let note_count = (end - start + 1) as usize;
     let scale_size = scale.intervals().len();
@@ -30,7 +30,7 @@ pub(crate) fn calculate_frequencies(
         .skip((offset + scale_size - 1).rem(scale_size));
 
     let mut frequencies = Vec::with_capacity(note_count);
-    let mut f = keyboard_mapping.base_frequency().0 * equave_ratio.powi(equave_count);
+    let mut f = keyboard_mapping.reference_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
     for (_, interval) in zip(start..=end, intervals) {
         frequencies.push(Frequency(f * interval.as_ratio().0));
@@ -48,6 +48,7 @@ pub(crate) fn calculate_frequencies(
 mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
@@ -819,6 +820,7 @@ mod tests {
             KeyNumber::MAX,
             reference_key,
             reference_frequency,
+            KeyMappings::Linear,
         )?;
 
         let frequencies = calculate_frequencies(scale, &keyboard_mapping);

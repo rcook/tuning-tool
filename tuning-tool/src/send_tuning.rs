@@ -77,11 +77,11 @@ pub(crate) fn send_tuning(
     );
     println!(
         "Base MIDI note: {value} (0x{value:02x})",
-        value = keyboard_mapping.base_note_number()
+        value = keyboard_mapping.reference_key()
     );
     println!(
         "Base frequency: {value} Hz",
-        value = keyboard_mapping.base_frequency()
+        value = keyboard_mapping.reference_frequency()
     );
 
     let data = make_note_change_entries(&scl_file, &kbm_file)?;

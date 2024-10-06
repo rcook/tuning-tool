@@ -15,6 +15,7 @@ mod hex_dump;
 mod interval;
 mod kbm_file;
 mod key_mapping;
+mod key_mappings;
 mod keyboard_mapping;
 mod list_ports;
 mod midi_message_builder;

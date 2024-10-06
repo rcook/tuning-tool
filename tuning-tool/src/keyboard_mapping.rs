@@ -1,4 +1,5 @@
 use crate::frequency::Frequency;
+use crate::key_mappings::KeyMappings;
 use crate::types::KeyNumber;
 use anyhow::{bail, Result};
 
@@ -8,6 +9,7 @@ pub(crate) struct KeyboardMapping {
     end_key: KeyNumber,
     reference_key: KeyNumber,
     reference_frequency: Frequency,
+    key_mappings: KeyMappings,
 }
 
 impl KeyboardMapping {
@@ -16,9 +18,10 @@ impl KeyboardMapping {
         end_key: KeyNumber,
         reference_key: KeyNumber,
         reference_frequency: Frequency,
+        key_mappings: KeyMappings,
     ) -> Result<Self> {
         if end_key.checked_sub(start_key).is_none() {
-            bail!("Invalid end note number");
+            bail!("Invalid end key");
         }
 
         Ok(Self {
@@ -26,6 +29,7 @@ impl KeyboardMapping {
             end_key,
             reference_key,
             reference_frequency,
+            key_mappings,
         })
     }
 
@@ -37,11 +41,15 @@ impl KeyboardMapping {
         &self.end_key
     }
 
-    pub(crate) const fn base_note_number(&self) -> &KeyNumber {
+    pub(crate) const fn reference_key(&self) -> &KeyNumber {
         &self.reference_key
     }
 
-    pub(crate) const fn base_frequency(&self) -> &Frequency {
+    pub(crate) const fn reference_frequency(&self) -> &Frequency {
         &self.reference_frequency
+    }
+
+    pub(crate) const fn key_mappings(&self) -> &KeyMappings {
+        &self.key_mappings
     }
 }
