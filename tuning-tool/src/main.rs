@@ -7,6 +7,7 @@ mod cli;
 mod consts;
 mod decode_bulk_dump;
 mod devices;
+mod experimental;
 mod frequencies;
 mod frequency;
 mod fs;
@@ -38,5 +39,6 @@ mod tuning_tool_args;
 mod types;
 
 fn main() -> anyhow::Result<()> {
+    env_logger::init();
     crate::run::run()
 }

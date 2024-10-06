@@ -7,7 +7,9 @@ version = "0.1.0"
 anyhow = "1.0.89"
 clap = { version = "4.5.18", features = ["derive"] }
 derive_builder = "0.20.1"
+env_logger = "0.11.5"
 include_dir = "0.7.4"
+log = "0.4.22"
 midir = { git = "https://github.com/rcook/midir.git", rev = "1d53df7041f3f1bfb642f7ff51b30d2fffae1bc6" }
 midly = { version = "0.5.3", features = ["strict"] }
 num = "0.4.3"
