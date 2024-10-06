@@ -69,11 +69,11 @@ pub(crate) fn send_tuning(
     let keyboard_mapping = kbm_file.keyboard_mapping();
     println!(
         "Start MIDI note: {value} (0x{value:02x})",
-        value = keyboard_mapping.start_note_number()
+        value = keyboard_mapping.start_key()
     );
     println!(
         "End MIDI note: {value} (0x{value:02x})",
-        value = keyboard_mapping.end_note_number()
+        value = keyboard_mapping.end_key()
     );
     println!(
         "Base MIDI note: {value} (0x{value:02x})",

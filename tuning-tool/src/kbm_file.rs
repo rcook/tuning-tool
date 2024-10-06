@@ -48,8 +48,8 @@ macro_rules! read_usize {
 #[derive(Debug)]
 pub(crate) struct KbmFile {
     _size: usize,
-    _middle_note_number: NoteNumber,
-    _octave_degree: usize,
+    _middle_key: NoteNumber,
+    _equave_degree: usize,
     _keys: Vec<Key>,
     keyboard_mapping: KeyboardMapping,
 }
@@ -83,37 +83,52 @@ impl FromStr for KbmFile {
             bail!("Invalid size")
         }
 
-        let start_note_number = read::<NoteNumber, _>(&mut lines)?;
-        let end_note_number = read::<NoteNumber, _>(&mut lines)?;
-        let middle_note_number = read::<NoteNumber, _>(&mut lines)?;
-        let base_note_number = read::<NoteNumber, _>(&mut lines)?;
-        let base_frequency = Frequency(read_f64!(lines));
-        let octave_degree = read_usize!(lines);
+        // Start of MIDI key range
+        let start_key = read::<NoteNumber, _>(&mut lines)?;
+        trace!("Parsed start key {start_key}");
+
+        // End of MIDI key range
+        let end_key = read::<NoteNumber, _>(&mut lines)?;
+        trace!("Parsed end key {end_key}");
+
+        // Middle key where 1/1 note is mapped
+        let middle_key = read::<NoteNumber, _>(&mut lines)?;
+        trace!("Parsed middle key {middle_key}");
+
+        // Key where reference frequency goes
+        let reference_key = read::<NoteNumber, _>(&mut lines)?;
+        trace!("Parsed reference key {reference_key}");
+
+        // Reference frequency (e.g. 440 Hz)
+        let reference_frequency = Frequency(read_f64!(lines));
+        trace!("Parsed reference frequency {reference_frequency}");
+
+        // Scale interval between adjacent repeating patterns
+        let equave_degree = read_usize!(lines);
+        trace!("Parsed equave degree {equave_degree}");
 
         let mut keys = Vec::with_capacity(size);
         for _ in 0..size {
             let s = read_str!(lines);
-            keys.push(if s == "x" {
+            let key = if s == "x" {
                 Key::Unmapped
             } else {
                 Key::Degree(s.parse()?)
-            })
+            };
+            trace!("Parsed key mapping {key}");
+            keys.push(key);
         }
 
         if lines.next().is_some() {
             bail!("Invalid .kbm file")
         }
 
-        let keyboard_mapping = KeyboardMapping::new(
-            start_note_number,
-            end_note_number,
-            base_note_number,
-            base_frequency,
-        )?;
+        let keyboard_mapping =
+            KeyboardMapping::new(start_key, end_key, reference_key, reference_frequency)?;
 
         // <LIMITATIONS>
 
-        if octave_degree != size {
+        if equave_degree != size {
             todo!("Non-octave scales not currently supported");
         }
 
@@ -130,8 +145,8 @@ impl FromStr for KbmFile {
 
         Ok(Self {
             _size: size,
-            _middle_note_number: middle_note_number,
-            _octave_degree: octave_degree,
+            _middle_key: middle_key,
+            _equave_degree: equave_degree,
             _keys: keys,
             keyboard_mapping,
         })

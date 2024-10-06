@@ -8,8 +8,8 @@ use anyhow::Result;
 use tuning_tool_macros::scale;
 
 pub(crate) fn experimental() -> Result<()> {
-    let scl_file = SclFile::read("resources/weird.scl")?;
-    println!("{scl_file:?}");
+    //let scl_file = SclFile::read("resources/weird.scl")?;
+    //println!("{scl_file:?}");
     let kbm_file = KbmFile::read("resources/weird.kbm")?;
     println!("{kbm_file:?}");
     Ok(())

@@ -10,8 +10,8 @@ pub(crate) fn calculate_frequencies(
     scale: &Scale,
     keyboard_mapping: &KeyboardMapping,
 ) -> Vec<Frequency> {
-    let start = keyboard_mapping.start_note_number().to_u8() as i32;
-    let end = keyboard_mapping.end_note_number().to_u8() as i32;
+    let start = keyboard_mapping.start_key().to_u8() as i32;
+    let end = keyboard_mapping.end_key().to_u8() as i32;
     let base = keyboard_mapping.base_note_number().to_u8() as i32;
 
     let note_count = (end - start + 1) as usize;

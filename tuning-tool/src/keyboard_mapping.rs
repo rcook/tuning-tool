@@ -4,37 +4,37 @@ use anyhow::{bail, Result};
 
 #[derive(Debug)]
 pub(crate) struct KeyboardMapping {
-    start_note_number: NoteNumber,
-    end_note_number: NoteNumber,
+    start_key: NoteNumber,
+    end_key: NoteNumber,
     base_note_number: NoteNumber,
     base_frequency: Frequency,
 }
 
 impl KeyboardMapping {
     pub(crate) fn new(
-        start_note_number: NoteNumber,
-        end_note_number: NoteNumber,
+        start_key: NoteNumber,
+        end_key: NoteNumber,
         base_note_number: NoteNumber,
         base_frequency: Frequency,
     ) -> Result<Self> {
-        if end_note_number.checked_sub(start_note_number).is_none() {
+        if end_key.checked_sub(start_key).is_none() {
             bail!("Invalid end note number");
         }
 
         Ok(Self {
-            start_note_number,
-            end_note_number,
+            start_key,
+            end_key,
             base_note_number,
             base_frequency,
         })
     }
 
-    pub(crate) const fn start_note_number(&self) -> &NoteNumber {
-        &self.start_note_number
+    pub(crate) const fn start_key(&self) -> &NoteNumber {
+        &self.start_key
     }
 
-    pub(crate) const fn end_note_number(&self) -> &NoteNumber {
-        &self.end_note_number
+    pub(crate) const fn end_key(&self) -> &NoteNumber {
+        &self.end_key
     }
 
     pub(crate) const fn base_note_number(&self) -> &NoteNumber {
