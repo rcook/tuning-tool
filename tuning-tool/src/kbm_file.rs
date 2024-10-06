@@ -1,8 +1,8 @@
 use crate::frequency::Frequency;
 use crate::fs::read_to_string_lossy;
-use crate::key::Key;
+use crate::key_mapping::KeyMapping;
 use crate::keyboard_mapping::KeyboardMapping;
-use crate::note_number::NoteNumber;
+use crate::types::KeyNumber;
 use anyhow::bail;
 use anyhow::{Error, Result};
 use log::trace;
@@ -48,9 +48,9 @@ macro_rules! read_usize {
 #[derive(Debug)]
 pub(crate) struct KbmFile {
     _size: usize,
-    _middle_key: NoteNumber,
+    _middle_key: KeyNumber,
     _equave_degree: usize,
-    _keys: Vec<Key>,
+    _key_mappings: Vec<KeyMapping>,
     keyboard_mapping: KeyboardMapping,
 }
 
@@ -84,19 +84,19 @@ impl FromStr for KbmFile {
         }
 
         // Start of MIDI key range
-        let start_key = read::<NoteNumber, _>(&mut lines)?;
+        let start_key = read::<KeyNumber, _>(&mut lines)?;
         trace!("Parsed start key {start_key}");
 
         // End of MIDI key range
-        let end_key = read::<NoteNumber, _>(&mut lines)?;
+        let end_key = read::<KeyNumber, _>(&mut lines)?;
         trace!("Parsed end key {end_key}");
 
         // Middle key where 1/1 note is mapped
-        let middle_key = read::<NoteNumber, _>(&mut lines)?;
+        let middle_key = read::<KeyNumber, _>(&mut lines)?;
         trace!("Parsed middle key {middle_key}");
 
         // Key where reference frequency goes
-        let reference_key = read::<NoteNumber, _>(&mut lines)?;
+        let reference_key = read::<KeyNumber, _>(&mut lines)?;
         trace!("Parsed reference key {reference_key}");
 
         // Reference frequency (e.g. 440 Hz)
@@ -111,9 +111,9 @@ impl FromStr for KbmFile {
         for _ in 0..size {
             let s = read_str!(lines);
             let key = if s == "x" {
-                Key::Unmapped
+                KeyMapping::Unmapped
             } else {
-                Key::Degree(s.parse()?)
+                KeyMapping::Degree(s.parse()?)
             };
             trace!("Parsed key mapping {key}");
             keys.push(key);
@@ -130,7 +130,7 @@ impl FromStr for KbmFile {
             _size: size,
             _middle_key: middle_key,
             _equave_degree: equave_degree,
-            _keys: keys,
+            _key_mappings: keys,
             keyboard_mapping,
         })
     }

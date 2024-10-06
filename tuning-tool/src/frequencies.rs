@@ -52,6 +52,7 @@ mod tests {
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use crate::scale::Scale;
+    use crate::types::KeyNumber;
     use anyhow::Result;
     use std::iter::zip;
     use std::sync::LazyLock;
@@ -233,7 +234,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &BOHLEN_P,
-            NoteNumber::A4,
+            KeyNumber::constant::<69>(),
             Frequency::A4,
         )?;
         Ok(())
@@ -375,7 +376,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &SCALE_24EDO2,
-            NoteNumber::A4,
+            KeyNumber::constant::<69>(),
             Frequency(432f64),
         )?;
         Ok(())
@@ -517,7 +518,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &SCALE_12EDO2,
-            NoteNumber::A4,
+            KeyNumber::constant::<69>(),
             Frequency::A4,
         )?;
         Ok(())
@@ -659,7 +660,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
-            NoteNumber::ZERO,
+            KeyNumber::ZERO,
             Frequency::MIN,
         )?;
         Ok(())
@@ -801,7 +802,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
-            NoteNumber::A4,
+            KeyNumber::constant::<69>(),
             MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
         )?;
         Ok(())
@@ -810,14 +811,14 @@ mod tests {
     fn check_frequencies(
         expected_frequencies: &[f64],
         scale: &Scale,
-        base_note_number: NoteNumber,
-        base_frequency: Frequency,
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
     ) -> Result<()> {
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber::ZERO,
-            NoteNumber::MAX,
-            base_note_number,
-            base_frequency,
+            KeyNumber::ZERO,
+            KeyNumber::MAX,
+            reference_key,
+            reference_frequency,
         )?;
 
         let frequencies = calculate_frequencies(scale, &keyboard_mapping);

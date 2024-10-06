@@ -76,9 +76,8 @@ mod tests {
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
-    use crate::note_number::NoteNumber;
     use crate::scale::Scale;
-    use crate::types::{DeviceId, MidiValue, Preset};
+    use crate::types::{DeviceId, KeyNumber, MidiValue, Preset};
     use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
     use midly::num::u7;
@@ -122,9 +121,9 @@ mod tests {
         }
 
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber::ZERO,
-            NoteNumber::MAX,
-            NoteNumber::ZERO,
+            KeyNumber::ZERO,
+            KeyNumber::MAX,
+            KeyNumber::ZERO,
             Frequency::MIN,
         )?;
 

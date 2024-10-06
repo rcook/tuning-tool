@@ -1,21 +1,21 @@
 use crate::frequency::Frequency;
-use crate::note_number::NoteNumber;
+use crate::types::KeyNumber;
 use anyhow::{bail, Result};
 
 #[derive(Debug)]
 pub(crate) struct KeyboardMapping {
-    start_key: NoteNumber,
-    end_key: NoteNumber,
-    base_note_number: NoteNumber,
-    base_frequency: Frequency,
+    start_key: KeyNumber,
+    end_key: KeyNumber,
+    reference_key: KeyNumber,
+    reference_frequency: Frequency,
 }
 
 impl KeyboardMapping {
     pub(crate) fn new(
-        start_key: NoteNumber,
-        end_key: NoteNumber,
-        base_note_number: NoteNumber,
-        base_frequency: Frequency,
+        start_key: KeyNumber,
+        end_key: KeyNumber,
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
     ) -> Result<Self> {
         if end_key.checked_sub(start_key).is_none() {
             bail!("Invalid end note number");
@@ -24,24 +24,24 @@ impl KeyboardMapping {
         Ok(Self {
             start_key,
             end_key,
-            base_note_number,
-            base_frequency,
+            reference_key,
+            reference_frequency,
         })
     }
 
-    pub(crate) const fn start_key(&self) -> &NoteNumber {
+    pub(crate) const fn start_key(&self) -> &KeyNumber {
         &self.start_key
     }
 
-    pub(crate) const fn end_key(&self) -> &NoteNumber {
+    pub(crate) const fn end_key(&self) -> &KeyNumber {
         &self.end_key
     }
 
-    pub(crate) const fn base_note_number(&self) -> &NoteNumber {
-        &self.base_note_number
+    pub(crate) const fn base_note_number(&self) -> &KeyNumber {
+        &self.reference_key
     }
 
     pub(crate) const fn base_frequency(&self) -> &Frequency {
-        &self.base_frequency
+        &self.reference_frequency
     }
 }

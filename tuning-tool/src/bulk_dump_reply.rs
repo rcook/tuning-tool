@@ -189,7 +189,7 @@ mod tests {
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
-    use crate::types::{DeviceId, Preset};
+    use crate::types::{DeviceId, KeyNumber, Preset};
     use anyhow::Result;
     use std::io::Read;
     use std::path::Path;
@@ -211,7 +211,7 @@ mod tests {
             "carlos_super.syx",
             Preset::constant::<8>(),
             "carlos_super.mid",
-            NoteNumber::ZERO,
+            KeyNumber::ZERO,
             Frequency::MIN,
         )?;
         Ok(())
@@ -223,7 +223,7 @@ mod tests {
             "carlos_super_a4.syx",
             Preset::ZERO,
             "carlos_super_a4 ",
-            NoteNumber::A4,
+            KeyNumber::constant::<69>(),
             MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
         )?;
         Ok(())
@@ -233,17 +233,17 @@ mod tests {
         expected_syx_path: P,
         preset: Preset,
         name: &str,
-        base_note_number: NoteNumber,
-        base_frequency: Frequency,
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
     ) -> Result<()> {
         let scala_file = read_test_scl_file("scl/carlos_super.scl")?;
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(
-            NoteNumber::ZERO,
-            NoteNumber::MAX,
-            base_note_number,
-            base_frequency,
+            KeyNumber::ZERO,
+            KeyNumber::MAX,
+            reference_key,
+            reference_frequency,
         )?;
 
         let entries = calculate_frequencies(scale, &keyboard_mapping)
