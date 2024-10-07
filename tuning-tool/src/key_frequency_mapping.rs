@@ -7,6 +7,7 @@ use crate::midi_note::MidiNote;
 use crate::scale::Scale;
 use crate::types::KeyNumber;
 use anyhow::{anyhow, Result};
+use log::trace;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::once;
 
@@ -43,6 +44,26 @@ impl KeyFrequencyMapping {
         reference_frequency: &Frequency,
         key_mappings: &KeyMappings,
     ) -> Result<Vec<KeyFrequencyMapping>> {
+        fn calculate_frequency(
+            key: i32,
+            keys_per_equave: i32,
+            zero_frequency: f64,
+            reference: i32,
+            reference_ratio: f64,
+            equave_ratio: f64,
+            interval: &Interval,
+        ) -> Frequency {
+            let equave = (key - reference).div_euclid(keys_per_equave);
+            let ratio = interval.as_ratio().0;
+            let (equave, ratio) = if ratio < reference_ratio {
+                (equave + 1, ratio)
+            } else {
+                (equave, ratio)
+            };
+
+            Frequency(zero_frequency * ratio * equave_ratio.powi(equave))
+        }
+
         const N: usize = 128;
 
         let unison = Interval::unison();
@@ -68,18 +89,40 @@ impl KeyFrequencyMapping {
             .as_ratio()
             .0;
 
+        trace!(
+            "Reference key {} at {:.2} Hz",
+            reference,
+            reference_frequency
+        );
+
         let zero_frequency = reference_frequency / reference_ratio;
         let equave_ratio = scale.equave_ratio().0;
+
+        trace!(
+            "Zero key {zero} at {frequency:.2} Hz (unison/prime interval)",
+            frequency = calculate_frequency(
+                zero,
+                keys_per_equave as i32,
+                zero_frequency,
+                reference,
+                reference_ratio,
+                equave_ratio,
+                &unison,
+            )
+            .0
+        );
+
         let mut mappings = Vec::with_capacity(N);
         for (i, degree_interval) in degree_intervals.iter().enumerate() {
-            let mut equave = (i as i32 - reference).div_euclid(keys_per_equave as i32);
-
-            let ratio = degree_interval.1.as_ratio().0;
-            if ratio < reference_ratio {
-                equave += 1;
-            }
-
-            let frequency = Frequency(zero_frequency * ratio * equave_ratio.powi(equave));
+            let frequency = calculate_frequency(
+                i as i32,
+                keys_per_equave as i32,
+                zero_frequency,
+                reference,
+                reference_ratio,
+                equave_ratio,
+                degree_interval.1,
+            );
 
             let mapping = KeyFrequencyMapping {
                 key: (i as u8).try_into()?,
@@ -87,6 +130,7 @@ impl KeyFrequencyMapping {
                 degree: degree_interval.0,
                 interval: degree_interval.1.clone(),
             };
+            trace!("{mapping}");
             mappings.push(mapping);
         }
 
@@ -136,7 +180,7 @@ impl Display for KeyFrequencyMapping {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "{key:>3}  {name:<4}  {degree:<2}  {interval:<10}  {f:.2} Hz",
+            "{key:<3}  {name:<4}  {degree:<2}  {interval:<10}  {f:.2} Hz",
             key = self.key.to_u8(),
             name = MidiNote::ALL[self.key.to_u8() as usize].name(),
             degree = self.degree,
