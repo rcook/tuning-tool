@@ -68,6 +68,8 @@ impl FromStr for KbmFile {
     type Err = Error;
 
     fn from_str(s: &str) -> StdResult<Self, Self::Err> {
+        trace!("Content is [[{s}]]");
+
         let mut lines = s.lines().filter_map(|line| {
             let s = line.trim();
             if s.is_empty() || s.starts_with("!") {
