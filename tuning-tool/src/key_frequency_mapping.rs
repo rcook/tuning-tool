@@ -180,7 +180,7 @@ impl Display for KeyFrequencyMapping {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "{key:<3}  {name:<4}  {degree:<2}  {interval:<10}  {f:.2} Hz",
+            "{key:<3}  {name:<4}  {degree:<2}  {interval:<10}  {f:>9.2} Hz",
             key = self.key.to_u8(),
             name = MidiNote::ALL[self.key.to_u8() as usize].name(),
             degree = self.degree,

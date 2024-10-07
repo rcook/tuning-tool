@@ -19,10 +19,36 @@ pub(crate) enum Command {
     )]
     DecodeBulkDump {
         #[arg(
-        help = "Path to .syx file",
-        value_parser = parse_absolute_path
-    )]
+            help = "Path to .syx file",
+            value_parser = parse_absolute_path
+        )]
         syx_path: PathBuf,
+    },
+
+    #[command(name = "dump-tuning-table", about = "Dump tuning table to text file")]
+    DumpTuningTable {
+        #[arg(
+            help = "Path to .scl file",
+            value_parser = parse_absolute_path
+        )]
+        scl_path: PathBuf,
+
+        #[arg(
+            help = "Path to .kbm file",
+            value_parser = parse_absolute_path
+        )]
+        kbm_path: PathBuf,
+
+        #[arg(
+            long = "output",
+            short = 'o',
+            help = "Output path",
+            value_parser = parse_absolute_path
+        )]
+        output_path: Option<PathBuf>,
+
+        #[arg(long = "brief", help = "Show brief output", default_value_t = false)]
+        brief: bool,
     },
 
     #[command(name = "experimental", about = "Experimental stuff")]

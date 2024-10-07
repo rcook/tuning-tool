@@ -4,8 +4,8 @@ use crate::scl_file::SclFile;
 use anyhow::Result;
 
 pub(crate) fn experimental() -> Result<()> {
-    let scl_file = SclFile::read("resources/31edo2.scl")?;
-    let kbm_file = KbmFile::read("resources/31edo2-subset.kbm")?;
+    let scl_file = SclFile::read("examples/31edo2.scl")?;
+    let kbm_file = KbmFile::read("examples/31edo2-subset.kbm")?;
     let scale = scl_file.scale();
     let keyboard_mapping = kbm_file.keyboard_mapping();
     let mappings = KeyFrequencyMapping::compute(scale, keyboard_mapping)?;

@@ -7,6 +7,7 @@ mod cli;
 mod consts;
 mod decode_bulk_dump;
 mod devices;
+mod dump_tuning_table;
 mod experimental;
 mod frequency;
 mod fs;

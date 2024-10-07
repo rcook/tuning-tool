@@ -1,4 +1,5 @@
 use crate::decode_bulk_dump::decode_bulk_dump;
+use crate::dump_tuning_table::dump_tuning_table;
 use crate::experimental::experimental;
 use crate::list_ports::list_ports;
 use crate::monitor_port::monitor_port;
@@ -12,6 +13,12 @@ use clap::Parser;
 pub(crate) fn run() -> Result<()> {
     match TuningToolArgs::parse().command {
         DecodeBulkDump { syx_path } => decode_bulk_dump(&syx_path),
+        DumpTuningTable {
+            scl_path,
+            kbm_path,
+            output_path,
+            brief,
+        } => dump_tuning_table(&scl_path, &kbm_path, &output_path, brief),
         Experimental => experimental(),
         ListPorts => list_ports(),
         MonitorPort { input_port } => monitor_port(&input_port),
