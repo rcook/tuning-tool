@@ -195,7 +195,7 @@ mod tests {
 
     #[test]
     fn basics() -> Result<()> {
-        let bytes = read_test_syx_file("carlos_super.syx")?;
+        let bytes = read_test_syx_file("test/carlos_super.syx")?;
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes_with_start_and_end()?;
@@ -207,7 +207,7 @@ mod tests {
     #[test]
     fn reference_key_0_min() -> Result<()> {
         check_bytes(
-            "carlos_super.syx",
+            "test/carlos_super.syx",
             Preset::constant::<8>(),
             "carlos_super.mid",
             KeyNumber::ZERO,
@@ -219,7 +219,7 @@ mod tests {
     #[test]
     fn reference_key_69_concert_a() -> Result<()> {
         check_bytes(
-            "carlos_super_a4.syx",
+            "test/carlos_super_a4.syx",
             Preset::ZERO,
             "carlos_super_a4 ",
             KeyNumber::constant::<69>(),
@@ -235,7 +235,7 @@ mod tests {
         reference_key: KeyNumber,
         reference_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scl_file("scl/carlos_super.scl")?;
+        let scala_file = read_test_scl_file("test/carlos_super.scl")?;
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(

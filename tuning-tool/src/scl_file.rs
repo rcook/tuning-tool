@@ -109,13 +109,14 @@ mod tests {
     use crate::scl_file::SclFile;
     use anyhow::{anyhow, Result};
     use include_dir::File;
-    use std::ffi::OsStr;
+    use std::{ffi::OsStr, path::Path};
 
     #[test]
     fn scala_archive() -> Result<()> {
+        let path = Path::new("test/scl");
         let scl_dir = RESOURCE_DIR
-            .get_dir("scl")
-            .ok_or_else(|| anyhow!("Could not get scl directory"))?;
+            .get_dir(path)
+            .ok_or_else(|| anyhow!("Could not get {path} directory", path = path.display()))?;
 
         let extension = Some(OsStr::new("scl"));
         let files = scl_dir
@@ -133,10 +134,11 @@ mod tests {
 
     #[test]
     fn blank_description() -> Result<()> {
+        let path = Path::new("test/blank-description.scl");
         test_scala_file(
             RESOURCE_DIR
-                .get_file("31edo2.scl")
-                .ok_or_else(|| anyhow!("Could not read file"))?,
+                .get_file(path)
+                .ok_or_else(|| anyhow!("Could not read {path}", path = path.display()))?,
         )
     }
 
