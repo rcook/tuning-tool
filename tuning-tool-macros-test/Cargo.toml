@@ -4,6 +4,5 @@ name = "tuning-tool-macros-test"
 version = "0.1.0"
 
 [dependencies]
-midly = { version = "0.5.3", features = ["strict"] }
 tuning-tool-lib = { path = "../tuning-tool-lib" }
 tuning-tool-macros = { path = "../tuning-tool-macros" }

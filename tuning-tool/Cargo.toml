@@ -6,7 +6,6 @@ version = "0.1.0"
 [dependencies]
 anyhow = "1.0.89"
 clap = { version = "4.5.18", features = ["derive"] }
-derive_builder = "0.20.1"
 env_logger = "0.11.5"
 include_dir = "0.7.4"
 log = "0.4.22"
@@ -16,7 +15,6 @@ num = "0.4.3"
 path-absolutize = "3.1.1"
 rstest = "0.22.0"
 rust_decimal = "1.36.0"
-rust_decimal_macros = "1.36.0"
 tuning-tool-lib = { path = "../tuning-tool-lib" }
 tuning-tool-macros = { path = "../tuning-tool-macros" }
 
