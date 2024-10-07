@@ -198,10 +198,11 @@ mod tests {
     use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::resources::RESOURCE_DIR;
     use crate::scale::Scale;
-    use crate::test_util::read_expected_frequencies;
+    use crate::test_util::{read_expected_frequencies, scala_tuning_dump_from_str};
     use crate::types::KeyNumber;
-    use anyhow::Result;
+    use anyhow::{anyhow, Result};
     use std::iter::zip;
     use std::path::Path;
     use std::sync::LazyLock;
@@ -398,6 +399,50 @@ mod tests {
                 Frequency::CONCERT_A4,
             )?,
         )?;
+        Ok(())
+    }
+
+    #[test]
+    fn scale_31edo2_69_scala_tuning_dump() -> Result<()> {
+        let mappings = scala_tuning_dump_from_str(
+            RESOURCE_DIR
+                .get_file("test/scala-frequencies.txt")
+                .ok_or_else(|| anyhow!("Could not read file"))?
+                .contents_utf8()
+                .ok_or_else(|| anyhow!("Could not decode as UTF-8"))?,
+        )?;
+        let expected_frequencies = mappings.iter().map(|(_, f)| f).collect::<Vec<_>>();
+        let scale = &*SCALE_31EDO2;
+        let keyboard_mapping = KeyboardMapping::new(
+            KeyNumber::ZERO,
+            KeyNumber::MAX,
+            KeyNumber::constant::<69>(),
+            KeyNumber::constant::<60>(),
+            Frequency(400f64),
+            KeyMappings::Custom(vec![
+                KeyMapping::Degree(0),
+                KeyMapping::Degree(3),
+                KeyMapping::Degree(5),
+                KeyMapping::Degree(8),
+                KeyMapping::Degree(10),
+                KeyMapping::Degree(13),
+                KeyMapping::Degree(16),
+                KeyMapping::Degree(18),
+                KeyMapping::Degree(21),
+                KeyMapping::Degree(23),
+                KeyMapping::Degree(26),
+                KeyMapping::Degree(28),
+            ]),
+        )?;
+
+        let frequencies = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?;
+        assert_eq!(expected_frequencies.len(), frequencies.len());
+        for (expected, actual) in zip(expected_frequencies, frequencies) {
+            assert!(actual
+                .frequency
+                .0
+                .approx_eq_with_epsilon(expected.0, 0.0001f64))
+        }
         Ok(())
     }
 

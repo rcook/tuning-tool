@@ -1,8 +1,11 @@
 #![cfg(test)]
 
+use crate::frequency::Frequency;
 use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
-use anyhow::{anyhow, Result};
+use crate::types::KeyNumber;
+use anyhow::{anyhow, bail, Result};
+use std::fs::read_to_string;
 use std::path::Path;
 
 #[allow(unused)]
@@ -57,4 +60,45 @@ pub(crate) fn read_test_scl_file<P: AsRef<Path>>(path: P) -> Result<SclFile> {
         )
     })?;
     s.parse::<SclFile>()
+}
+
+#[allow(unused)]
+pub(crate) fn read_scala_tuning_dump<P: AsRef<Path>>(
+    path: P,
+) -> Result<Vec<(KeyNumber, Frequency)>> {
+    let path = path.as_ref();
+    scala_tuning_dump_from_str(&read_to_string(path)?)
+}
+
+#[allow(unused)]
+pub(crate) fn scala_tuning_dump_from_str(s: &str) -> Result<Vec<(KeyNumber, Frequency)>> {
+    s.lines()
+        .filter_map(|line| {
+            let temp = line.trim();
+            if temp.is_empty() || temp == "|" {
+                None
+            } else {
+                Some(temp)
+            }
+        })
+        .enumerate()
+        .map(|(i, line)| {
+            let Some((prefix, suffix)) = line.split_once(':') else {
+                bail!("Invalid Scala tuning dump (key not found)",);
+            };
+
+            let key = prefix.parse::<KeyNumber>()?;
+            if key.to_u8() as usize != i {
+                bail!("Invalid Scala tuning dump (unexpected key {key})",);
+            }
+
+            let Some((prefix, _)) = suffix.trim_start().split_once(' ') else {
+                bail!("Invalid Scala tuning dump (frequency not found)",);
+            };
+
+            let frequency = Frequency(prefix.parse::<f64>()?);
+
+            Ok((key, frequency))
+        })
+        .collect::<Result<Vec<_>>>()
 }
