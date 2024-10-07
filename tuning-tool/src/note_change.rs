@@ -70,9 +70,9 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
-    use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
+    use crate::key_frequency_mapping::KeyFrequencyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
@@ -125,18 +125,19 @@ mod tests {
             KeyNumber::ZERO,
             KeyNumber::MAX,
             KeyNumber::ZERO,
+            KeyNumber::ZERO,
             Frequency::MIN,
             KeyMappings::Linear,
         )?;
 
-        let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)?
+        let entries = KeyFrequencyMapping::compute(&CARLOS_SUPER, &keyboard_mapping)?
             .iter()
             .enumerate()
-            .map(|(i, f)| {
+            .map(|(i, mapping)| {
                 Ok(NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: f.to_mts_entry()?,
+                    mts: mapping.frequency.to_mts_entry()?,
                 })
             })
             .collect::<Result<Vec<_>>>()?;

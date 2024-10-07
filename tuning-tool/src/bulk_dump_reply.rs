@@ -183,12 +183,10 @@ impl BulkDumpReply {
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
-    use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::key_frequency_mapping::KeyFrequencyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
-    use crate::midi_note::MidiNote;
-    use crate::note_number::NoteNumber;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
     use crate::types::{DeviceId, KeyNumber, Preset};
     use anyhow::Result;
@@ -207,7 +205,7 @@ mod tests {
     }
 
     #[test]
-    fn base_note_number_0() -> Result<()> {
+    fn reference_key_0_min() -> Result<()> {
         check_bytes(
             "carlos_super.syx",
             Preset::constant::<8>(),
@@ -219,13 +217,13 @@ mod tests {
     }
 
     #[test]
-    fn base_note_number_69() -> Result<()> {
+    fn reference_key_69_concert_a() -> Result<()> {
         check_bytes(
             "carlos_super_a4.syx",
             Preset::ZERO,
             "carlos_super_a4 ",
             KeyNumber::constant::<69>(),
-            MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
+            Frequency::CONCERT_A4,
         )?;
         Ok(())
     }
@@ -244,13 +242,14 @@ mod tests {
             KeyNumber::ZERO,
             KeyNumber::MAX,
             reference_key,
+            reference_key,
             reference_frequency,
             KeyMappings::Linear,
         )?;
 
-        let entries = calculate_frequencies(scale, &keyboard_mapping)?
+        let entries = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?
             .iter()
-            .map(|f| f.to_mts_entry())
+            .map(|mapping| mapping.frequency.to_mts_entry())
             .collect::<Result<Vec<_>>>()?
             .try_into()
             .expect("Must have exactly 128 elements");

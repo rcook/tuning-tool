@@ -7,6 +7,7 @@ use anyhow::{bail, Result};
 pub(crate) struct KeyboardMapping {
     start_key: KeyNumber,
     end_key: KeyNumber,
+    zero_key: KeyNumber,
     reference_key: KeyNumber,
     reference_frequency: Frequency,
     key_mappings: KeyMappings,
@@ -16,6 +17,7 @@ impl KeyboardMapping {
     pub(crate) fn new(
         start_key: KeyNumber,
         end_key: KeyNumber,
+        zero_key: KeyNumber,
         reference_key: KeyNumber,
         reference_frequency: Frequency,
         key_mappings: KeyMappings,
@@ -27,6 +29,7 @@ impl KeyboardMapping {
         Ok(Self {
             start_key,
             end_key,
+            zero_key,
             reference_key,
             reference_frequency,
             key_mappings,
@@ -35,6 +38,7 @@ impl KeyboardMapping {
 
     #[cfg(test)]
     pub(crate) fn new_full(
+        zero_key: KeyNumber,
         reference_key: KeyNumber,
         reference_frequency: Frequency,
         key_mappings: KeyMappings,
@@ -42,6 +46,7 @@ impl KeyboardMapping {
         Self::new(
             KeyNumber::ZERO,
             KeyNumber::MAX,
+            zero_key,
             reference_key,
             reference_frequency,
             key_mappings,
@@ -50,10 +55,16 @@ impl KeyboardMapping {
 
     #[cfg(test)]
     pub(crate) fn new_full_linear(
+        zero_key: KeyNumber,
         reference_key: KeyNumber,
         reference_frequency: Frequency,
     ) -> Result<Self> {
-        Self::new_full(reference_key, reference_frequency, KeyMappings::Linear)
+        Self::new_full(
+            zero_key,
+            reference_key,
+            reference_frequency,
+            KeyMappings::Linear,
+        )
     }
 
     pub(crate) const fn start_key(&self) -> &KeyNumber {
@@ -62,6 +73,10 @@ impl KeyboardMapping {
 
     pub(crate) const fn end_key(&self) -> &KeyNumber {
         &self.end_key
+    }
+
+    pub(crate) const fn zero_key(&self) -> &KeyNumber {
+        &self.zero_key
     }
 
     pub(crate) const fn reference_key(&self) -> &KeyNumber {

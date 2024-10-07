@@ -1,8 +1,8 @@
 use crate::devices::{get_midi_output_port, make_midi_output};
-use crate::frequencies::calculate_frequencies;
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
+use crate::key_frequency_mapping::KeyFrequencyMapping;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
@@ -20,16 +20,16 @@ fn make_note_change_entries(
     scl_file: &SclFile,
     kbm_file: &KbmFile,
 ) -> Result<Vec<(Frequency, NoteChangeEntry)>> {
-    calculate_frequencies(scl_file.scale(), kbm_file.keyboard_mapping())?
+    KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?
         .iter()
         .enumerate()
-        .map(|(i, f)| {
+        .map(|(i, mapping)| {
             Ok((
-                *f,
+                mapping.frequency,
                 NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: f.to_mts_entry()?,
+                    mts: mapping.frequency.to_mts_entry()?,
                 },
             ))
         })

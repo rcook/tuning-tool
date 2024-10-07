@@ -49,7 +49,6 @@ macro_rules! read_usize {
 #[derive(Debug)]
 pub(crate) struct KbmFile {
     _size: usize,
-    _middle_key: KeyNumber,
     _equave_degree: usize,
     keyboard_mapping: KeyboardMapping,
 }
@@ -92,8 +91,8 @@ impl FromStr for KbmFile {
         trace!("Parsed end key {end_key}");
 
         // Middle key where 1/1 note is mapped
-        let middle_key = read::<KeyNumber, _>(&mut lines)?;
-        trace!("Parsed middle key {middle_key}");
+        let zero_key = read::<KeyNumber, _>(&mut lines)?;
+        trace!("Parsed zero key {zero_key}");
 
         // Key where reference frequency goes
         let reference_key = read::<KeyNumber, _>(&mut lines)?;
@@ -138,6 +137,7 @@ impl FromStr for KbmFile {
         let keyboard_mapping = KeyboardMapping::new(
             start_key,
             end_key,
+            zero_key,
             reference_key,
             reference_frequency,
             key_mappings,
@@ -145,7 +145,6 @@ impl FromStr for KbmFile {
 
         Ok(Self {
             _size: size,
-            _middle_key: middle_key,
             _equave_degree: equave_degree,
             keyboard_mapping,
         })

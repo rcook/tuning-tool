@@ -4,7 +4,6 @@ use anyhow::{bail, Result};
 
 #[derive(Debug)]
 pub(crate) struct Scale {
-    unison: Interval,
     intervals: Vec<Interval>,
 }
 
@@ -13,14 +12,7 @@ impl Scale {
         if intervals.is_empty() {
             bail!("Need at least one interval");
         }
-        Ok(Self {
-            unison: Interval::unison(),
-            intervals,
-        })
-    }
-
-    pub(crate) fn unison(&self) -> &Interval {
-        &self.unison
+        Ok(Self { intervals })
     }
 
     pub(crate) fn intervals(&self) -> &Vec<Interval> {
