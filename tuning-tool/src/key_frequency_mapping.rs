@@ -249,7 +249,7 @@ mod tests {
     });
 
     #[test]
-    fn scale_31edo2() -> Result<()> {
+    fn scale_31edo2_69() -> Result<()> {
         check_frequencies(
             "test/31edo2-expected-frequencies.txt",
             &SCALE_31EDO2,
@@ -257,6 +257,35 @@ mod tests {
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
                 KeyNumber::constant::<69>(),
+                KeyNumber::constant::<60>(),
+                Frequency(400f64),
+                KeyMappings::Custom(vec![
+                    KeyMapping::Degree(0),
+                    KeyMapping::Degree(3),
+                    KeyMapping::Degree(5),
+                    KeyMapping::Degree(8),
+                    KeyMapping::Degree(10),
+                    KeyMapping::Degree(13),
+                    KeyMapping::Degree(16),
+                    KeyMapping::Degree(18),
+                    KeyMapping::Degree(21),
+                    KeyMapping::Degree(23),
+                    KeyMapping::Degree(26),
+                    KeyMapping::Degree(28),
+                ]),
+            )?,
+        )
+    }
+
+    #[test]
+    fn scale_31edo2_57() -> Result<()> {
+        check_frequencies(
+            "test/31edo2-expected-frequencies.txt",
+            &SCALE_31EDO2,
+            &KeyboardMapping::new(
+                KeyNumber::ZERO,
+                KeyNumber::MAX,
+                KeyNumber::constant::<57>(),
                 KeyNumber::constant::<60>(),
                 Frequency(400f64),
                 KeyMappings::Custom(vec![
