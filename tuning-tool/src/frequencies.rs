@@ -1,7 +1,10 @@
 use crate::frequency::Frequency;
 use crate::interval::Interval;
+use crate::key_mapping::KeyMapping;
+use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::scale::Scale;
+use anyhow::{anyhow, Result};
 use std::iter::once;
 use std::iter::zip;
 use std::ops::Rem;
@@ -9,55 +12,131 @@ use std::ops::Rem;
 pub(crate) fn calculate_frequencies(
     scale: &Scale,
     keyboard_mapping: &KeyboardMapping,
-) -> Vec<Frequency> {
+) -> Result<Vec<Frequency>> {
     let start = keyboard_mapping.start_key().to_u8() as i32;
     let end = keyboard_mapping.end_key().to_u8() as i32;
-    let base = keyboard_mapping.reference_key().to_u8() as i32;
+    let reference = keyboard_mapping.reference_key().to_u8() as i32;
 
-    let note_count = (end - start + 1) as usize;
-    let scale_size = scale.intervals().len();
-    let equave_ratio = scale.equave_ratio().0;
-    let low = start - base;
-    let equave_count = (low as f64 / scale_size as f64).floor() as i32;
-    let offset = (low - equave_count * scale_size as i32) as usize;
-    let unison = Interval::unison();
-    let intervals = scale
-        .intervals()
+    let intervals2 = select_intervals(scale, keyboard_mapping)?;
+    let interval_count = intervals2.len();
+
+    let low = start - reference;
+    let equave_count = (low as f64 / interval_count as f64).floor() as i32;
+    let offset = (low - equave_count * interval_count as i32) as usize;
+
+    let intervals = intervals2
         .iter()
-        .take(scale_size - 1)
-        .chain(once(&unison))
         .cycle()
-        .skip((offset + scale_size - 1).rem(scale_size));
+        .skip((offset + interval_count).rem(interval_count));
 
-    let mut frequencies = Vec::with_capacity(note_count);
+    let key_count = (end - start + 1) as usize;
+    let equave_ratio = scale.equave_ratio().0;
+
+    let mut frequencies = Vec::with_capacity(key_count);
     let mut f = keyboard_mapping.reference_frequency().0 * equave_ratio.powi(equave_count);
     let mut degree = offset;
     for (_, interval) in zip(start..=end, intervals) {
         frequencies.push(Frequency(f * interval.as_ratio().0));
         degree += 1;
-        if degree >= scale_size {
-            degree -= scale_size;
+        if degree >= interval_count {
+            degree -= interval_count;
             f *= equave_ratio;
         }
     }
 
-    frequencies
+    Ok(frequencies)
+}
+
+fn select_intervals<'a>(
+    scale: &'a Scale,
+    keyboard_mapping: &KeyboardMapping,
+) -> Result<Vec<&'a Interval>> {
+    let interval_count = scale.intervals().len();
+    let intervals = once(scale.unison())
+        .chain(scale.intervals())
+        .take(interval_count)
+        .collect::<Vec<_>>();
+    for (i, interval) in intervals.iter().enumerate() {
+        println!(
+            "WHOLE SCALE: {i}: {interval} ({ratio}) ({f} Hz)",
+            ratio = interval.as_ratio().0,
+            f = 400f64 * interval.as_ratio().0
+        );
+    }
+    let intervals = match keyboard_mapping.key_mappings() {
+        KeyMappings::Linear => intervals,
+        KeyMappings::Custom(key_mappings) => {
+            let mut temp = Vec::new();
+            for key_mapping in key_mappings {
+                match key_mapping {
+                    KeyMapping::Degree(degree) => {
+                        println!("degree={degree}");
+                        let interval = intervals
+                            .get(*degree)
+                            .ok_or_else(|| anyhow!("Degree {degree} does not exist in scale"))?;
+                        temp.push(*interval);
+                    }
+                    KeyMapping::Unmapped => {
+                        todo!("Sparse keyboard mappings not implemented yet!")
+                    }
+                }
+            }
+            temp
+        }
+    };
+
+    Ok(intervals)
 }
 
 #[cfg(test)]
 mod tests {
     use crate::frequencies::calculate_frequencies;
     use crate::frequency::Frequency;
+    use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
-    use crate::midi_note::MidiNote;
-    use crate::note_number::NoteNumber;
     use crate::scale::Scale;
     use crate::types::KeyNumber;
     use anyhow::Result;
     use std::iter::zip;
     use std::sync::LazyLock;
     use tuning_tool_macros::scale;
+
+    static SCALE_31EDO2: LazyLock<Scale> = LazyLock::new(|| {
+        scale![
+            38.70968
+            77.41935
+            116.12903
+            154.83871
+            193.54839
+            232.25806
+            270.96774
+            309.67742
+            348.38710
+            387.09677
+            425.80645
+            464.51613
+            503.22581
+            541.93548
+            580.64516
+            619.35484
+            658.06452
+            696.77419
+            735.48387
+            774.19355
+            812.90323
+            851.61290
+            890.32258
+            929.03226
+            967.74194
+            1006.45161
+            1045.16129
+            1083.87097
+            1122.58065
+            1161.29032
+            2/1
+        ]
+    });
 
     static BOHLEN_P: LazyLock<Scale> = LazyLock::new(|| {
         scale![
@@ -98,6 +177,168 @@ mod tests {
             2/1
         ]
     });
+
+    // Scala and tuning-tool disagree on the expected frequencies
+    // I have contacted Scala's author via https://huygens-fokker.org/scala/
+    // to report the discrepancies
+    #[test]
+    fn scale_31edo2() -> Result<()> {
+        const EXPECTED_FREQUENCIES: [f64; 128] = [
+            12.5f64,
+            13.367246214703318f64,
+            13.978585876087093f64,
+            14.948415931122435f64,
+            15.632068957316955f64,
+            16.71661726437307f64,
+            17.876411107986804f64,
+            18.6939734910369f64,
+            19.990955826338464f64,
+            20.9052251047804f64,
+            22.35562329195172f64,
+            23.378038750888365f64,
+            25f64,
+            26.734492429406636f64,
+            27.957171752174187f64,
+            29.89683186224487f64,
+            31.26413791463391f64,
+            33.43323452874614f64,
+            35.75282221597361f64,
+            37.3879469820738f64,
+            39.98191165267693f64,
+            41.8104502095608f64,
+            44.71124658390344f64,
+            46.75607750177673f64,
+            50f64,
+            53.46898485881327f64,
+            55.91434350434837f64,
+            59.79366372448974f64,
+            62.52827582926782f64,
+            66.86646905749228f64,
+            71.50564443194722f64,
+            74.7758939641476f64,
+            79.96382330535386f64,
+            83.6209004191216f64,
+            89.42249316780688f64,
+            93.51215500355346f64,
+            100f64,
+            106.93796971762654f64,
+            111.82868700869675f64,
+            119.58732744897948f64,
+            125.05655165853564f64,
+            133.73293811498456f64,
+            143.01128886389444f64,
+            149.5517879282952f64,
+            159.9276466107077f64,
+            167.2418008382432f64,
+            178.84498633561375f64,
+            187.02431000710692f64,
+            200f64,
+            213.8759394352531f64,
+            223.6573740173935f64,
+            239.17465489795896f64,
+            250.11310331707128f64,
+            267.4658762299691f64,
+            286.02257772778887f64,
+            299.1035758565904f64,
+            319.8552932214154f64,
+            334.4836016764864f64,
+            357.6899726712275f64,
+            374.04862001421384f64,
+            400f64,
+            427.7518788705062f64,
+            447.314748034787f64,
+            478.3493097959179f64,
+            500.22620663414256f64,
+            534.9317524599383f64,
+            572.0451554555777f64,
+            598.2071517131808f64,
+            639.7105864428308f64,
+            668.9672033529728f64,
+            715.379945342455f64,
+            748.0972400284277f64,
+            800f64,
+            855.5037577410124f64,
+            894.629496069574f64,
+            956.6986195918358f64,
+            1000.4524132682851f64,
+            1069.8635049198765f64,
+            1144.0903109111555f64,
+            1196.4143034263616f64,
+            1279.4211728856617f64,
+            1337.9344067059455f64,
+            1430.75989068491f64,
+            1496.1944800568554f64,
+            1600f64,
+            1711.0075154820247f64,
+            1789.258992139148f64,
+            1913.3972391836717f64,
+            2000.9048265365702f64,
+            2139.727009839753f64,
+            2288.180621822311f64,
+            2392.828606852723f64,
+            2558.8423457713234f64,
+            2675.868813411891f64,
+            2861.51978136982f64,
+            2992.3889601137107f64,
+            3200f64,
+            3422.0150309640494f64,
+            3578.517984278296f64,
+            3826.7944783673433f64,
+            4001.8096530731405f64,
+            4279.454019679506f64,
+            4576.361243644622f64,
+            4785.657213705446f64,
+            5117.684691542647f64,
+            5351.737626823782f64,
+            5723.03956273964f64,
+            5984.777920227421f64,
+            6400f64,
+            6844.030061928099f64,
+            7157.035968556592f64,
+            7653.588956734687f64,
+            8003.619306146281f64,
+            8558.908039359012f64,
+            9152.722487289244f64,
+            9571.314427410893f64,
+            10235.369383085294f64,
+            10703.475253647564f64,
+            11446.07912547928f64,
+            11969.555840454843f64,
+            12800f64,
+            13688.060123856198f64,
+            14314.071937113184f64,
+            15307.177913469373f64,
+            16007.238612292562f64,
+            17117.816078718024f64,
+            18305.444974578488f64,
+            19142.628854821785f64,
+        ];
+
+        check_frequencies(
+            &EXPECTED_FREQUENCIES,
+            &SCALE_31EDO2,
+            &KeyboardMapping::new(
+                KeyNumber::ZERO,
+                KeyNumber::MAX,
+                KeyNumber::constant::<60>(),
+                Frequency(400f64),
+                KeyMappings::Custom(vec![
+                    KeyMapping::Degree(0),
+                    KeyMapping::Degree(3),
+                    KeyMapping::Degree(5),
+                    KeyMapping::Degree(8),
+                    KeyMapping::Degree(10),
+                    KeyMapping::Degree(13),
+                    KeyMapping::Degree(16),
+                    KeyMapping::Degree(18),
+                    KeyMapping::Degree(21),
+                    KeyMapping::Degree(23),
+                    KeyMapping::Degree(26),
+                    KeyMapping::Degree(28),
+                ]),
+            )?,
+        )
+    }
 
     #[test]
     fn bohlen_p() -> Result<()> {
@@ -235,8 +476,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &BOHLEN_P,
-            KeyNumber::constant::<69>(),
-            Frequency::A4,
+            &KeyboardMapping::new_full_linear(KeyNumber::constant::<69>(), Frequency::CONCERT_A4)?,
         )?;
         Ok(())
     }
@@ -377,8 +617,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &SCALE_24EDO2,
-            KeyNumber::constant::<69>(),
-            Frequency(432f64),
+            &KeyboardMapping::new_full_linear(KeyNumber::constant::<69>(), Frequency(432f64))?,
         )?;
         Ok(())
     }
@@ -519,8 +758,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &SCALE_12EDO2,
-            KeyNumber::constant::<69>(),
-            Frequency::A4,
+            &KeyboardMapping::new_full_linear(KeyNumber::constant::<69>(), Frequency::CONCERT_A4)?,
         )?;
         Ok(())
     }
@@ -661,8 +899,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
-            KeyNumber::ZERO,
-            Frequency::MIN,
+            &KeyboardMapping::new_full_linear(KeyNumber::ZERO, Frequency::MIN)?,
         )?;
         Ok(())
     }
@@ -803,8 +1040,7 @@ mod tests {
         check_frequencies(
             &EXPECTED_FREQUENCIES,
             &CARLOS_SUPER,
-            KeyNumber::constant::<69>(),
-            MidiNote::ALL[NoteNumber::A4.to_u8() as usize].frequency(),
+            &KeyboardMapping::new_full_linear(KeyNumber::constant::<69>(), Frequency::CONCERT_A4)?,
         )?;
         Ok(())
     }
@@ -812,24 +1048,13 @@ mod tests {
     fn check_frequencies(
         expected_frequencies: &[f64],
         scale: &Scale,
-        reference_key: KeyNumber,
-        reference_frequency: Frequency,
+        keyboard_mapping: &KeyboardMapping,
     ) -> Result<()> {
-        let keyboard_mapping = KeyboardMapping::new(
-            KeyNumber::ZERO,
-            KeyNumber::MAX,
-            reference_key,
-            reference_frequency,
-            KeyMappings::Linear,
-        )?;
-
-        let frequencies = calculate_frequencies(scale, &keyboard_mapping);
-
+        let frequencies = calculate_frequencies(scale, keyboard_mapping)?;
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
             assert_eq!(*expected, actual.0)
         }
-
         Ok(())
     }
 }

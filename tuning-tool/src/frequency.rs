@@ -8,7 +8,7 @@ use anyhow::Result;
 f64_newtype!(Frequency, pub(crate));
 
 impl Frequency {
-    pub(crate) const A4: Self = Self(440f64);
+    pub(crate) const CONCERT_A4: Self = Self(440f64);
     pub(crate) const MAX: Self = Self(13289.656616f64);
 
     #[cfg(test)]
@@ -38,7 +38,7 @@ impl Frequency {
     }
 
     fn semitones_raw(&self) -> Semitones {
-        Semitones((NoteNumber::A4.to_u8() as f64) + 12f64 * (self.0 / Self::A4.0).log2())
+        Semitones((NoteNumber::A4.to_u8() as f64) + 12f64 * (self.0 / Self::CONCERT_A4.0).log2())
     }
 }
 

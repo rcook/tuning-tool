@@ -248,7 +248,7 @@ mod tests {
             KeyMappings::Linear,
         )?;
 
-        let entries = calculate_frequencies(scale, &keyboard_mapping)
+        let entries = calculate_frequencies(scale, &keyboard_mapping)?
             .iter()
             .map(|f| f.to_mts_entry())
             .collect::<Result<Vec<_>>>()?

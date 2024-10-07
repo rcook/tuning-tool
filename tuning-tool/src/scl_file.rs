@@ -135,7 +135,7 @@ mod tests {
     fn blank_description() -> Result<()> {
         test_scala_file(
             RESOURCE_DIR
-                .get_file("weird.scl")
+                .get_file("31edo2.scl")
                 .ok_or_else(|| anyhow!("Could not read file"))?,
         )
     }

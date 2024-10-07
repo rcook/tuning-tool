@@ -41,7 +41,7 @@ impl Semitones {
 
     pub(crate) fn to_frequency(&self) -> Frequency {
         let temp: f64 = NoteNumber::A4.to_u8() as f64;
-        Frequency(Frequency::A4.0 * 2f64.powf((self.0 - temp) / 12f64))
+        Frequency(Frequency::CONCERT_A4.0 * 2f64.powf((self.0 - temp) / 12f64))
     }
 }
 

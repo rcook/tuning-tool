@@ -20,7 +20,7 @@ fn make_note_change_entries(
     scl_file: &SclFile,
     kbm_file: &KbmFile,
 ) -> Result<Vec<(Frequency, NoteChangeEntry)>> {
-    calculate_frequencies(scl_file.scale(), kbm_file.keyboard_mapping())
+    calculate_frequencies(scl_file.scale(), kbm_file.keyboard_mapping())?
         .iter()
         .enumerate()
         .map(|(i, f)| {

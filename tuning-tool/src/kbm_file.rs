@@ -111,7 +111,7 @@ impl FromStr for KbmFile {
         let mut key_mappings = Vec::with_capacity(size);
         for i in 0..size {
             let s = read_str!(lines);
-            let key = if s == "x" {
+            let key_mapping = if s == "x" {
                 is_linear = false;
                 KeyMapping::Unmapped
             } else {
@@ -121,11 +121,9 @@ impl FromStr for KbmFile {
                 }
                 KeyMapping::Degree(degree)
             };
-            trace!("Parsed key mapping {key}");
-            key_mappings.push(key);
+            trace!("Parsed key mapping {key_mapping}");
+            key_mappings.push(key_mapping);
         }
-
-        assert!(is_linear);
 
         if lines.next().is_some() {
             bail!("Invalid .kbm file")

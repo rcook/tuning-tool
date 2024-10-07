@@ -33,6 +33,29 @@ impl KeyboardMapping {
         })
     }
 
+    #[cfg(test)]
+    pub(crate) fn new_full(
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
+        key_mappings: KeyMappings,
+    ) -> Result<Self> {
+        Self::new(
+            KeyNumber::ZERO,
+            KeyNumber::MAX,
+            reference_key,
+            reference_frequency,
+            key_mappings,
+        )
+    }
+
+    #[cfg(test)]
+    pub(crate) fn new_full_linear(
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
+    ) -> Result<Self> {
+        Self::new_full(reference_key, reference_frequency, KeyMappings::Linear)
+    }
+
     pub(crate) const fn start_key(&self) -> &KeyNumber {
         &self.start_key
     }

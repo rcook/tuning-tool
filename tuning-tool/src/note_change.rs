@@ -129,7 +129,7 @@ mod tests {
             KeyMappings::Linear,
         )?;
 
-        let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)
+        let entries = calculate_frequencies(&CARLOS_SUPER, &keyboard_mapping)?
             .iter()
             .enumerate()
             .map(|(i, f)| {
