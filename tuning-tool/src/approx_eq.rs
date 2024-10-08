@@ -1,5 +1,23 @@
 #![cfg(test)]
 
+macro_rules! assert_approx_eq {
+    ($left: expr, $right: expr) => {
+        let (lhs, rhs): (f64, f64) = ($left, $right);
+        assert!(
+            lhs.approx_eq(rhs),
+            "left={lhs} and right={rhs} are not approximately equal (default epsilon)"
+        );
+    };
+    ($left: expr, $right: expr, $epsilon: expr) => {
+        let (lhs, rhs, ep): (f64, f64, f64) = ($left, $right, $epsilon);
+        assert!(
+            lhs.approx_eq_with_epsilon(rhs, ep),
+            "left={lhs} and right={rhs} are not approximately equal (epsilon={ep})"
+        );
+    };
+}
+pub(crate) use assert_approx_eq;
+
 pub(crate) trait ApproxEq {
     fn approx_eq(&self, other: Self) -> bool;
     fn approx_eq_with_epsilon(&self, other: Self, epsilon: Self) -> bool;

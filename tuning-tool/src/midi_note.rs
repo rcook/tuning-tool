@@ -47,7 +47,7 @@ impl Display for MidiNote {
 
 #[cfg(test)]
 mod tests {
-    use crate::approx_eq::ApproxEq;
+    use crate::approx_eq::{assert_approx_eq, ApproxEq};
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use anyhow::Result;
@@ -59,7 +59,7 @@ mod tests {
             let note_number = NoteNumber::try_from(i as u8)?;
             let frequency = 440f64 * 2f64.powf((i as i32 - 69) as f64 / 12f64);
             assert_eq!(note_number, midi_note.note_number());
-            assert_eq!(frequency, midi_note.frequency().0);
+            assert_approx_eq!(frequency, midi_note.frequency().0, 0.0000001f64);
         }
         Ok(())
     }
