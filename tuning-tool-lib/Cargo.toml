@@ -1,7 +1,7 @@
 [package]
 edition = "2021"
 name = "tuning-tool-lib"
-version = "0.1.0"
+version = "0.0.0"
 
 [dependencies]
 thiserror = "1.0.64"
