@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.host_os }}
     steps:
       - name: Install dependencies
-        if: matrix.os == 'ubuntu-latest'
+        if: matrix.host_os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libasound2-dev
