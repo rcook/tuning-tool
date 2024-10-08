@@ -19,6 +19,7 @@ mod key_mapping;
 mod key_mappings;
 mod keyboard_mapping;
 mod list_ports;
+mod midi_input_ex;
 mod midi_message_builder;
 mod midi_note;
 mod monitor_port;

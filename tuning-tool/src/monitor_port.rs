@@ -1,5 +1,6 @@
 use crate::devices::{get_midi_input_port, make_midi_input};
 use crate::hex_dump::to_hex_dump;
+use crate::midi_input_ex::MidiInputEx;
 use anyhow::{Error, Result};
 use std::sync::mpsc::{channel, Sender};
 
@@ -21,7 +22,10 @@ pub(crate) fn monitor_port(input_port: &str) -> Result<()> {
     let midi_input = make_midi_input()?;
     let midi_input_port = get_midi_input_port(&midi_input, input_port)?;
     let (tx, rx) = channel();
-    let _conn = midi_input.connect(&midi_input_port, "tuning-tool", callback_wrapper, tx)?;
+
+    // Workaround for https://github.com/Boddlnagg/midir/issues/55
+    let _conn = midi_input.connect_ex(&midi_input_port, "tuning-tool", callback_wrapper, tx)?;
+
     let e = rx.recv()?;
     println!("Failed with error {e:?}");
     Ok(())
