@@ -46,7 +46,7 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y install libasound-dev
       - name: Build, test and release Rust tool
-        uses: rcook/rust-tool-action@v0.0.34
+        uses: rcook/rust-tool-action@v0.0.35
         with:
           tool_name: ${{ env.tool_name }}
           target: ${{ matrix.target }}
