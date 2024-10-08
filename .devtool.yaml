@@ -1,0 +1,6 @@
+cargo_toml_paths:
+  - Cargo.toml
+  - tuning-tool-lib/Cargo.toml
+  - tuning-tool-macros-test/Cargo.toml
+  - tuning-tool-macros/Cargo.toml
+  - tuning-tool/Cargo.toml
