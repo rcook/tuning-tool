@@ -1,4 +1,5 @@
 use crate::devices::{get_midi_output_port, make_midi_output};
+use crate::midi_output_ex::MidiOutputEx;
 use crate::types::MidiValue;
 use anyhow::{anyhow, Result};
 use midly::live::{LiveEvent, SystemCommon};
@@ -31,7 +32,7 @@ pub(crate) fn save_tunings(output_port: &str) -> Result<()> {
 
     let midi_output = make_midi_output()?;
     let midi_output_port = get_midi_output_port(&midi_output, output_port)?;
-    let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
+    let mut conn = midi_output.connect_ex(&midi_output_port, "tuning-tool")?;
     conn.send(&message)?;
     Ok(())
 }

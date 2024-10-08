@@ -3,6 +3,7 @@ use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
 use crate::key_frequency_mapping::KeyFrequencyMapping;
+use crate::midi_output_ex::MidiOutputEx;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
@@ -94,7 +95,7 @@ pub(crate) fn send_tuning(
         (Some(output_port), None) => {
             let midi_output = make_midi_output()?;
             let midi_output_port = get_midi_output_port(&midi_output, output_port)?;
-            let mut conn = midi_output.connect(&midi_output_port, "tuning-tool")?;
+            let mut conn = midi_output.connect_ex(&midi_output_port, "tuning-tool")?;
             for message in messages {
                 println!("{}", to_hex_dump(&message, None)?);
                 conn.send(&message)?;

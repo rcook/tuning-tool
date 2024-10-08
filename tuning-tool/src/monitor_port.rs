@@ -22,10 +22,7 @@ pub(crate) fn monitor_port(input_port: &str) -> Result<()> {
     let midi_input = make_midi_input()?;
     let midi_input_port = get_midi_input_port(&midi_input, input_port)?;
     let (tx, rx) = channel();
-
-    // Workaround for https://github.com/Boddlnagg/midir/issues/55
     let _conn = midi_input.connect_ex(&midi_input_port, "tuning-tool", callback_wrapper, tx)?;
-
     let e = rx.recv()?;
     println!("Failed with error {e:?}");
     Ok(())

@@ -22,6 +22,7 @@ mod list_ports;
 mod midi_input_ex;
 mod midi_message_builder;
 mod midi_note;
+mod midi_output_ex;
 mod monitor_port;
 mod mts_entry;
 mod note_change;
