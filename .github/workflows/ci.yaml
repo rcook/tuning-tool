@@ -30,8 +30,8 @@ jobs:
       - name: Install dependencies
         if: matrix.host_os == 'ubuntu-latest'
         run: |
-          sudo apt-get -y update
-          sudo apt-get -y install libasound2-dev libjack-jackd2-dev
+          apt-get -y update
+          apt-get -y install libasound2-dev libjack-jackd2-dev
       - name: Build and test Rust package
         uses: rcook/rust-package-action@v0.0.5
         with:
