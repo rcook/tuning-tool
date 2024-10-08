@@ -28,7 +28,7 @@ jobs:
     runs-on: ${{ matrix.host_os }}
     steps:
       - name: Install dependencies
-        if: matrix.os == "ubuntu-latest"
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
           sudo apt-get -y install alsa-lib
