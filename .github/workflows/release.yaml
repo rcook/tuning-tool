@@ -44,7 +44,7 @@ jobs:
         if: matrix.host_os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libasound libasound-dev
+          sudo apt-get -y install libasound-dev
       - name: Build, test and release Rust tool
         uses: rcook/rust-tool-action@v0.0.34
         with:
