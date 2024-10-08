@@ -1,6 +1,13 @@
 [package]
+authors = ["Richard Cook"]
+categories = ["multimedia::audio"]
+description = "Richard's MIDI Tuning Tool"
 edition = "2021"
+homepage = "https://github.com/rcook/tuning-tool"
+keywords = ["microtuning", "midi"]
+license = "MIT"
 name = "tuning-tool-macros"
+repository = "https://github.com/rcook/tuning-tool.git"
 version = "0.0.0"
 
 [dependencies]
