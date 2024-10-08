@@ -4,7 +4,7 @@ name = "tuning-tool-macros"
 version = "0.1.0"
 
 [dependencies]
-proc-macro2 = "1.0.86"
+proc-macro2 = "1.0.87"
 quote = "1.0.37"
 syn = "2.0.79"
 
