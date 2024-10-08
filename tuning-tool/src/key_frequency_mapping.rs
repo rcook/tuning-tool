@@ -6,7 +6,7 @@ use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::scale::Scale;
 use crate::types::KeyNumber;
-use anyhow::{anyhow, Result};
+use anyhow::{anyhow, bail, Result};
 use log::trace;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::once;
@@ -34,7 +34,8 @@ impl KeyFrequencyMapping {
             keyboard_mapping.key_mappings(),
         )?
         .drain(start..=end)
-        .collect::<Vec<_>>())
+        .flatten()
+        .collect())
     }
 
     fn compute_all(
@@ -43,7 +44,7 @@ impl KeyFrequencyMapping {
         reference_key: &KeyNumber,
         reference_frequency: &Frequency,
         key_mappings: &KeyMappings,
-    ) -> Result<Vec<KeyFrequencyMapping>> {
+    ) -> Result<Vec<Option<KeyFrequencyMapping>>> {
         fn calculate_frequency(
             key: i32,
             keys_per_equave: i32,
@@ -67,11 +68,11 @@ impl KeyFrequencyMapping {
         const N: usize = 128;
 
         let unison = Interval::unison();
-        let intervals = Self::select_intervals(scale, &unison, key_mappings)?;
+        let intervals = IntervalInfo::select(scale, &unison, key_mappings)?;
         let zero = zero_key.to_u8() as i32;
         let keys_per_equave = intervals.len();
         let offset = (-zero).rem_euclid(keys_per_equave as i32) as usize;
-        let degree_intervals = intervals
+        let intervals = intervals
             .iter()
             .cycle()
             .skip(offset)
@@ -82,12 +83,14 @@ impl KeyFrequencyMapping {
 
         let reference = reference_key.to_u8() as i32;
         let reference_frequency = reference_frequency.0;
-        let reference_ratio = degree_intervals
-            .get(reference as usize)
-            .expect("Must be in range")
-            .1
-            .as_ratio()
-            .0;
+
+        let IntervalInfo::Mapping { interval, .. } =
+            intervals.get(reference as usize).expect("Must be in range")
+        else {
+            bail!("Reference key is not in mapping");
+        };
+
+        let reference_ratio = interval.as_ratio().0;
 
         trace!(
             "Reference key {} at {:.2} Hz",
@@ -112,67 +115,37 @@ impl KeyFrequencyMapping {
             .0
         );
 
-        let mut mappings = Vec::with_capacity(N);
-        for (i, degree_interval) in degree_intervals.iter().enumerate() {
-            let frequency = calculate_frequency(
-                i as i32,
-                keys_per_equave as i32,
-                zero_frequency,
-                reference,
-                reference_ratio,
-                equave_ratio,
-                degree_interval.1,
-            );
-
-            let mapping = KeyFrequencyMapping {
-                key: (i as u8).try_into()?,
-                frequency,
-                degree: degree_interval.0,
-                interval: degree_interval.1.clone(),
-            };
-            trace!("{mapping}");
-            mappings.push(mapping);
-        }
-
-        Ok(mappings)
-    }
-
-    fn select_intervals<'a>(
-        scale: &'a Scale,
-        unison: &'a Interval,
-        key_mappings: &KeyMappings,
-    ) -> Result<Vec<(usize, &'a Interval)>> {
-        let interval_count = scale.intervals().len();
-        let intervals = once(unison)
-            .chain(scale.intervals())
-            .take(interval_count)
-            .collect::<Vec<_>>();
-        let intervals = match key_mappings {
-            KeyMappings::Linear => intervals
-                .iter()
-                .enumerate()
-                .map(|(degree, interval)| (degree, *interval))
-                .collect::<Vec<_>>(),
-            KeyMappings::Custom(key_mappings) => {
-                let mut selected_intervals = Vec::new();
-                for key_mapping in key_mappings {
-                    match key_mapping {
-                        KeyMapping::Degree(degree) => {
-                            let interval = intervals.get(*degree).ok_or_else(|| {
-                                anyhow!("Degree {degree} does not exist in scale")
-                            })?;
-                            selected_intervals.push((*degree, *interval))
-                        }
-                        KeyMapping::Unmapped => {
-                            todo!("Sparse keyboard mappings not implemented yet!")
-                        }
+        intervals
+            .iter()
+            .enumerate()
+            .map(|(i, interval_info)| {
+                Ok(match interval_info {
+                    IntervalInfo::Mapping { degree, interval } => {
+                        let frequency = calculate_frequency(
+                            i as i32,
+                            keys_per_equave as i32,
+                            zero_frequency,
+                            reference,
+                            reference_ratio,
+                            equave_ratio,
+                            interval,
+                        );
+                        let mapping = KeyFrequencyMapping {
+                            key: (i as u8).try_into()?,
+                            frequency,
+                            degree: *degree,
+                            interval: (*interval).clone(),
+                        };
+                        trace!("{mapping}");
+                        Some(mapping)
                     }
-                }
-                selected_intervals
-            }
-        };
-
-        Ok(intervals)
+                    IntervalInfo::Unmapped => {
+                        trace!("key {i} is unmapped");
+                        None
+                    }
+                })
+            })
+            .collect::<Result<Vec<_>>>()
     }
 }
 
@@ -190,19 +163,67 @@ impl Display for KeyFrequencyMapping {
     }
 }
 
+enum IntervalInfo<'a> {
+    Mapping {
+        degree: usize,
+        interval: &'a Interval,
+    },
+    Unmapped,
+}
+
+impl<'a> IntervalInfo<'a> {
+    fn select(
+        scale: &'a Scale,
+        unison: &'a Interval,
+        key_mappings: &KeyMappings,
+    ) -> Result<Vec<Self>> {
+        let interval_count = scale.intervals().len();
+        let intervals = once(unison)
+            .chain(scale.intervals())
+            .take(interval_count)
+            .collect::<Vec<_>>();
+        Ok(match key_mappings {
+            KeyMappings::Linear => intervals
+                .iter()
+                .enumerate()
+                .map(|(degree, interval)| Self::Mapping { degree, interval })
+                .collect::<Vec<_>>(),
+            KeyMappings::Custom(key_mappings) => key_mappings
+                .iter()
+                .map(|key_mapping| {
+                    Ok(match key_mapping {
+                        KeyMapping::Degree(degree) => {
+                            let interval = intervals.get(*degree).ok_or_else(|| {
+                                anyhow!("Degree {degree} does not exist in scale")
+                            })?;
+                            Self::Mapping {
+                                degree: *degree,
+                                interval,
+                            }
+                        }
+                        KeyMapping::Unmapped => Self::Unmapped,
+                    })
+                })
+                .collect::<Result<Vec<_>>>()?,
+        })
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::frequency::Frequency;
+    use crate::kbm_file::KbmFile;
     use crate::key_frequency_mapping::KeyFrequencyMapping;
     use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::resources::RESOURCE_DIR;
     use crate::scale::Scale;
+    use crate::scl_file::SclFile;
     use crate::test_util::{read_expected_frequencies, scala_tuning_dump_from_str};
     use crate::types::KeyNumber;
-    use anyhow::{anyhow, Result};
+    use anyhow::Result;
     use std::iter::zip;
     use std::path::Path;
     use std::sync::LazyLock;
@@ -248,6 +269,45 @@ mod tests {
             2/1
         ]
     });
+
+    #[test]
+    fn sparse_mapping() -> Result<()> {
+        let expected_frequencies = scala_tuning_dump_from_str(
+            RESOURCE_DIR
+                .get_file("test/22edo2-scala-frequencies.txt")
+                .expect("Must exist")
+                .contents_utf8()
+                .expect("Must contain UTF-8"),
+            true,
+        )?
+        .iter()
+        .map(|(_, f)| f.0)
+        .collect::<Vec<_>>();
+
+        let scl_file = RESOURCE_DIR
+            .get_file("test/22edo2.scl")
+            .expect("Must exist")
+            .contents_utf8()
+            .expect("Must contain UTF-8")
+            .parse::<SclFile>()?;
+
+        let kbm_file = RESOURCE_DIR
+            .get_file("test/22edo2.kbm")
+            .expect("Must exist")
+            .contents_utf8()
+            .expect("Must contain UTF-8")
+            .parse::<KbmFile>()?;
+
+        let frequencies =
+            KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?;
+        for (expected, actual) in zip(expected_frequencies, frequencies) {
+            assert!(actual
+                .frequency
+                .0
+                .approx_eq_with_epsilon(expected, 0.0001f64))
+        }
+        Ok(())
+    }
 
     #[test]
     fn scale_31edo2_69() -> Result<()> {
@@ -407,9 +467,10 @@ mod tests {
         let mappings = scala_tuning_dump_from_str(
             RESOURCE_DIR
                 .get_file("test/scala-frequencies.txt")
-                .ok_or_else(|| anyhow!("Could not read file"))?
+                .expect("Must exist")
                 .contents_utf8()
-                .ok_or_else(|| anyhow!("Could not decode as UTF-8"))?,
+                .expect("Must contain UTF-8"),
+            true,
         )?;
         let expected_frequencies = mappings.iter().map(|(_, f)| f).collect::<Vec<_>>();
         let scale = &*SCALE_31EDO2;

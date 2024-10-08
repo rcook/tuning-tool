@@ -65,40 +65,46 @@ pub(crate) fn read_test_scl_file<P: AsRef<Path>>(path: P) -> Result<SclFile> {
 #[allow(unused)]
 pub(crate) fn read_scala_tuning_dump<P: AsRef<Path>>(
     path: P,
+    includes_header: bool,
 ) -> Result<Vec<(KeyNumber, Frequency)>> {
     let path = path.as_ref();
-    scala_tuning_dump_from_str(&read_to_string(path)?)
+    scala_tuning_dump_from_str(&read_to_string(path)?, includes_header)
 }
 
 #[allow(unused)]
-pub(crate) fn scala_tuning_dump_from_str(s: &str) -> Result<Vec<(KeyNumber, Frequency)>> {
-    s.lines()
-        .filter_map(|line| {
-            let temp = line.trim();
-            if temp.is_empty() || temp == "|" {
-                None
-            } else {
-                Some(temp)
+pub(crate) fn scala_tuning_dump_from_str(
+    s: &str,
+    includes_header: bool,
+) -> Result<Vec<(KeyNumber, Frequency)>> {
+    let mut iter = s.lines().map(|line| line.trim());
+
+    if includes_header {
+        for line in iter.by_ref() {
+            if line == "|" {
+                break;
             }
-        })
-        .enumerate()
-        .map(|(i, line)| {
-            let Some((prefix, suffix)) = line.split_once(':') else {
-                bail!("Invalid Scala tuning dump (key not found)",);
-            };
+        }
+    }
 
-            let key = prefix.parse::<KeyNumber>()?;
-            if key.to_u8() as usize != i {
-                bail!("Invalid Scala tuning dump (unexpected key {key})",);
-            }
+    let mut next_key = KeyNumber::ZERO;
+    let mut mappings = Vec::new();
+    for line in iter {
+        let Some((prefix, suffix)) = line.split_once(':') else {
+            bail!("Invalid Scala tuning dump (key not found)",);
+        };
 
-            let Some((prefix, _)) = suffix.trim_start().split_once(' ') else {
-                bail!("Invalid Scala tuning dump (frequency not found)",);
-            };
+        let key = prefix.parse::<KeyNumber>()?;
+        if key.to_u8() < next_key.to_u8() {
+            bail!("Invalid Scala tuning dump (unexpected key {key})",);
+        }
 
-            let frequency = Frequency(prefix.parse::<f64>()?);
+        let Some((prefix, _)) = suffix.trim_start().split_once(' ') else {
+            bail!("Invalid Scala tuning dump (frequency not found)",);
+        };
 
-            Ok((key, frequency))
-        })
-        .collect::<Result<Vec<_>>>()
+        mappings.push((key, Frequency(prefix.parse::<f64>()?)));
+        next_key = key;
+    }
+
+    Ok(mappings)
 }
