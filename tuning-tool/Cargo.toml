@@ -13,7 +13,7 @@ midir = { git = "https://github.com/rcook/midir.git", rev = "1d53df7041f3f1bfb64
 midly = { version = "0.5.3", features = ["strict"] }
 num = "0.4.3"
 path-absolutize = "3.1.1"
-rstest = "0.22.0"
+rstest = "0.23.0"
 rust_decimal = "1.36.0"
 tuning-tool-lib = { path = "../tuning-tool-lib" }
 tuning-tool-macros = { path = "../tuning-tool-macros" }
