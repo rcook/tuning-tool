@@ -1,5 +1,8 @@
 # Tuning Tool
 
+[![CI](https://github.com/rcook/tuning-tool/actions/workflows/ci.yaml/badge.svg)][ci-workflow]
+[![Release](https://github.com/rcook/tuning-tool/actions/workflows/release.yaml/badge.svg)][release-workflow]
+
 Command-line tool to import synthesizer microtunings from [Scala][scala]
 `.scl` and `.kbm` files as well as
 [MIDI Tuning Specification (MTS)][mts] SysEx bulk tuning dumps and send
@@ -12,6 +15,8 @@ be interoperable with [Surge XT][surge-xt].
 [MIT License](LICENSE)
 
 [bass-station-ii]: https://novationmusic.com/products/bass-station-ii
+[ci-workflow]: https://github.com/rcook/tuning-tool/actions/workflows/ci.yaml
 [mts]: https://midi.org/midi-tuning-updated-specification
+[release-workflow]: https://github.com/rcook/tuning-tool/actions/workflows/release.yaml
 [scala]: https://huygens-fokker.org/scala/
 [surge-xt]: https://surge-synthesizer.github.io/
