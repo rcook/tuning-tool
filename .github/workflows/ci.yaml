@@ -31,7 +31,7 @@ jobs:
         if: matrix.host_os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libasound-dev
+          sudo apt-get -y install libasound2-dev libjack-jackd2-dev
           ld --verbose | grep SEARCH_DIR | tr -s ' ;' \\012
           find /usr/local/lib/x86_64-linux-gnu -maxdepth 1 || true
           find /lib/x86_64-linux-gnu -maxdepth 1 || true
