@@ -32,6 +32,7 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libasound-dev
+          ldconfig -p
       - name: Build and test Rust package
         uses: rcook/rust-package-action@v0.0.5
         with:

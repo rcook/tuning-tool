@@ -3,6 +3,7 @@ set -euo pipefail
 this_dir=$(cd $(dirname $0); pwd -P)
 
 docker buildx build \
+  --platform linux/amd64 \
   --iidfile $this_dir/docker-id.txt \
   --file $this_dir/Dockerfile \
   $this_dir/docker
@@ -10,6 +11,7 @@ docker buildx build \
 docker_id=$(cat $this_dir/docker-id.txt)
 
 docker run \
+  --platform linux/amd64 \
   --volume $this_dir:/src/tuning-tool \
   --rm \
   -it \
