@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/rcook/tuning-tool/actions/workflows/ci.yaml/badge.svg)][ci-workflow]
 [![Release](https://github.com/rcook/tuning-tool/actions/workflows/release.yaml/badge.svg)][release-workflow]
-![Latest release](https://img.shields.io/github/v/tag/rcook/tuning-tool)[latest-release]
+[![Latest release](https://img.shields.io/github/v/tag/rcook/tuning-tool)][latest-release]
 
 Command-line tool to import synthesizer microtunings from [Scala][scala]
 `.scl` and `.kbm` files as well as
