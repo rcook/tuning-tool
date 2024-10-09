@@ -33,18 +33,18 @@ jobs:
           sudo apt-get -y update
           sudo apt-get -y install libasound-dev
           ld --verbose | grep SEARCH_DIR | tr -s ' ;' \\012
-          ls /usr/local/lib/x86_64-linux-gnu
-          ls /lib/x86_64-linux-gnu
-          ls /usr/lib/x86_64-linux-gnu
-          ls /usr/lib/x86_64-linux-gnu64
-          ls /usr/local/lib64
-          ls /lib64
-          ls /usr/lib64
-          ls /usr/local/lib
-          ls /lib
-          ls /usr/lib
-          ls /usr/x86_64-linux-gnu/lib64
-          ls /usr/x86_64-linux-gnu/lib
+          ls /usr/local/lib/x86_64-linux-gnu || true
+          ls /lib/x86_64-linux-gnu || true
+          ls /usr/lib/x86_64-linux-gnu || true
+          ls /usr/lib/x86_64-linux-gnu64 || true
+          ls /usr/local/lib64 || true
+          ls /lib64 || true
+          ls /usr/lib64 || true
+          ls /usr/local/lib || true
+          ls /lib || true
+          ls /usr/lib || true
+          ls /usr/x86_64-linux-gnu/lib64 || true
+          ls /usr/x86_64-linux-gnu/lib || true
       #- name: Build and test Rust package
       #  uses: rcook/rust-package-action@v0.0.5
       #  with:
