@@ -31,7 +31,7 @@ jobs:
         if: matrix.host_os == 'ubuntu-latest'
         run: |
           sudo apt-get -y update
-          sudo apt-get -y install libasound-dev
+          sudo apt-get -y install --no-install-recommends libasound2-dev
           ldconfig -p
       - name: Build and test Rust package
         uses: rcook/rust-package-action@v0.0.5
