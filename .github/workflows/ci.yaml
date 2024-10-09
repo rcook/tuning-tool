@@ -32,19 +32,6 @@ jobs:
         run: |
           sudo apt-get -y update
           sudo apt-get -y install libasound2-dev libjack-jackd2-dev
-          ld --verbose | grep SEARCH_DIR | tr -s ' ;' \\012
-          find /usr/local/lib/x86_64-linux-gnu -maxdepth 1 || true
-          find /lib/x86_64-linux-gnu -maxdepth 1 || true
-          find /usr/lib/x86_64-linux-gnu -maxdepth 1 || true
-          find /usr/lib/x86_64-linux-gnu64 -maxdepth 1 || true
-          find /usr/local/lib64 -maxdepth 1 || true
-          find /lib64 -maxdepth 1 || true
-          find /usr/lib64 -maxdepth 1 || true
-          find /usr/local/lib -maxdepth 1 || true
-          find /lib -maxdepth 1 || true
-          find /usr/lib -maxdepth 1 || true
-          find /usr/x86_64-linux-gnu/lib64 -maxdepth 1 || true
-          find /usr/x86_64-linux-gnu/lib -maxdepth 1 || true
       - name: Build and test Rust package
         uses: rcook/rust-package-action@v0.0.5
         with:
