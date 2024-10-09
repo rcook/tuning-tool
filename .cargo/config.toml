@@ -8,7 +8,10 @@ rustflags = ["-C", "target-feature=+crt-static"]
 rustflags = ["-C", "target-feature=+crt-static"]
 
 [target.x86_64-unknown-linux-gnu]
-rustflags = ["-C", "target-feature=+crt-static"]
+rustflags = [
+    "-C", "target-feature=+crt-static",
+    "-L", "/lib/x86_64-linux-gnu",
+]
 
 [target.x86_64-unknown-linux-musl]
 rustflags = ["-C", "target-feature=+crt-static"]
