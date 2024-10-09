@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/rcook/tuning-tool/actions/workflows/ci.yaml/badge.svg)][ci-workflow]
 [![Release](https://github.com/rcook/tuning-tool/actions/workflows/release.yaml/badge.svg)][release-workflow]
+![Latest release](https://img.shields.io/github/v/tag/rcook/tuning-tool)[latest-release]
 
 Command-line tool to import synthesizer microtunings from [Scala][scala]
 `.scl` and `.kbm` files as well as
@@ -16,6 +17,7 @@ be interoperable with [Surge XT][surge-xt].
 
 [bass-station-ii]: https://novationmusic.com/products/bass-station-ii
 [ci-workflow]: https://github.com/rcook/tuning-tool/actions/workflows/ci.yaml
+[latest-release]: https://github.com/rcook/tuning-tool/releases
 [mts]: https://midi.org/midi-tuning-updated-specification
 [release-workflow]: https://github.com/rcook/tuning-tool/actions/workflows/release.yaml
 [scala]: https://huygens-fokker.org/scala/
