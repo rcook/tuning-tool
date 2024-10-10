@@ -37,7 +37,11 @@ const PACKAGE_BUILD_VERSION: Option<&str> = option_env!("RUST_TOOL_ACTION_BUILD_
     name = PACKAGE_NAME,
     version = PACKAGE_VERSION,
     about = format!("{PACKAGE_DESCRIPTION} {PACKAGE_VERSION}"),
-    after_help = format!("{PACKAGE_HOME_PAGE}\nhttps://github.com/rcook/tuning-tool{}", PACKAGE_BUILD_VERSION.map(|x| format!("\n\n{}", x)).unwrap_or_else(|| String::from("")))
+    after_help = format!(
+        "{PACKAGE_HOME_PAGE}{end}",
+        end = PACKAGE_BUILD_VERSION
+            .map(|x| format!("\n\n{}", x))
+            .unwrap_or_else(|| String::from("")))
 )]
 pub(crate) struct TuningToolArgs {
     #[command(subcommand)]
