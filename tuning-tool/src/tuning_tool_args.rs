@@ -22,7 +22,7 @@
 
 use crate::cli::parse_absolute_path;
 use crate::types::{ChunkSize, DeviceId, Preset};
-use clap::{Args, Parser, Subcommand};
+use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
 use std::str::FromStr;
 
@@ -84,8 +84,13 @@ pub(crate) enum Command {
         )]
         output_path: Option<PathBuf>,
 
-        #[arg(long = "brief", help = "Show brief output", default_value_t = false)]
-        brief: bool,
+        #[arg(
+            long = "format",
+            short = 'f',
+            help = "Output format",
+            default_value = "detailed"
+        )]
+        format: DumpTuningTableFormat,
     },
 
     #[command(name = "experimental", about = "Experimental stuff")]
@@ -163,4 +168,12 @@ pub(crate) struct SendTuningOutput {
 
     #[arg(long = "file", short = 'f', help = "Path to SysEx file")]
     pub(crate) syx_path: Option<String>,
+}
+
+#[derive(Clone, Debug, ValueEnum)]
+pub(crate) enum DumpTuningTableFormat {
+    #[clap(name = "brief")]
+    Brief,
+    #[clap(name = "detailed")]
+    Detailed,
 }
