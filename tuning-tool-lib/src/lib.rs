@@ -23,5 +23,7 @@
 mod error;
 mod u7;
 
-pub use error::{FromStrError, TryFromU8Error};
-pub use u7::U7;
+pub mod symbolic;
+
+pub use crate::error::{FromStrError, TryFromU8Error};
+pub use crate::u7::U7;

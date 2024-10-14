@@ -27,16 +27,18 @@ use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::scale::Scale;
+use crate::symbolic::evaluate;
 use crate::types::KeyNumber;
 use anyhow::{anyhow, bail, Result};
 use log::trace;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::once;
+use tuning_tool_lib::symbolic::Expression;
 
 #[derive(Debug)]
 pub(crate) struct KeyFrequencyMapping {
     pub(crate) key: KeyNumber,
-    pub(crate) frequency: Frequency,
+    pub(crate) frequency: Expression,
     pub(crate) degree: usize,
     pub(crate) interval: Interval,
 }
@@ -70,21 +72,21 @@ impl KeyFrequencyMapping {
         fn calculate_frequency(
             key: i32,
             keys_per_equave: i32,
-            zero_frequency: f64,
+            zero_frequency: Expression,
             reference: i32,
-            reference_ratio: f64,
-            equave_ratio: f64,
+            reference_ratio: Expression,
+            equave_ratio: Expression,
             interval: &Interval,
-        ) -> Frequency {
+        ) -> Expression {
             let equave = (key - reference).div_euclid(keys_per_equave);
-            let ratio = interval.as_ratio().0;
-            let (equave, ratio) = if ratio < reference_ratio {
-                (equave + 1, ratio)
+            let ratio = interval.as_ratio();
+            let equave = if evaluate(ratio.clone()) < evaluate(reference_ratio) {
+                equave + 1
             } else {
-                (equave, ratio)
+                equave
             };
 
-            Frequency(zero_frequency * ratio * equave_ratio.powi(equave))
+            zero_frequency * ratio * equave_ratio.pow(Expression::new_z(equave))
         }
 
         const N: usize = 128;
@@ -112,7 +114,7 @@ impl KeyFrequencyMapping {
             bail!("Reference key is not in mapping");
         };
 
-        let reference_ratio = interval.as_ratio().0;
+        let reference_ratio = interval.as_ratio();
 
         trace!(
             "Reference key {} at {:.2} Hz",
@@ -120,21 +122,20 @@ impl KeyFrequencyMapping {
             reference_frequency
         );
 
-        let zero_frequency = reference_frequency / reference_ratio;
-        let equave_ratio = scale.equave_ratio().0;
+        let zero_frequency = Expression::new_r(reference_frequency) / reference_ratio.clone();
+        let equave_ratio = scale.equave_ratio();
 
         trace!(
             "Zero key {zero} at {frequency:.2} Hz (unison/prime interval)",
             frequency = calculate_frequency(
                 zero,
                 keys_per_equave as i32,
-                zero_frequency,
+                zero_frequency.clone(),
                 reference,
-                reference_ratio,
-                equave_ratio,
+                reference_ratio.clone(),
+                equave_ratio.clone(),
                 &unison,
             )
-            .0
         );
 
         intervals
@@ -146,10 +147,10 @@ impl KeyFrequencyMapping {
                         let frequency = calculate_frequency(
                             i as i32,
                             keys_per_equave as i32,
-                            zero_frequency,
+                            zero_frequency.clone(),
                             reference,
-                            reference_ratio,
-                            equave_ratio,
+                            reference_ratio.clone(),
+                            equave_ratio.clone(),
                             interval,
                         );
                         let mapping = KeyFrequencyMapping {
@@ -175,12 +176,13 @@ impl Display for KeyFrequencyMapping {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
-            "{key:<3}  {name:<4}  {degree:<2}  {interval:<12}  {f:>9.2} Hz",
+            "{key:<3}  {name:<4}  {degree:<2}  {interval:<12}  {f:>9.2} Hz  {symbolic}",
             key = self.key.to_u8(),
             name = MidiNote::ALL[self.key.to_u8() as usize].name(),
             degree = self.degree,
             interval = self.interval.to_string(),
-            f = self.frequency.0,
+            f = evaluate(self.frequency.clone()),
+            symbolic = self.frequency,
         )
     }
 }
@@ -243,6 +245,7 @@ mod tests {
     use crate::resources::RESOURCE_DIR;
     use crate::scale::Scale;
     use crate::scl_file::SclFile;
+    use crate::symbolic::evaluate;
     use crate::test_util::{read_expected_frequencies, scala_tuning_dump_from_str};
     use crate::types::KeyNumber;
     use anyhow::Result;
@@ -323,10 +326,7 @@ mod tests {
         let frequencies =
             KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?;
         for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(actual
-                .frequency
-                .0
-                .approx_eq_with_epsilon(expected, 0.0001f64))
+            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.0001f64))
         }
         Ok(())
     }
@@ -521,10 +521,7 @@ mod tests {
         let frequencies = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?;
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(actual
-                .frequency
-                .0
-                .approx_eq_with_epsilon(expected.0, 0.0001f64))
+            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected.0, 0.0001f64))
         }
         Ok(())
     }
@@ -538,10 +535,7 @@ mod tests {
         let frequencies = KeyFrequencyMapping::compute(scale, keyboard_mapping)?;
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(actual
-                .frequency
-                .0
-                .approx_eq_with_epsilon(expected, 0.000000001f64))
+            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.000000001f64))
         }
         Ok(())
     }

@@ -42,8 +42,6 @@ macro_rules! u7_newtype {
 }
 pub(crate) use u7_newtype;
 
-f64_newtype!(Ratio, pub(crate));
-
 u7_newtype!(Char7, pub(crate));
 u7_newtype!(Checksum, pub(crate));
 u7_newtype!(ChunkSize, pub(crate));

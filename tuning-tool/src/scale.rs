@@ -21,8 +21,8 @@
 //
 
 use crate::interval::Interval;
-use crate::types::Ratio;
 use anyhow::{bail, Result};
+use tuning_tool_lib::symbolic::Expression;
 
 #[derive(Debug)]
 pub(crate) struct Scale {
@@ -41,7 +41,7 @@ impl Scale {
         &self.intervals
     }
 
-    pub(crate) fn equave_ratio(&self) -> Ratio {
+    pub(crate) fn equave_ratio(&self) -> Expression {
         let last_interval = self
             .intervals
             .last()

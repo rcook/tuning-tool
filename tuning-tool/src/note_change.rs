@@ -100,6 +100,7 @@ mod tests {
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::scale::Scale;
+    use crate::symbolic::evaluate;
     use crate::types::{DeviceId, KeyNumber, MidiValue, Preset};
     use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
@@ -159,7 +160,7 @@ mod tests {
                 Ok(NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: mapping.frequency.to_mts_entry()?,
+                    mts: Frequency(evaluate(mapping.frequency.clone())).to_mts_entry()?,
                 })
             })
             .collect::<Result<Vec<_>>>()?;

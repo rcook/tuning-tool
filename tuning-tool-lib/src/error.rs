@@ -20,14 +20,11 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use num::rational::Ratio;
+use num::BigInt;
+use rust_decimal::Decimal;
 use std::num::ParseIntError;
 use thiserror::Error;
-
-#[derive(Debug, Error)]
-pub enum TryFromU8Error {
-    #[error("value {0} out of range for type")]
-    OutOfRange(u8),
-}
 
 #[derive(Debug, Error)]
 pub enum FromStrError {
@@ -36,4 +33,22 @@ pub enum FromStrError {
 
     #[error(transparent)]
     Other(#[from] ParseIntError),
+}
+
+#[derive(Debug, Error)]
+pub enum TryFromDecimalError {
+    #[error("could not convert value {0}")]
+    CouldNotConvert(Decimal),
+}
+
+#[derive(Debug, Error)]
+pub enum TryFromRatioError {
+    #[error("could not convert ratio {0}")]
+    CouldNotConvert(Ratio<BigInt>),
+}
+
+#[derive(Debug, Error)]
+pub enum TryFromU8Error {
+    #[error("value {0} out of range for type")]
+    OutOfRange(u8),
 }

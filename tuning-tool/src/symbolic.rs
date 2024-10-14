@@ -20,52 +20,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#![allow(clippy::wrong_self_convention)]
+use tuning_tool_lib::symbolic::Expression;
+use tuning_tool_lib::symbolic::Value::{R, Z};
 
-mod approx_eq;
-mod bulk_dump_reply;
-mod checksum_calculator;
-mod cli;
-mod consts;
-mod decode_bulk_dump;
-mod devices;
-mod dump_tuning_table;
-mod experimental;
-mod frequency;
-mod fs;
-mod hex_dump;
-mod interval;
-mod kbm_file;
-mod key_frequency_mapping;
-mod key_mapping;
-mod key_mappings;
-mod keyboard_mapping;
-mod list_ports;
-mod midi_input_ex;
-mod midi_message_builder;
-mod midi_note;
-mod midi_output_ex;
-mod monitor_port;
-mod mts_entry;
-mod note_change;
-mod note_change_entry;
-mod note_number;
-mod num;
-mod preset_name;
-mod read;
-mod resources;
-mod run;
-mod save_tunings;
-mod scale;
-mod scl_file;
-mod semitones;
-mod send_tuning;
-mod symbolic;
-mod test_util;
-mod tuning_tool_args;
-mod types;
-
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    crate::run::run()
+pub(crate) fn evaluate(expr: Expression) -> f64 {
+    match expr.evaluate() {
+        Some(R(value)) => value,
+        Some(Z(value)) => value as f64,
+        _ => todo!(),
+    }
 }
