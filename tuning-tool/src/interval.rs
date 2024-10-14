@@ -20,13 +20,13 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::types::Ratio;
 use anyhow::{bail, Error};
 use num::{BigRational, One, ToPrimitive};
 use rust_decimal::Decimal;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::result::Result as StdResult;
 use std::str::FromStr;
+use tuning_tool_lib::symbolic::Expression;
 
 #[derive(Clone, Debug, PartialEq)]
 enum Inner {
@@ -42,11 +42,21 @@ impl Interval {
         Self(Inner::Ratio(BigRational::one()))
     }
 
-    pub(crate) fn as_ratio(&self) -> Ratio {
-        Ratio(match &self.0 {
-            Inner::Cents(value) => 2f64.powf(value.to_f64().expect("Must be f64") / 1200f64),
-            Inner::Ratio(value) => value.to_f64().expect("Must be f64"),
-        })
+    pub(crate) fn as_ratio(&self) -> Expression {
+        match &self.0 {
+            Inner::Cents(value) => {
+                let value_expr = if value.is_integer() {
+                    Expression::new_z(value.to_i32().expect("Must be i32"))
+                } else {
+                    Expression::new_r(value.to_f64().expect("Must be f64"))
+                };
+                Expression::new_z(2).pow(value_expr / Expression::new_z(1200))
+            }
+            Inner::Ratio(value) => {
+                Expression::new_z(value.numer().to_i32().expect("Must succeed"))
+                    / Expression::new_z(value.denom().to_i32().expect("Must succeed"))
+            }
+        }
     }
 }
 
@@ -79,33 +89,27 @@ impl FromStr for Interval {
 mod tests {
     use crate::approx_eq::ApproxEq;
     use crate::interval::Interval;
+    use crate::symbolic::evaluate;
     use anyhow::Result;
 
     #[test]
     fn basics() -> Result<()> {
         const EPSILON: f64 = 0.0000001f64;
-        assert!(Interval::unison()
-            .as_ratio()
-            .0
-            .approx_eq_with_epsilon(1f64, EPSILON));
+        assert!(evaluate(Interval::unison().as_ratio()).approx_eq_with_epsilon(1f64, EPSILON));
         assert_eq!("1/1", Interval::unison().to_string());
 
         let interval = "150.5".parse::<Interval>()?;
-        assert!(interval
-            .as_ratio()
-            .0
-            .approx_eq_with_epsilon(1.0908227291337902, EPSILON));
+        assert!(evaluate(interval.as_ratio()).approx_eq_with_epsilon(1.0908227291337902, EPSILON));
         assert_eq!("150.5", interval.to_string());
 
         let interval = "19/17".parse::<Interval>()?;
-        assert!(interval
-            .as_ratio()
-            .0
-            .approx_eq_with_epsilon(1.1176470588235294f64, EPSILON));
+        assert!(
+            evaluate(interval.as_ratio()).approx_eq_with_epsilon(1.1176470588235294f64, EPSILON)
+        );
         assert_eq!("19/17", interval.to_string());
 
         let interval = "2/1".parse::<Interval>()?;
-        assert_eq!(2f64, interval.as_ratio().0);
+        assert_eq!(2f64, evaluate(interval.as_ratio()));
         assert_eq!("2/1", interval.to_string());
 
         Ok(())

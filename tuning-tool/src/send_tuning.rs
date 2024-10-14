@@ -29,6 +29,7 @@ use crate::midi_output_ex::MidiOutputEx;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
+use crate::symbolic::evaluate;
 use crate::tuning_tool_args::SendTuningOutput;
 use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
 use anyhow::Result;
@@ -47,12 +48,13 @@ fn make_note_change_entries(
         .iter()
         .enumerate()
         .map(|(i, mapping)| {
+            let f = Frequency(evaluate(mapping.frequency.clone()));
             Ok((
-                mapping.frequency,
+                f,
                 NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: mapping.frequency.to_mts_entry()?,
+                    mts: f.to_mts_entry()?,
                 },
             ))
         })

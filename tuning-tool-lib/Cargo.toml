@@ -11,4 +11,8 @@ repository = "https://github.com/rcook/tuning-tool.git"
 version = "0.0.2"
 
 [dependencies]
+num = "0.4.3"
 thiserror = "1.0.64"
+
+[dev-dependencies]
+rstest = "0.23.0"

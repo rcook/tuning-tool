@@ -209,6 +209,7 @@ mod tests {
     use crate::key_frequency_mapping::KeyFrequencyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::symbolic::evaluate;
     use crate::test_util::{read_test_scl_file, read_test_syx_file};
     use crate::types::{DeviceId, KeyNumber, Preset};
     use anyhow::Result;
@@ -271,7 +272,7 @@ mod tests {
 
         let entries = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?
             .iter()
-            .map(|mapping| mapping.frequency.to_mts_entry())
+            .map(|mapping| Frequency(evaluate(mapping.frequency.clone())).to_mts_entry())
             .collect::<Result<Vec<_>>>()?
             .try_into()
             .expect("Must have exactly 128 elements");

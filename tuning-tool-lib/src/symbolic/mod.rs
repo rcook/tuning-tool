@@ -1,4 +1,4 @@
-// Copyright (c) 2024 Richard Cook
+// Copyright (c) 2024 Richard Cook and others
 //
 // Permission is hereby granted, free of charge, to any person obtaining
 // a copy of this software and associated documentation files (the
@@ -20,52 +20,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#![allow(clippy::wrong_self_convention)]
+// Inspired by https://github.com/simensgreen/rusymbols
 
-mod approx_eq;
-mod bulk_dump_reply;
-mod checksum_calculator;
-mod cli;
-mod consts;
-mod decode_bulk_dump;
-mod devices;
-mod dump_tuning_table;
-mod experimental;
-mod frequency;
-mod fs;
-mod hex_dump;
-mod interval;
-mod kbm_file;
-mod key_frequency_mapping;
-mod key_mapping;
-mod key_mappings;
-mod keyboard_mapping;
-mod list_ports;
-mod midi_input_ex;
-mod midi_message_builder;
-mod midi_note;
-mod midi_output_ex;
-mod monitor_port;
-mod mts_entry;
-mod note_change;
-mod note_change_entry;
-mod note_number;
-mod num;
-mod preset_name;
-mod read;
-mod resources;
-mod run;
-mod save_tunings;
-mod scale;
-mod scl_file;
-mod semitones;
-mod send_tuning;
-mod symbolic;
-mod test_util;
-mod tuning_tool_args;
-mod types;
+mod brackets;
+mod expression;
+mod literals;
+mod op;
+mod value;
 
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    crate::run::run()
-}
+pub use crate::symbolic::brackets::Brackets;
+pub use crate::symbolic::expression::Expression;
+pub use crate::symbolic::op::Op;
+pub use crate::symbolic::value::Value;
