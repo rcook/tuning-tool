@@ -26,78 +26,43 @@ use crate::frequency::Frequency;
 use crate::resources::RESOURCE_DIR;
 use crate::scl_file::SclFile;
 use crate::types::KeyNumber;
-use anyhow::{anyhow, bail, Result};
-use std::fs::read_to_string;
 use std::path::Path;
 
 #[allow(unused)]
-pub(crate) fn read_expected_frequencies<P: AsRef<Path>>(path: P) -> Result<Vec<f64>> {
-    let path = path.as_ref();
-    let file = RESOURCE_DIR.get_file(path).ok_or_else(|| {
-        anyhow!(
-            "Expected frequency file {path} could not be opened",
-            path = path.display()
-        )
-    })?;
-    let s = file.contents_utf8().ok_or_else(|| {
-        anyhow!(
-            "Could not decode frequency file {path} as UTF-8",
-            path = path.display()
-        )
-    })?;
-
-    s.lines()
+pub(crate) fn read_expected_frequencies<P: AsRef<Path>>(path: P) -> Vec<f64> {
+    read_resource_utf8(path.as_ref())
+        .lines()
         .filter_map(|line| {
             let temp = line.trim();
             if temp.is_empty() {
-                None
+                None // grcov-excl-line
             } else {
                 Some(temp)
             }
         })
-        .map(|line| line.parse::<f64>().map_err(|e| anyhow!(e)))
-        .collect::<Result<Vec<_>>>()
+        .map(|line| line.parse::<f64>().expect("Content must be valid"))
+        .collect::<Vec<_>>()
 }
 
 #[allow(unused)]
-pub(crate) fn read_test_syx_file<P: AsRef<Path>>(path: P) -> Result<Vec<u8>> {
-    let path = path.as_ref();
-    Ok(RESOURCE_DIR
-        .get_file(path)
-        .ok_or_else(|| anyhow!("Could not load tuning dump {path}", path = path.display()))?
-        .contents()
-        .to_vec())
+pub(crate) fn read_syx_file<P: AsRef<Path>>(path: P) -> Vec<u8> {
+    read_resource_bytes(path.as_ref())
 }
 
 #[allow(unused)]
-pub(crate) fn read_test_scl_file<P: AsRef<Path>>(path: P) -> Result<SclFile> {
-    let path = path.as_ref();
-    let file = RESOURCE_DIR
-        .get_file(path)
-        .ok_or_else(|| anyhow!("Could not load .scl file {path}", path = path.display()))?;
-    let s = file.contents_utf8().ok_or_else(|| {
-        anyhow!(
-            "Could not convert contents of {path} to string",
-            path = path.display()
-        )
-    })?;
-    s.parse::<SclFile>()
+pub(crate) fn read_scl_file<P: AsRef<Path>>(path: P) -> SclFile {
+    read_resource_utf8(path.as_ref())
+        .parse::<SclFile>()
+        .expect("Must be valid .scl file")
 }
 
 #[allow(unused)]
 pub(crate) fn read_scala_tuning_dump<P: AsRef<Path>>(
     path: P,
     includes_header: bool,
-) -> Result<Vec<(KeyNumber, Frequency)>> {
-    let path = path.as_ref();
-    scala_tuning_dump_from_str(&read_to_string(path)?, includes_header)
-}
+) -> Vec<(KeyNumber, Frequency)> {
+    let s = read_resource_utf8(path.as_ref());
 
-#[allow(unused)]
-pub(crate) fn scala_tuning_dump_from_str(
-    s: &str,
-    includes_header: bool,
-) -> Result<Vec<(KeyNumber, Frequency)>> {
     let mut iter = s.lines().map(|line| line.trim());
 
     if includes_header {
@@ -106,27 +71,59 @@ pub(crate) fn scala_tuning_dump_from_str(
                 break;
             }
         }
-    }
+    } // grcov-excl-line
 
     let mut next_key = KeyNumber::ZERO;
     let mut mappings = Vec::new();
     for line in iter {
         let Some((prefix, suffix)) = line.split_once(':') else {
-            bail!("Invalid Scala tuning dump (key not found)",);
+            panic!("Invalid Scala tuning dump (key not found)"); // grcov-excl-line
         };
 
-        let key = prefix.parse::<KeyNumber>()?;
+        let Ok(key) = prefix.parse::<KeyNumber>() else {
+            panic!("Failed to parse key number"); // grcov-excl-line
+        };
+
         if key.to_u8() < next_key.to_u8() {
-            bail!("Invalid Scala tuning dump (unexpected key {key})",);
+            panic!("Invalid Scala tuning dump (unexpected key {key})"); // grcov-excl-line
         }
 
         let Some((prefix, _)) = suffix.trim_start().split_once(' ') else {
-            bail!("Invalid Scala tuning dump (frequency not found)",);
+            panic!("Invalid Scala tuning dump (frequency not found)"); // grcov-excl-line
         };
 
-        mappings.push((key, Frequency(prefix.parse::<f64>()?)));
+        let Ok(frequency) = prefix.parse::<f64>() else {
+            panic!("Failed to parse frequency"); // grcov-excl-line
+        };
+
+        mappings.push((key, Frequency(frequency)));
         next_key = key;
     }
 
-    Ok(mappings)
+    mappings
+}
+
+fn read_resource_utf8(path: &Path) -> String {
+    let Some(file) = RESOURCE_DIR.get_file(path) else {
+        panic!("Test data file {path} not found", path = path.display()); // grcov-excl-line
+    };
+
+    let Some(s) = file.contents_utf8() else {
+        // grcov-excl-start
+        panic!(
+            "Test data file could not be decoded {path} as UTF-8",
+            path = path.display()
+        );
+        // grcov-excl-stop
+    };
+
+    String::from(s)
+}
+
+fn read_resource_bytes(path: &Path) -> Vec<u8> {
+    let Some(file) = RESOURCE_DIR.get_file(path) else {
+        panic!("Test data file {path} not found", path = path.display()); // grcov-excl-line
+    };
+
+    file.contents().to_vec()
 }

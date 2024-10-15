@@ -40,3 +40,17 @@ impl BracketStyle {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::symbolic::bracket_style::BracketStyle::{self, *};
+    use rstest::rstest;
+
+    #[rstest]
+    #[case(("{", "}"), Curly)]
+    #[case(("(", ")"), Round)]
+    #[case(("[", "]"), Square)]
+    fn basics(#[case] expected: (&str, &str), #[case] input: BracketStyle) {
+        assert_eq!(expected, input.get_delimiters());
+    }
+}

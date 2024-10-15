@@ -30,3 +30,15 @@ pub(crate) fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
         .map_err(|_| String::from("Invalid path"))
         .map(|p| p.to_path_buf())
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::cli::parse_absolute_path;
+
+    #[test]
+    fn basics() {
+        assert!(parse_absolute_path("aaa/bbb/ccc")
+            .expect("Must succeed")
+            .is_absolute());
+    }
+}

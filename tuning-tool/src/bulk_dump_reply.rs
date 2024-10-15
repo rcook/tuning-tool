@@ -210,7 +210,7 @@ mod tests {
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::symbolic::evaluate;
-    use crate::test_util::{read_test_scl_file, read_test_syx_file};
+    use crate::test_util::{read_scl_file, read_syx_file};
     use crate::types::{DeviceId, KeyNumber, Preset};
     use anyhow::Result;
     use std::io::Read;
@@ -218,7 +218,7 @@ mod tests {
 
     #[test]
     fn basics() -> Result<()> {
-        let bytes = read_test_syx_file("test/carlos_super.syx")?;
+        let bytes = read_syx_file("test/carlos_super.syx");
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes_with_start_and_end()?;
@@ -258,7 +258,7 @@ mod tests {
         reference_key: KeyNumber,
         reference_frequency: Frequency,
     ) -> Result<()> {
-        let scala_file = read_test_scl_file("test/carlos_super.scl")?;
+        let scala_file = read_scl_file("test/carlos_super.scl");
         let scale = scala_file.scale();
 
         let keyboard_mapping = KeyboardMapping::new(
@@ -278,7 +278,7 @@ mod tests {
             .expect("Must have exactly 128 elements");
         let reply = BulkDumpReply::new(DeviceId::ZERO, preset, name.parse()?, entries)?;
 
-        let ref_bytes = read_test_syx_file(expected_syx_path)?;
+        let ref_bytes = read_syx_file(expected_syx_path);
         let bytes = reply.to_bytes_with_start_and_end()?;
         assert_eq!(ref_bytes, bytes);
         Ok(())

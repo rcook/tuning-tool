@@ -38,3 +38,15 @@ impl Display for Value {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::symbolic::value::Value::{R, Z};
+
+    #[test]
+    fn basics() {
+        assert_eq!("5", R(5f64).to_string());
+        assert_eq!("5.1", R(5.1f64).to_string());
+        assert_eq!("5", Z(5).to_string());
+    }
+}

@@ -215,6 +215,7 @@ impl TryFrom<Ratio<BigInt>> for Expression {
 
 #[cfg(test)]
 mod tests {
+    use crate::symbolic::bracket_style::BracketStyle;
     use crate::symbolic::expression::Expression;
     use crate::symbolic::value::Value::{self, R, Z};
     use rstest::rstest;
@@ -246,6 +247,15 @@ mod tests {
         let e1 = Expression::new_r(rhs);
         let e2 = e0 * e1;
         assert_eq!(Some(R(expected)), e2.evaluate());
+    }
+
+    #[rstest]
+    #[case(-100f64, 100f64)]
+    #[case(100f64, -100f64)]
+    fn neg_r(#[case] expected: f64, #[case] operand: f64) {
+        let e0 = Expression::new_r(operand);
+        let e1 = -e0;
+        assert_eq!(Some(R(expected)), e1.evaluate());
     }
 
     #[rstest]
@@ -299,6 +309,15 @@ mod tests {
     }
 
     #[rstest]
+    #[case(-100, 100)]
+    #[case(100, -100)]
+    fn neg_z(#[case] expected: i32, #[case] operand: i32) {
+        let e0 = Expression::new_z(operand);
+        let e1 = -e0;
+        assert_eq!(Some(Z(expected)), e1.evaluate());
+    }
+
+    #[rstest]
     #[case(100, 10, 2)]
     fn pow_z(#[case] expected: i32, #[case] lhs: i32, #[case] rhs: i32) {
         let e0 = Expression::new_z(lhs);
@@ -337,5 +356,38 @@ mod tests {
         let e3 = Expression::new_z(2);
         let e4 = e2.div(e3);
         assert_eq!(Some(Z(15)), e4.evaluate());
+    }
+
+    #[test]
+    fn display() {
+        assert_eq!(
+            "2 + 3",
+            (Expression::new_z(2) + Expression::new_z(3)).to_string()
+        );
+        assert_eq!(
+            "2 / 3",
+            (Expression::new_z(2) / Expression::new_z(3)).to_string()
+        );
+        assert_eq!(
+            "2 * 3",
+            (Expression::new_z(2) * Expression::new_z(3)).to_string()
+        );
+        assert_eq!(
+            "2 ** 3",
+            Expression::new_z(2).pow(Expression::new_z(3)).to_string()
+        );
+        assert_eq!(
+            "2 - 3",
+            (Expression::new_z(2) - Expression::new_z(3)).to_string()
+        );
+        assert_eq!("x", Expression::new_var("x").to_string());
+        assert_eq!(
+            "{2 + 3}",
+            Expression::brackets(
+                Expression::new_z(2) + Expression::new_z(3),
+                BracketStyle::Curly
+            )
+            .to_string()
+        );
     }
 }

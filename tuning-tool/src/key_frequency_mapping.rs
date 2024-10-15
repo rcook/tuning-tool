@@ -246,7 +246,7 @@ mod tests {
     use crate::scale::Scale;
     use crate::scl_file::SclFile;
     use crate::symbolic::evaluate;
-    use crate::test_util::{read_expected_frequencies, scala_tuning_dump_from_str};
+    use crate::test_util::{read_expected_frequencies, read_scala_tuning_dump};
     use crate::types::KeyNumber;
     use anyhow::Result;
     use std::iter::zip;
@@ -297,17 +297,11 @@ mod tests {
 
     #[test]
     fn sparse_mapping() -> Result<()> {
-        let expected_frequencies = scala_tuning_dump_from_str(
-            RESOURCE_DIR
-                .get_file("test/22edo2-scala-frequencies.txt")
-                .expect("Must exist")
-                .contents_utf8()
-                .expect("Must contain UTF-8"),
-            true,
-        )?
-        .iter()
-        .map(|(_, f)| f.0)
-        .collect::<Vec<_>>();
+        let expected_frequencies =
+            read_scala_tuning_dump("test/22edo2-scala-frequencies.txt", true)
+                .iter()
+                .map(|(_, f)| f.0)
+                .collect::<Vec<_>>();
 
         let scl_file = RESOURCE_DIR
             .get_file("test/22edo2.scl")
@@ -486,14 +480,7 @@ mod tests {
 
     #[test]
     fn scale_31edo2_69_scala_tuning_dump() -> Result<()> {
-        let mappings = scala_tuning_dump_from_str(
-            RESOURCE_DIR
-                .get_file("test/scala-frequencies.txt")
-                .expect("Must exist")
-                .contents_utf8()
-                .expect("Must contain UTF-8"),
-            true,
-        )?;
+        let mappings = read_scala_tuning_dump("test/scala-frequencies.txt", true);
         let expected_frequencies = mappings.iter().map(|(_, f)| f).collect::<Vec<_>>();
         let scale = &*SCALE_31EDO2;
         let keyboard_mapping = KeyboardMapping::new(
@@ -531,7 +518,7 @@ mod tests {
         scale: &Scale,
         keyboard_mapping: &KeyboardMapping,
     ) -> Result<()> {
-        let expected_frequencies = read_expected_frequencies(expected_frequencies_path)?;
+        let expected_frequencies = read_expected_frequencies(expected_frequencies_path);
         let frequencies = KeyFrequencyMapping::compute(scale, keyboard_mapping)?;
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
