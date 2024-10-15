@@ -2,3 +2,4 @@
 docker/
 target/
 docker-id.txt
+*.profraw

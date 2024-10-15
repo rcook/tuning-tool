@@ -1,0 +1,22 @@
+#!/bin/bash
+set -euo pipefail
+project_dir=$(cd $(dirname $0); pwd -P)
+
+cd $project_dir
+
+find $project_dir -name '*.profraw' -exec rm {} \;
+rm -rf $project_dir/target/debug/coverage
+
+CARGO_INCREMENTAL=0 RUSTFLAGS='-Cinstrument-coverage' LLVM_PROFILE_FILE='cargo-test-%p-%m.profraw' cargo test
+
+grcov $project_dir \
+  --source-dir $project_dir \
+  --binary-path $project_dir/target/debug \
+  --output-types html \
+  --branch \
+  --excl-line grcov-excl-line \
+  --excl-start grcov-excl-start \
+  --excl-stop grcov-excl-stop \
+  --output-path $project_dir/target/debug/coverage
+
+open $project_dir/target/debug/coverage/index.html
