@@ -111,11 +111,11 @@ impl Expression {
 impl Display for Expression {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         match &self.0 {
-            Inner::Add(lhs, rhs) => write!(f, "{lhs}{SYMBOL_ADD}{rhs}"),
-            Inner::Div(lhs, rhs) => write!(f, "{lhs}{SYMBOL_DIV}{rhs}"),
-            Inner::Mul(lhs, rhs) => write!(f, "{lhs}{SYMBOL_MUL}{rhs}"),
-            Inner::Pow(lhs, rhs) => write!(f, "{lhs}{SYMBOL_POW}{rhs}"),
-            Inner::Sub(lhs, rhs) => write!(f, "{lhs}{SYMBOL_SUB}{rhs}"),
+            Inner::Add(lhs, rhs) => write!(f, "{lhs} {SYMBOL_ADD} {rhs}"),
+            Inner::Div(lhs, rhs) => write!(f, "{lhs} {SYMBOL_DIV} {rhs}"),
+            Inner::Mul(lhs, rhs) => write!(f, "{lhs} {SYMBOL_MUL} {rhs}"),
+            Inner::Pow(lhs, rhs) => write!(f, "{lhs} {SYMBOL_POW} {rhs}"),
+            Inner::Sub(lhs, rhs) => write!(f, "{lhs} {SYMBOL_SUB} {rhs}"),
             Inner::Var(name) => write!(f, "{name}"),
             Inner::Val(value) => write!(f, "{value}"),
             Inner::Brackets(e, brackets) => {
