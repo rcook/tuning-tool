@@ -22,8 +22,7 @@
 
 use crate::symbolic::bracket_style::BracketStyle;
 use crate::symbolic::expression::Expression;
-use crate::symbolic::value::Value;
-use crate::symbolic::value::Value::{R, Z};
+use crate::symbolic::value::Value::{self, R, Z};
 use num::Integer;
 use std::collections::HashMap;
 
