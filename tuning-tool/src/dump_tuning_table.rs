@@ -67,7 +67,7 @@ pub(crate) fn dump_tuning_table(
                         .collect::<Vec<_>>();
                     let exprs = simplifier.simplify_vec(&inputs)?;
                     for (mapping, expr) in zip(mappings, exprs) {
-                        writeln!(out, "{mapping}  {expr}")?;
+                        writeln!(out, "{mapping:<95}  {expr}", mapping = mapping.to_string())?;
                     }
                 } else {
                     for mapping in mappings {
