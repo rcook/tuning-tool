@@ -64,12 +64,12 @@ impl Inner {
                         match lhs.checked_div_rem(rhs).expect("Overflow should not occur") {
                             (div, 0) => Z(div),
                             _ => R(lhs as f64 / rhs as f64),
-                        }
-                    }
+                        } // grcov-excl-line
+                    } // grcov-excl-line
                     (R(lhs), Z(rhs)) => R(lhs / rhs as f64),
                     (Z(lhs), R(rhs)) => R(lhs as f64 / rhs),
-                },
-            ),
+                }, // grcov-excl-line
+            ), // grcov-excl-line
             Self::Mul(lhs, rhs) => Some(
                 match (
                     lhs.evaluate_with_values(values)?,
@@ -115,5 +115,50 @@ impl Inner {
             Self::Val(value) => Some(value.clone()),
             Self::Brackets(e, _) => e.evaluate_with_values(values),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::symbolic::expression::Expression;
+    use crate::symbolic::inner::Inner::{self, *};
+    use crate::symbolic::value::Value::{self, *};
+    use rstest::rstest;
+    use std::collections::HashMap;
+
+    macro_rules! val {
+        ($value: expr) => {
+            Box::new(Expression::new_val($value))
+        };
+    }
+
+    #[rstest]
+    #[case(R(3f64), Add(val!(R(1f64)), val!(R(2f64))))]
+    #[case(Z(3), Add(val!(Z(1)), val!(Z(2))))]
+    #[case(R(3f64), Add(val!(R(1f64)), val!(Z(2))))]
+    #[case(R(3f64), Add(val!(Z(1)), val!(R(2f64))))]
+    #[case(R(0.5f64), Div(val!(R(1f64)), val!(R(2f64))))]
+    #[case(R(0.5f64), Div(val!(Z(1)), val!(Z(2))))]
+    #[case(Z(2), Div(val!(Z(2)), val!(Z(1))))]
+    #[case(R(0.5f64), Div(val!(R(1f64)), val!(Z(2))))]
+    #[case(R(0.5f64), Div(val!(Z(1)), val!(R(2f64))))]
+    #[case(R(2f64), Mul(val!(R(1f64)), val!(R(2f64))))]
+    #[case(Z(2), Mul(val!(Z(1)), val!(Z(2))))]
+    #[case(R(2f64), Mul(val!(R(1f64)), val!(Z(2))))]
+    #[case(R(2f64), Mul(val!(Z(1)), val!(R(2f64))))]
+    #[case(R(1f64), Pow(val!(R(1f64)), val!(R(2f64))))]
+    #[case(Z(1), Pow(val!(Z(1)), val!(Z(2))))]
+    #[case(R(0.25f64), Pow(val!(Z(2)), val!(Z(-2))))]
+    #[case(R(1f64), Pow(val!(R(1f64)), val!(Z(2))))]
+    #[case(R(1f64), Pow(val!(Z(1)), val!(R(2f64))))]
+    #[case(R(-1f64), Sub(val!(R(1f64)), val!(R(2f64))))]
+    #[case(Z(-1), Sub(val!(Z(1)), val!(Z(2))))]
+    #[case(R(-1f64), Sub(val!(R(1f64)), val!(Z(2))))]
+    #[case(R(-1f64), Sub(val!(Z(1)), val!(R(2f64))))]
+    fn basics(#[case] expected: Value, #[case] expr: Inner) {
+        assert_eq!(
+            Some(expected),
+            expr.evaluate_with_values(&HashMap::from([]))
+        );
     }
 }
