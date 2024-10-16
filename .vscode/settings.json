@@ -2,7 +2,9 @@
   "files.eol": "\n",
   "files.exclude": {
     "**/.vscode/": true,
+    "**/build/": true,
     "**/target/": true,
+    "**/*.egg-info/": true,
   },
   "rust-analyzer.showUnlinkedFileNotification": false,
 }
