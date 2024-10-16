@@ -1,7 +1,5 @@
 .DS_Store
-docker/
-target/
-docker-id.txt
 *.profraw
-*.egg-info/
 build/
+target/
+*.egg-info/
