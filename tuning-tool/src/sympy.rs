@@ -38,7 +38,10 @@ impl Simplifier {
         let python = Python::new()?;
 
         if python.exec("import sympy").is_err() {
-            bail!("sympy not installed");
+            bail!(
+                "sympy not installed for Python at {python_path}",
+                python_path = python.python_path.display()
+            );
         }
 
         Ok(Self { python })
