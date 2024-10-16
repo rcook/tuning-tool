@@ -27,6 +27,8 @@ use std::process::Command;
 use tempfile::NamedTempFile;
 use which::which;
 
+const PYTHON_FILE_NAME: &str = "python3";
+
 pub(crate) struct Simplifier {
     python: Python,
 }
@@ -78,7 +80,9 @@ struct Python {
 
 impl Python {
     fn new() -> Result<Self> {
-        let python_path = which("python3")?;
+        let Ok(python_path) = which(PYTHON_FILE_NAME) else {
+            bail!("Cannot find Python binary {PYTHON_FILE_NAME}");
+        };
         Ok(Self { python_path })
     }
 
