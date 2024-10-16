@@ -20,11 +20,12 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-mod error;
-mod u7;
+pub trait IntegerEx: Sized {
+    fn checked_div_rem(&self, other: Self) -> Option<(Self, Self)>;
+}
 
-pub mod maths;
-pub mod symbolic;
-
-pub use crate::error::{FromStrError, TryFromU8Error};
-pub use crate::u7::U7;
+impl IntegerEx for i32 {
+    fn checked_div_rem(&self, other: Self) -> Option<(Self, Self)> {
+        Some((self.checked_div(other)?, self.checked_rem(other)?))
+    }
+}

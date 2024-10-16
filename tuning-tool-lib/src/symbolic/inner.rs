@@ -20,10 +20,10 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::maths::IntegerEx;
 use crate::symbolic::bracket_style::BracketStyle;
 use crate::symbolic::expression::Expression;
 use crate::symbolic::value::Value::{self, R, Z};
-use num::Integer;
 use std::collections::HashMap;
 
 type E = Box<Expression>;
@@ -49,7 +49,7 @@ impl Inner {
                     rhs.evaluate_with_values(values)?,
                 ) {
                     (R(lhs), R(rhs)) => R(lhs + rhs),
-                    (Z(lhs), Z(rhs)) => Z(lhs + rhs),
+                    (Z(lhs), Z(rhs)) => Z(lhs.checked_add(rhs).expect("Overflow should not occur")),
                     (R(lhs), Z(rhs)) => R(lhs + rhs as f64),
                     (Z(lhs), R(rhs)) => R(lhs as f64 + rhs),
                 },
@@ -60,10 +60,12 @@ impl Inner {
                     rhs.evaluate_with_values(values)?,
                 ) {
                     (R(lhs), R(rhs)) => R(lhs / rhs),
-                    (Z(lhs), Z(rhs)) => match lhs.div_rem(&rhs) {
-                        (div, 0) => Z(div),
-                        _ => R(lhs as f64 / rhs as f64),
-                    },
+                    (Z(lhs), Z(rhs)) => {
+                        match lhs.checked_div_rem(rhs).expect("Overflow should not occur") {
+                            (div, 0) => Z(div),
+                            _ => R(lhs as f64 / rhs as f64),
+                        }
+                    }
                     (R(lhs), Z(rhs)) => R(lhs / rhs as f64),
                     (Z(lhs), R(rhs)) => R(lhs as f64 / rhs),
                 },
@@ -74,7 +76,7 @@ impl Inner {
                     rhs.evaluate_with_values(values)?,
                 ) {
                     (R(lhs), R(rhs)) => R(lhs * rhs),
-                    (Z(lhs), Z(rhs)) => Z(lhs * rhs),
+                    (Z(lhs), Z(rhs)) => Z(lhs.checked_mul(rhs).expect("Overflow should not occur")),
                     (R(lhs), Z(rhs)) => R(lhs * rhs as f64),
                     (Z(lhs), R(rhs)) => R(lhs as f64 * rhs),
                 },
@@ -87,7 +89,9 @@ impl Inner {
                     (R(lhs), R(rhs)) => R(lhs.powf(rhs)),
                     (Z(lhs), Z(rhs)) => {
                         if rhs >= 0 {
-                            Z(lhs.pow(rhs as u32))
+                            Z(lhs
+                                .checked_pow(rhs as u32)
+                                .expect("Overflow should not occur"))
                         } else {
                             R((lhs as f64).powi(rhs))
                         }
@@ -102,7 +106,7 @@ impl Inner {
                     rhs.evaluate_with_values(values)?,
                 ) {
                     (R(lhs), R(rhs)) => R(lhs - rhs),
-                    (Z(lhs), Z(rhs)) => Z(lhs - rhs),
+                    (Z(lhs), Z(rhs)) => Z(lhs.checked_sub(rhs).expect("Overflow should not occur")),
                     (R(lhs), Z(rhs)) => R(lhs - rhs as f64),
                     (Z(lhs), R(rhs)) => R(lhs as f64 - rhs),
                 },
