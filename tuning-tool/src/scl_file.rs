@@ -127,48 +127,60 @@ impl FromStr for SclFile {
 
 #[cfg(test)]
 mod tests {
-    use crate::resources::RESOURCE_DIR;
-    use crate::scl_file::SclFile;
-    use anyhow::{anyhow, Result};
-    use include_dir::File;
-    use std::{ffi::OsStr, path::Path};
+    use include_dir::include_dir;
+    use std::ffi::OsStr;
+
+    macro_rules! verify_scl {
+        ($path: expr) => {{
+            use crate::resources::include_resource_str;
+            use crate::scl_file::SclFile;
+            use std::{assert, panic};
+
+            let s = include_resource_str!($path);
+
+            let Ok(scl_file) = s.parse::<SclFile>() else {
+                panic!("Failed to parse .scl file {path}", path = $path);
+            };
+
+            let file_name = scl_file.file_name();
+            assert!(file_name.is_some() || file_name.is_none());
+        }};
+    }
+
+    macro_rules! verify_scl_file {
+        ($file: expr) => {{
+            use crate::scl_file::SclFile;
+            use std::panic;
+
+            let path = $file.path();
+
+            let s = String::from_utf8_lossy($file.contents());
+
+            let Ok(scl_file) = s.parse::<SclFile>() else {
+                panic!("Failed to parse .scl file {path}", path = path.display());
+            };
+
+            let file_name = scl_file.file_name();
+            assert!(file_name.is_some() || file_name.is_none());
+        }};
+    }
 
     #[test]
-    fn scala_archive() -> Result<()> {
-        let path = Path::new("scl");
-        let scl_dir = RESOURCE_DIR
-            .get_dir(path)
-            .ok_or_else(|| anyhow!("Could not get {path} directory", path = path.display()))?;
-
+    fn scala_archive() {
         let extension = Some(OsStr::new("scl"));
-        let files = scl_dir
+        let files = include_dir!("$CARGO_MANIFEST_DIR/../resources/test/scl")
             .files()
             .filter(|f| f.path().extension() == extension)
             .collect::<Vec<_>>();
         assert!(files.len() > 5000);
 
         for file in files {
-            test_scala_file(file)?;
+            verify_scl_file!(file);
         }
-
-        Ok(())
     }
 
     #[test]
-    fn blank_description() -> Result<()> {
-        let path = Path::new("blank-description.scl");
-        test_scala_file(
-            RESOURCE_DIR
-                .get_file(path)
-                .ok_or_else(|| anyhow!("Could not read {path}", path = path.display()))?,
-        )
-    }
-
-    fn test_scala_file(file: &File) -> Result<()> {
-        let s = String::from_utf8_lossy(file.contents());
-        let scala_file = s.parse::<SclFile>()?;
-        let file_name = scala_file.file_name();
-        assert!(file_name.is_some() || file_name.is_none());
-        Ok(())
+    fn blank_description() {
+        verify_scl!("blank-description.scl");
     }
 }
