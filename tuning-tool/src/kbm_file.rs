@@ -32,7 +32,7 @@ use log::trace;
 use std::path::Path;
 use std::result::Result as StdResult;
 use std::str::FromStr;
-use tuning_tool_lib::U7;
+use tuning_tool_lib::u7::U7;
 
 macro_rules! read_str {
     ($iter: expr) => {

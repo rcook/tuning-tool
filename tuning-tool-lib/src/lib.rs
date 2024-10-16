@@ -20,11 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-mod error;
-mod u7;
-
+pub mod error;
 pub mod maths;
 pub mod symbolic;
-
-pub use crate::error::{FromStrError, TryFromU8Error};
-pub use crate::u7::U7;
+pub mod u7;

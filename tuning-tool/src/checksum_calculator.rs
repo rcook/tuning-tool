@@ -22,7 +22,7 @@
 
 use crate::types::Checksum;
 use anyhow::{bail, Result};
-use tuning_tool_lib::U7;
+use tuning_tool_lib::u7::U7;
 
 pub(crate) struct ChecksumCalculator {
     count: usize,

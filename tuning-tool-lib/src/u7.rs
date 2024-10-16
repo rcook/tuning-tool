@@ -20,7 +20,7 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::TryFromU8Error;
+use crate::error::TryFromU8Error;
 
 pub trait U7: Copy + Sized + TryFrom<u8, Error = TryFromU8Error> {
     const ZERO: Self;

@@ -21,7 +21,7 @@
 //
 
 use anyhow::Result;
-use tuning_tool_lib::U7;
+use tuning_tool_lib::u7::U7;
 
 pub(crate) fn read<U, I>(iter: &mut I) -> Result<U>
 where

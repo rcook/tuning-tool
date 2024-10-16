@@ -24,7 +24,7 @@
 mod tests {
     use std::fmt::Debug;
     use std::str::FromStr;
-    use tuning_tool_lib::U7;
+    use tuning_tool_lib::u7::U7;
     use tuning_tool_macros::U7;
 
     #[derive(Clone, Copy, Debug, PartialEq, U7)]
