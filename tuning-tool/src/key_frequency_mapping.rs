@@ -246,17 +246,36 @@ mod tests {
     use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
-    use crate::resources::RESOURCE_DIR;
+    use crate::resources::{include_resource_str, parse_scala_tuning_dump};
     use crate::scale::Scale;
     use crate::scl_file::SclFile;
     use crate::symbolic::evaluate;
-    use crate::test_util::{read_expected_frequencies, read_scala_tuning_dump};
     use crate::types::KeyNumber;
     use anyhow::Result;
     use std::iter::zip;
-    use std::path::Path;
     use std::sync::LazyLock;
     use tuning_tool_macros::scale;
+
+    macro_rules! verify_frequencies {
+        ($path: expr, $scale: expr, $keyboard_mapping: expr) => {{
+            use crate::approx_eq::ApproxEq;
+            use crate::key_frequency_mapping::KeyFrequencyMapping;
+            use crate::resources::{include_resource_str, parse_frequencies};
+            use crate::symbolic::evaluate;
+            use std::iter::zip;
+            use std::{assert, assert_eq};
+
+            let s = include_resource_str!($path);
+            let keyboard_mapping = $keyboard_mapping.expect("Must succeed");
+            let expected_frequencies = parse_frequencies(s).expect("Must succeed");
+            let frequencies =
+                KeyFrequencyMapping::compute($scale, &keyboard_mapping).expect("Must succeed");
+            assert_eq!(expected_frequencies.len(), frequencies.len());
+            for (expected, actual) in zip(expected_frequencies, frequencies) {
+                assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.000000001f64))
+            }
+        }};
+    }
 
     static SCALE_31EDO2: LazyLock<Scale> = LazyLock::new(|| {
         scale![
@@ -302,24 +321,19 @@ mod tests {
     #[test]
     fn sparse_mapping() -> Result<()> {
         let expected_frequencies =
-            read_scala_tuning_dump("test/22edo2-scala-frequencies.txt", true)
+            parse_scala_tuning_dump(include_resource_str!("22edo2-scala-frequencies.txt"), true)
+                .expect("Must succeed")
                 .iter()
                 .map(|(_, f)| f.0)
                 .collect::<Vec<_>>();
 
-        let scl_file = RESOURCE_DIR
-            .get_file("test/22edo2.scl")
-            .expect("Must exist")
-            .contents_utf8()
-            .expect("Must contain UTF-8")
-            .parse::<SclFile>()?;
+        let scl_file = include_resource_str!("22edo2.scl")
+            .parse::<SclFile>()
+            .expect("Must succeed");
 
-        let kbm_file = RESOURCE_DIR
-            .get_file("test/22edo2.kbm")
-            .expect("Must exist")
-            .contents_utf8()
-            .expect("Must contain UTF-8")
-            .parse::<KbmFile>()?;
+        let kbm_file = include_resource_str!("22edo2.kbm")
+            .parse::<KbmFile>()
+            .expect("Must succeed");
 
         let frequencies =
             KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?;
@@ -330,11 +344,11 @@ mod tests {
     }
 
     #[test]
-    fn scale_31edo2_69() -> Result<()> {
-        check_frequencies(
-            "test/31edo2-expected-frequencies.txt",
+    fn scale_31edo2_69() {
+        verify_frequencies!(
+            "31edo2-expected-frequencies.txt",
             &SCALE_31EDO2,
-            &KeyboardMapping::new(
+            KeyboardMapping::new(
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
                 KeyNumber::constant::<69>(),
@@ -354,16 +368,16 @@ mod tests {
                     KeyMapping::Degree(26),
                     KeyMapping::Degree(28),
                 ]),
-            )?,
-        )
+            )
+        );
     }
 
     #[test]
-    fn scale_31edo2_57() -> Result<()> {
-        check_frequencies(
-            "test/31edo2-expected-frequencies.txt",
+    fn scale_31edo2_57() {
+        verify_frequencies!(
+            "31edo2-expected-frequencies.txt",
             &SCALE_31EDO2,
-            &KeyboardMapping::new(
+            KeyboardMapping::new(
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
                 KeyNumber::constant::<57>(),
@@ -383,16 +397,16 @@ mod tests {
                     KeyMapping::Degree(26),
                     KeyMapping::Degree(28),
                 ]),
-            )?,
-        )
+            )
+        );
     }
 
     #[test]
-    fn scale_31edo2_subset() -> Result<()> {
-        check_frequencies(
-            "test/31edo2-subset-expected-frequencies.txt",
+    fn scale_31edo2_subset() {
+        verify_frequencies!(
+            "31edo2-subset-expected-frequencies.txt",
             &SCALE_31EDO2,
-            &KeyboardMapping::new(
+            KeyboardMapping::new(
                 KeyNumber::constant::<1>(),
                 KeyNumber::constant::<3>(),
                 KeyNumber::constant::<69>(),
@@ -412,79 +426,76 @@ mod tests {
                     KeyMapping::Degree(26),
                     KeyMapping::Degree(28),
                 ]),
-            )?,
-        )
+            )
+        );
     }
 
     #[test]
-    fn bohlen_p() -> Result<()> {
-        check_frequencies(
-            "test/bohlen-p-expected-frequencies.txt",
+    fn bohlen_p() {
+        verify_frequencies!(
+            "bohlen-p-expected-frequencies.txt",
             &BOHLEN_P,
-            &KeyboardMapping::new_full_linear(
+            KeyboardMapping::new_full_linear(
                 KeyNumber::constant::<69>(),
                 KeyNumber::constant::<69>(),
                 Frequency::CONCERT_A4,
-            )?,
-        )?;
-        Ok(())
+            )
+        );
     }
 
     #[test]
-    fn scale_24edo2_432() -> Result<()> {
-        check_frequencies(
-            "test/24edo2-432-expected-frequencies.txt",
+    fn scale_24edo2_432() {
+        verify_frequencies!(
+            "24edo2-432-expected-frequencies.txt",
             &SCALE_24EDO2,
-            &KeyboardMapping::new_full_linear(
+            KeyboardMapping::new_full_linear(
                 KeyNumber::constant::<69>(),
                 KeyNumber::constant::<69>(),
                 Frequency(432f64),
-            )?,
-        )?;
-        Ok(())
+            )
+        );
     }
 
     #[test]
-    fn scale_12edo2() -> Result<()> {
-        check_frequencies(
-            "test/12edo2-expected-frequencies.txt",
+    fn scale_12edo2() {
+        verify_frequencies!(
+            "12edo2-expected-frequencies.txt",
             &SCALE_12EDO2,
-            &KeyboardMapping::new_full_linear(
+            KeyboardMapping::new_full_linear(
                 KeyNumber::constant::<69>(),
                 KeyNumber::constant::<69>(),
                 Frequency::CONCERT_A4,
-            )?,
-        )?;
-        Ok(())
+            )
+        );
     }
 
     #[test]
-    fn carlos_super_zero() -> Result<()> {
-        check_frequencies(
-            "test/carlos-super-zero-expected-frequencies.txt",
+    fn carlos_super_zero() {
+        verify_frequencies!(
+            "carlos-super-zero-expected-frequencies.txt",
             &CARLOS_SUPER,
-            &KeyboardMapping::new_full_linear(KeyNumber::ZERO, KeyNumber::ZERO, Frequency::MIN)?,
-        )?;
-        Ok(())
+            KeyboardMapping::new_full_linear(KeyNumber::ZERO, KeyNumber::ZERO, Frequency::MIN)
+        );
     }
 
     #[test]
-    fn carlos_super_69() -> Result<()> {
-        check_frequencies(
-            "test/carlos-super-69-expected-frequencies.txt",
+    fn carlos_super_69() {
+        verify_frequencies!(
+            "carlos-super-69-expected-frequencies.txt",
             &CARLOS_SUPER,
-            &KeyboardMapping::new_full_linear(
+            KeyboardMapping::new_full_linear(
                 KeyNumber::constant::<69>(),
                 KeyNumber::constant::<69>(),
                 Frequency::CONCERT_A4,
-            )?,
-        )?;
-        Ok(())
+            )
+        );
     }
 
     #[test]
     fn scale_31edo2_69_scala_tuning_dump() -> Result<()> {
-        let mappings = read_scala_tuning_dump("test/scala-frequencies.txt", true);
+        let mappings =
+            parse_scala_tuning_dump(include_resource_str!("scala-frequencies.txt"), true)
+                .expect("Must succeed");
         let expected_frequencies = mappings.iter().map(|(_, f)| f).collect::<Vec<_>>();
         let scale = &*SCALE_31EDO2;
         let keyboard_mapping = KeyboardMapping::new(
@@ -513,20 +524,6 @@ mod tests {
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
             assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected.0, 0.0001f64))
-        }
-        Ok(())
-    }
-
-    fn check_frequencies<P: AsRef<Path>>(
-        expected_frequencies_path: P,
-        scale: &Scale,
-        keyboard_mapping: &KeyboardMapping,
-    ) -> Result<()> {
-        let expected_frequencies = read_expected_frequencies(expected_frequencies_path);
-        let frequencies = KeyFrequencyMapping::compute(scale, keyboard_mapping)?;
-        assert_eq!(expected_frequencies.len(), frequencies.len());
-        for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.000000001f64))
         }
         Ok(())
     }

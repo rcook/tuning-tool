@@ -135,7 +135,7 @@ mod tests {
 
     #[test]
     fn scala_archive() -> Result<()> {
-        let path = Path::new("test/scl");
+        let path = Path::new("scl");
         let scl_dir = RESOURCE_DIR
             .get_dir(path)
             .ok_or_else(|| anyhow!("Could not get {path} directory", path = path.display()))?;
@@ -156,7 +156,7 @@ mod tests {
 
     #[test]
     fn blank_description() -> Result<()> {
-        let path = Path::new("test/blank-description.scl");
+        let path = Path::new("blank-description.scl");
         test_scala_file(
             RESOURCE_DIR
                 .get_file(path)

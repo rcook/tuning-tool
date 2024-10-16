@@ -205,20 +205,68 @@ impl BulkDumpReply {
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
-    use crate::frequency::Frequency;
-    use crate::key_frequency_mapping::KeyFrequencyMapping;
-    use crate::key_mappings::KeyMappings;
-    use crate::keyboard_mapping::KeyboardMapping;
-    use crate::symbolic::evaluate;
-    use crate::test_util::{read_scl_file, read_syx_file};
-    use crate::types::{DeviceId, KeyNumber, Preset};
+    use crate::resources::include_resource_bytes;
+    use crate::types::Preset;
     use anyhow::Result;
     use std::io::Read;
-    use std::path::Path;
+
+    macro_rules! verify_bytes {
+        ($path: expr, $preset: expr, $name: expr, $reference_key: expr, $reference_frequency: expr) => {{
+            use crate::bulk_dump_reply::BulkDumpReply;
+            use crate::bulk_dump_reply::MtsEntries;
+            use crate::frequency::Frequency;
+            use crate::key_frequency_mapping::KeyFrequencyMapping;
+            use crate::key_mappings::KeyMappings;
+            use crate::keyboard_mapping::KeyboardMapping;
+            use crate::resources::{include_resource_bytes, include_resource_str};
+            use crate::scl_file::SclFile;
+            use crate::symbolic::evaluate;
+            use crate::types::{DeviceId, KeyNumber};
+            use std::assert_eq;
+
+            let scala_file = include_resource_str!("carlos_super.scl")
+                .parse::<SclFile>()
+                .expect("Must succeed");
+            let scale = scala_file.scale();
+
+            let keyboard_mapping = KeyboardMapping::new(
+                KeyNumber::ZERO,
+                KeyNumber::MAX,
+                $reference_key,
+                $reference_key,
+                $reference_frequency,
+                KeyMappings::Linear,
+            )
+            .expect("Must succeed");
+
+            let entries: MtsEntries = KeyFrequencyMapping::compute(scale, &keyboard_mapping)
+                .expect("Must succeed")
+                .iter()
+                .map(|mapping| {
+                    Frequency(evaluate(mapping.frequency.clone()))
+                        .to_mts_entry()
+                        .expect("Must succeed")
+                })
+                .collect::<Vec<_>>()
+                .try_into()
+                .expect("Must have exactly 128 elements");
+            let reply = BulkDumpReply::new(
+                DeviceId::ZERO,
+                $preset,
+                $name.parse().expect("Must succeed"),
+                entries,
+            )
+            .expect("Must succeed");
+
+            let ref_bytes = include_resource_bytes!($path).to_vec();
+            let bytes = reply.to_bytes_with_start_and_end().expect("Must succeed");
+            assert_eq!(ref_bytes, bytes);
+        }};
+    }
 
     #[test]
     fn basics() -> Result<()> {
-        let bytes = read_syx_file("test/carlos_super.syx");
+        let bytes = include_resource_bytes!("carlos_super.syx").to_vec();
         assert_eq!(BULK_DUMP_REPLY_MESSAGE_SIZE + 2, bytes.len());
         let reply = BulkDumpReply::from_bytes(bytes.bytes())?;
         let output = reply.to_bytes_with_start_and_end()?;
@@ -228,59 +276,24 @@ mod tests {
     }
 
     #[test]
-    fn reference_key_0_min() -> Result<()> {
-        check_bytes(
-            "test/carlos_super.syx",
+    fn reference_key_0_min() {
+        verify_bytes!(
+            "carlos_super.syx",
             Preset::constant::<8>(),
             "carlos_super.mid",
             KeyNumber::ZERO,
-            Frequency::MIN,
-        )?;
-        Ok(())
+            Frequency::MIN
+        );
     }
 
     #[test]
-    fn reference_key_69_concert_a() -> Result<()> {
-        check_bytes(
-            "test/carlos_super_a4.syx",
+    fn reference_key_69_concert_a() {
+        verify_bytes!(
+            "carlos_super_a4.syx",
             Preset::ZERO,
             "carlos_super_a4 ",
             KeyNumber::constant::<69>(),
-            Frequency::CONCERT_A4,
-        )?;
-        Ok(())
-    }
-
-    fn check_bytes<P: AsRef<Path>>(
-        expected_syx_path: P,
-        preset: Preset,
-        name: &str,
-        reference_key: KeyNumber,
-        reference_frequency: Frequency,
-    ) -> Result<()> {
-        let scala_file = read_scl_file("test/carlos_super.scl");
-        let scale = scala_file.scale();
-
-        let keyboard_mapping = KeyboardMapping::new(
-            KeyNumber::ZERO,
-            KeyNumber::MAX,
-            reference_key,
-            reference_key,
-            reference_frequency,
-            KeyMappings::Linear,
-        )?;
-
-        let entries = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?
-            .iter()
-            .map(|mapping| Frequency(evaluate(mapping.frequency.clone())).to_mts_entry())
-            .collect::<Result<Vec<_>>>()?
-            .try_into()
-            .expect("Must have exactly 128 elements");
-        let reply = BulkDumpReply::new(DeviceId::ZERO, preset, name.parse()?, entries)?;
-
-        let ref_bytes = read_syx_file(expected_syx_path);
-        let bytes = reply.to_bytes_with_start_and_end()?;
-        assert_eq!(ref_bytes, bytes);
-        Ok(())
+            Frequency::CONCERT_A4
+        );
     }
 }

@@ -62,7 +62,6 @@ mod semitones;
 mod send_tuning;
 mod symbolic;
 mod sympy;
-mod test_util;
 mod tuning_tool_args;
 mod types;
 
