@@ -91,6 +91,13 @@ pub(crate) enum Command {
             default_value = "detailed"
         )]
         format: DumpTuningTableFormat,
+
+        #[arg(
+            long = "sympy",
+            help = "Use sympy if available to simplify arithmetic exressoin",
+            default_value_t = false
+        )]
+        sympy: bool,
     },
 
     #[command(name = "experimental", about = "Experimental stuff")]

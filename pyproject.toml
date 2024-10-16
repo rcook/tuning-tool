@@ -1,0 +1,9 @@
+[project]
+dependencies = [
+  "sympy",
+]
+dynamic = ["version"]
+name = "tuning-tool-py"
+
+[tool.setuptools.packages.find]
+include = ["tuning_tool_py"]

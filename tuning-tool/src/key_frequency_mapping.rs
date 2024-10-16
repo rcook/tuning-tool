@@ -170,6 +170,10 @@ impl KeyFrequencyMapping {
             })
             .collect::<Result<Vec<_>>>()
     }
+
+    pub(crate) fn frequency(&self) -> &Expression {
+        &self.frequency
+    }
 }
 
 impl Display for KeyFrequencyMapping {

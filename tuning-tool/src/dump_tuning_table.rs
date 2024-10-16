@@ -23,10 +23,12 @@
 use crate::kbm_file::KbmFile;
 use crate::key_frequency_mapping::KeyFrequencyMapping;
 use crate::scl_file::SclFile;
+use crate::sympy::Simplifier;
 use crate::tuning_tool_args::DumpTuningTableFormat;
 use anyhow::Result;
 use std::fs::File;
 use std::io::{stdout, Write};
+use std::iter::zip;
 use std::path::{Path, PathBuf};
 
 pub(crate) fn dump_tuning_table(
@@ -34,6 +36,7 @@ pub(crate) fn dump_tuning_table(
     kbm_path: &Path,
     output_path: &Option<PathBuf>,
     format: DumpTuningTableFormat,
+    sympy: bool,
 ) -> Result<()> {
     fn dump(
         out: &mut dyn Write,
@@ -41,6 +44,7 @@ pub(crate) fn dump_tuning_table(
         kbm_path: &Path,
         mappings: &Vec<KeyFrequencyMapping>,
         format: DumpTuningTableFormat,
+        simplifier: &Option<Simplifier>,
     ) -> Result<()> {
         match format {
             DumpTuningTableFormat::Brief => {
@@ -55,13 +59,30 @@ pub(crate) fn dump_tuning_table(
                     "# Keyboard mapping file: {path}",
                     path = kbm_path.display()
                 )?;
-                for mapping in mappings {
-                    writeln!(out, "{mapping}")?;
+
+                if let Some(simplifier) = simplifier {
+                    let inputs = mappings
+                        .iter()
+                        .map(|m| m.frequency().to_string())
+                        .collect::<Vec<_>>();
+                    let exprs = simplifier.simplify_vec(&inputs)?;
+                    for (mapping, expr) in zip(mappings, exprs) {
+                        writeln!(out, "{mapping}  {expr}")?;
+                    }
+                } else {
+                    for mapping in mappings {
+                        writeln!(out, "{mapping}")?;
+                    }
                 }
             }
         }
         Ok(())
     }
+
+    let simplifier = match sympy {
+        true => Some(Simplifier::new()?),
+        false => None,
+    };
 
     let scl_file = SclFile::read(scl_path)?;
     let kbm_file = KbmFile::read(kbm_path)?;
@@ -76,8 +97,16 @@ pub(crate) fn dump_tuning_table(
             kbm_path,
             &mappings,
             format,
+            &simplifier,
         )?,
-        None => dump(&mut stdout(), scl_path, kbm_path, &mappings, format)?,
+        None => dump(
+            &mut stdout(),
+            scl_path,
+            kbm_path,
+            &mappings,
+            format,
+            &simplifier,
+        )?,
     }
 
     Ok(())

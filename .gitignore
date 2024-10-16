@@ -3,3 +3,5 @@ docker/
 target/
 docker-id.txt
 *.profraw
+*.egg-info/
+build/
