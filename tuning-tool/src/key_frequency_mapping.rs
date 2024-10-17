@@ -20,30 +20,44 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::frequency::Frequency;
+use crate::evaluate::Evaluate;
+use crate::evaluation_strategy::{Direct, EvaluationStrategy, Symbolic};
 use crate::interval::Interval;
 use crate::key_mapping::KeyMapping;
 use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
 use crate::scale::Scale;
-use crate::symbolic::evaluate;
 use crate::types::KeyNumber;
 use anyhow::{anyhow, bail, Result};
 use log::trace;
+use num::pow::Pow;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::iter::once;
-use tuning_tool_lib::symbolic::Expression;
+
+pub(crate) fn compute_direct(
+    scale: &Scale,
+    keyboard_mapping: &KeyboardMapping,
+) -> Result<Vec<KeyFrequencyMapping<Direct>>> {
+    KeyFrequencyMapping::<Direct>::compute(scale, keyboard_mapping)
+}
+
+pub(crate) fn compute_symbolic(
+    scale: &Scale,
+    keyboard_mapping: &KeyboardMapping,
+) -> Result<Vec<KeyFrequencyMapping<Symbolic>>> {
+    KeyFrequencyMapping::<Symbolic>::compute(scale, keyboard_mapping)
+}
 
 #[derive(Debug)]
-pub(crate) struct KeyFrequencyMapping {
+pub(crate) struct KeyFrequencyMapping<E: EvaluationStrategy> {
     pub(crate) key: KeyNumber,
-    pub(crate) frequency: Expression,
+    pub(crate) frequency: E::Frequency,
     pub(crate) degree: usize,
     pub(crate) interval: Interval,
 }
 
-impl KeyFrequencyMapping {
+impl<E: EvaluationStrategy> KeyFrequencyMapping<E> {
     pub(crate) fn compute(scale: &Scale, keyboard_mapping: &KeyboardMapping) -> Result<Vec<Self>> {
         let start = keyboard_mapping.start_key().to_u8() as usize;
         let end = keyboard_mapping.end_key().to_u8() as usize;
@@ -51,7 +65,7 @@ impl KeyFrequencyMapping {
             scale,
             keyboard_mapping.zero_key(),
             keyboard_mapping.reference_key(),
-            keyboard_mapping.reference_frequency(),
+            E::new_frequency(keyboard_mapping.reference_frequency().0),
             keyboard_mapping.key_mappings(),
         )?
         .drain(start..=end)
@@ -63,27 +77,27 @@ impl KeyFrequencyMapping {
         scale: &Scale,
         zero_key: &KeyNumber,
         reference_key: &KeyNumber,
-        reference_frequency: &Frequency,
+        reference_frequency: E::Frequency,
         key_mappings: &KeyMappings,
     ) -> Result<Vec<Option<Self>>> {
-        fn calculate_frequency(
+        fn calculate_frequency<E: EvaluationStrategy>(
             key: i32,
             keys_per_equave: i32,
-            zero_frequency: Expression,
+            zero_frequency: E::Frequency,
             reference: i32,
-            reference_ratio: Expression,
-            equave_ratio: Expression,
+            reference_ratio: E::Ratio,
+            equave_ratio: E::Ratio,
             interval: &Interval,
-        ) -> Expression {
+        ) -> E::Frequency {
             let equave = (key - reference).div_euclid(keys_per_equave);
-            let ratio = interval.as_ratio();
-            let equave = if evaluate(ratio.clone()) < evaluate(reference_ratio) {
+            let ratio = E::interval_ratio(interval);
+            let equave = if ratio.as_f64() < reference_ratio.as_f64() {
                 equave + 1
             } else {
                 equave
             };
 
-            zero_frequency * ratio * equave_ratio.pow(Expression::new_z(equave))
+            zero_frequency * ratio * equave_ratio.pow(equave)
         }
 
         const N: usize = 128;
@@ -103,7 +117,6 @@ impl KeyFrequencyMapping {
             .collect::<Vec<_>>();
 
         let reference = reference_key.to_u8() as i32;
-        let reference_frequency = reference_frequency.0;
 
         let IntervalInfo::Mapping { interval, .. } =
             intervals.get(reference as usize).expect("Must be in range")
@@ -111,7 +124,7 @@ impl KeyFrequencyMapping {
             bail!("Reference key is not in mapping");
         };
 
-        let reference_ratio = interval.as_ratio();
+        let reference_ratio = E::interval_ratio(interval);
 
         trace!(
             "Reference key {} at {:.2} Hz",
@@ -119,12 +132,12 @@ impl KeyFrequencyMapping {
             reference_frequency
         );
 
-        let zero_frequency = Expression::new_r(reference_frequency) / reference_ratio.clone();
-        let equave_ratio = scale.equave_ratio();
+        let zero_frequency = reference_frequency / reference_ratio.clone();
+        let equave_ratio = E::equave_ratio(scale);
 
         trace!(
             "Zero key {zero} at {frequency:.2} Hz (unison/prime interval)",
-            frequency = calculate_frequency(
+            frequency = calculate_frequency::<E>(
                 zero,
                 keys_per_equave as i32,
                 zero_frequency.clone(),
@@ -141,7 +154,7 @@ impl KeyFrequencyMapping {
             .map(|(i, interval_info)| {
                 Ok(match interval_info {
                     IntervalInfo::Mapping { degree, interval } => {
-                        let frequency = calculate_frequency(
+                        let frequency = calculate_frequency::<E>(
                             i as i32,
                             keys_per_equave as i32,
                             zero_frequency.clone(),
@@ -168,12 +181,12 @@ impl KeyFrequencyMapping {
             .collect::<Result<Vec<_>>>()
     }
 
-    pub(crate) fn frequency(&self) -> &Expression {
+    pub(crate) fn frequency(&self) -> &E::Frequency {
         &self.frequency
     }
 }
 
-impl Display for KeyFrequencyMapping {
+impl<E: EvaluationStrategy> Display for KeyFrequencyMapping<E> {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
@@ -182,7 +195,7 @@ impl Display for KeyFrequencyMapping {
             name = MidiNote::ALL[self.key.to_u8() as usize].name(),
             degree = self.degree,
             interval = self.interval.to_string(),
-            f = evaluate(self.frequency.clone()),
+            f = self.frequency.as_f64(),
             symbolic = self.frequency,
         )
     }
@@ -237,16 +250,16 @@ impl<'a> IntervalInfo<'a> {
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::ApproxEq;
+    use crate::evaluate::Evaluate;
     use crate::frequency::Frequency;
     use crate::kbm_file::KbmFile;
-    use crate::key_frequency_mapping::KeyFrequencyMapping;
+    use crate::key_frequency_mapping::compute_symbolic;
     use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::resources::{include_resource_str, parse_scala_tuning_dump};
     use crate::scale::Scale;
     use crate::scl_file::SclFile;
-    use crate::symbolic::evaluate;
     use crate::types::KeyNumber;
     use anyhow::Result;
     use std::iter::zip;
@@ -256,20 +269,21 @@ mod tests {
     macro_rules! verify_frequencies {
         ($path: expr, $scale: expr, $keyboard_mapping: expr) => {{
             use crate::approx_eq::ApproxEq;
-            use crate::key_frequency_mapping::KeyFrequencyMapping;
+            use crate::key_frequency_mapping::compute_symbolic;
             use crate::resources::{include_resource_str, parse_frequencies};
-            use crate::symbolic::evaluate;
             use std::iter::zip;
             use std::{assert, assert_eq};
 
             let s = include_resource_str!($path);
             let keyboard_mapping = $keyboard_mapping.expect("Must succeed");
             let expected_frequencies = parse_frequencies(s).expect("Must succeed");
-            let frequencies =
-                KeyFrequencyMapping::compute($scale, &keyboard_mapping).expect("Must succeed");
+            let frequencies = compute_symbolic($scale, &keyboard_mapping).expect("Must succeed");
             assert_eq!(expected_frequencies.len(), frequencies.len());
             for (expected, actual) in zip(expected_frequencies, frequencies) {
-                assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.000000001f64))
+                assert!(actual
+                    .frequency
+                    .as_f64()
+                    .approx_eq_with_epsilon(expected, 0.000000001f64))
             }
         }};
     }
@@ -332,10 +346,12 @@ mod tests {
             .parse::<KbmFile>()
             .expect("Must succeed");
 
-        let frequencies =
-            KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?;
+        let frequencies = compute_symbolic(scl_file.scale(), kbm_file.keyboard_mapping())?;
         for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected, 0.0001f64))
+            assert!(actual
+                .frequency
+                .as_f64()
+                .approx_eq_with_epsilon(expected, 0.0001f64))
         }
         Ok(())
     }
@@ -517,10 +533,13 @@ mod tests {
             ]),
         )?;
 
-        let frequencies = KeyFrequencyMapping::compute(scale, &keyboard_mapping)?;
+        let frequencies = compute_symbolic(scale, &keyboard_mapping)?;
         assert_eq!(expected_frequencies.len(), frequencies.len());
         for (expected, actual) in zip(expected_frequencies, frequencies) {
-            assert!(evaluate(actual.frequency).approx_eq_with_epsilon(expected.0, 0.0001f64))
+            assert!(actual
+                .frequency
+                .as_f64()
+                .approx_eq_with_epsilon(expected.0, 0.0001f64))
         }
         Ok(())
     }

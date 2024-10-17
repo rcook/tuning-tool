@@ -28,6 +28,7 @@ use crate::symbolic::consts::{SYMBOL_ADD, SYMBOL_DIV, SYMBOL_MUL, SYMBOL_POW, SY
 use crate::symbolic::inner::Inner;
 use crate::symbolic::op::Op;
 use crate::symbolic::value::Value::{self, R, Z};
+use num::pow::Pow;
 use num::rational::Ratio;
 use num::{BigInt, ToPrimitive};
 use rust_decimal::Decimal;
@@ -164,6 +165,22 @@ impl Neg for Expression {
             Inner::Mul(Box::new(self), Box::new(Expression::new_z(-1))),
             Op::Mul,
         )
+    }
+}
+
+impl Pow<Self> for Expression {
+    type Output = Self;
+
+    fn pow(self, rhs: Self) -> Self::Output {
+        self.pow(rhs)
+    }
+}
+
+impl Pow<i32> for Expression {
+    type Output = Expression;
+
+    fn pow(self, rhs: i32) -> Self::Output {
+        self.pow(Expression::new_z(rhs))
     }
 }
 

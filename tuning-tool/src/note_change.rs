@@ -92,15 +92,15 @@ impl NoteChange {
 
 #[cfg(test)]
 mod tests {
+    use crate::evaluate::Evaluate;
     use crate::frequency::Frequency;
     use crate::hex_dump::from_hex_dump;
-    use crate::key_frequency_mapping::KeyFrequencyMapping;
+    use crate::key_frequency_mapping::compute_symbolic;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
     use crate::scale::Scale;
-    use crate::symbolic::evaluate;
     use crate::types::{DeviceId, KeyNumber, MidiValue, Preset};
     use anyhow::Result;
     use midly::live::{LiveEvent, SystemCommon};
@@ -153,14 +153,14 @@ mod tests {
             KeyMappings::Linear,
         )?;
 
-        let entries = KeyFrequencyMapping::compute(&CARLOS_SUPER, &keyboard_mapping)?
+        let entries = compute_symbolic(&CARLOS_SUPER, &keyboard_mapping)?
             .iter()
             .enumerate()
             .map(|(i, mapping)| {
                 Ok(NoteChangeEntry {
                     #[allow(clippy::unnecessary_fallible_conversions)]
                     key_number: TryInto::<u8>::try_into(i)?.try_into()?,
-                    mts: Frequency(evaluate(mapping.frequency.clone())).to_mts_entry()?,
+                    mts: Frequency(mapping.frequency.as_f64()).to_mts_entry()?,
                 })
             })
             .collect::<Result<Vec<_>>>()?;

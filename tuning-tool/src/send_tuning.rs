@@ -24,12 +24,11 @@ use crate::devices::{get_midi_output_port, make_midi_output};
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
 use crate::kbm_file::KbmFile;
-use crate::key_frequency_mapping::KeyFrequencyMapping;
+use crate::key_frequency_mapping::compute_direct;
 use crate::midi_output_ex::MidiOutputEx;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
 use crate::scl_file::SclFile;
-use crate::symbolic::evaluate;
 use crate::tuning_tool_args::SendTuningOutput;
 use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
 use anyhow::Result;
@@ -44,11 +43,11 @@ fn make_note_change_entries(
     scl_file: &SclFile,
     kbm_file: &KbmFile,
 ) -> Result<Vec<(Frequency, NoteChangeEntry)>> {
-    KeyFrequencyMapping::compute(scl_file.scale(), kbm_file.keyboard_mapping())?
+    compute_direct(scl_file.scale(), kbm_file.keyboard_mapping())?
         .iter()
         .enumerate()
         .map(|(i, mapping)| {
-            let f = Frequency(evaluate(mapping.frequency.clone()));
+            let f = Frequency(mapping.frequency.0);
             Ok((
                 f,
                 NoteChangeEntry {

@@ -20,12 +20,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::evaluate::Evaluate;
 use crate::mts_entry::MtsEntry;
 use crate::note_number::NoteNumber;
 use crate::num::round_default_scale;
+use crate::ratio::Ratio;
 use crate::semitones::Semitones;
 use crate::types::f64_newtype;
 use anyhow::Result;
+use std::ops::{Div, Mul};
 
 f64_newtype!(Frequency, pub(crate));
 
@@ -61,6 +64,28 @@ impl Frequency {
 
     fn semitones_raw(&self) -> Semitones {
         Semitones((NoteNumber::A4.to_u8() as f64) + 12f64 * (self.0 / Self::CONCERT_A4.0).log2())
+    }
+}
+
+impl Div<Ratio> for Frequency {
+    type Output = Self;
+
+    fn div(self, rhs: Ratio) -> Self::Output {
+        Self(self.0 / rhs.0)
+    }
+}
+
+impl Mul<Ratio> for Frequency {
+    type Output = Self;
+
+    fn mul(self, rhs: Ratio) -> Self::Output {
+        Self(self.0 * rhs.0)
+    }
+}
+
+impl Evaluate for Frequency {
+    fn as_f64(&self) -> f64 {
+        self.0
     }
 }
 

@@ -23,10 +23,16 @@
 use tuning_tool_lib::symbolic::Expression;
 use tuning_tool_lib::symbolic::Value::{R, Z};
 
-pub(crate) fn evaluate(expr: Expression) -> f64 {
-    match expr.evaluate() {
-        Some(R(value)) => value,
-        Some(Z(value)) => value as f64,
-        _ => todo!(),
+pub(crate) trait Evaluate {
+    fn as_f64(&self) -> f64;
+}
+
+impl Evaluate for Expression {
+    fn as_f64(&self) -> f64 {
+        match self.evaluate() {
+            Some(R(value)) => value,
+            Some(Z(value)) => value as f64,
+            _ => todo!(),
+        }
     }
 }

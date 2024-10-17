@@ -20,8 +20,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::evaluation_strategy::Symbolic;
 use crate::kbm_file::KbmFile;
-use crate::key_frequency_mapping::KeyFrequencyMapping;
+use crate::key_frequency_mapping::{compute_symbolic, KeyFrequencyMapping};
 use crate::scl_file::SclFile;
 use crate::sympy::Simplifier;
 use crate::tuning_tool_args::DumpTuningTableFormat;
@@ -42,7 +43,7 @@ pub(crate) fn dump_tuning_table(
         out: &mut dyn Write,
         scl_path: &Path,
         kbm_path: &Path,
-        mappings: &Vec<KeyFrequencyMapping>,
+        mappings: &Vec<KeyFrequencyMapping<Symbolic>>,
         format: DumpTuningTableFormat,
         simplifier: &Option<Simplifier>,
     ) -> Result<()> {
@@ -88,7 +89,7 @@ pub(crate) fn dump_tuning_table(
     let kbm_file = KbmFile::read(kbm_path)?;
     let scale = scl_file.scale();
     let keyboard_mapping = kbm_file.keyboard_mapping();
-    let mappings = KeyFrequencyMapping::compute(scale, keyboard_mapping)?;
+    let mappings = compute_symbolic(scale, keyboard_mapping)?;
 
     match output_path {
         Some(output_path) => dump(

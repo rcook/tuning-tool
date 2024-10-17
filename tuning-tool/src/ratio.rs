@@ -20,39 +20,22 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::interval::Interval;
-use crate::ratio::Ratio;
-use anyhow::{bail, Result};
-use tuning_tool_lib::symbolic::Expression;
+use crate::evaluate::Evaluate;
+use crate::types::f64_newtype;
+use num::pow::Pow;
 
-#[derive(Debug)]
-pub(crate) struct Scale {
-    intervals: Vec<Interval>,
+f64_newtype!(Ratio, pub(crate));
+
+impl Evaluate for Ratio {
+    fn as_f64(&self) -> f64 {
+        self.0
+    }
 }
 
-impl Scale {
-    pub(crate) fn new(intervals: Vec<Interval>) -> Result<Self> {
-        if intervals.is_empty() {
-            bail!("Need at least one interval");
-        }
-        Ok(Self { intervals })
-    }
+impl Pow<i32> for Ratio {
+    type Output = Self;
 
-    pub(crate) fn intervals(&self) -> &Vec<Interval> {
-        &self.intervals
-    }
-
-    pub(crate) fn equave_ratio_expr(&self) -> Expression {
-        self.last_interval().as_ratio_expr()
-    }
-
-    pub(crate) fn equave_ratio(&self) -> Ratio {
-        self.last_interval().as_ratio()
-    }
-
-    fn last_interval(&self) -> &Interval {
-        self.intervals
-            .last()
-            .expect("Must have at least one interval")
+    fn pow(self, rhs: i32) -> Self::Output {
+        Self(self.0.powi(rhs))
     }
 }

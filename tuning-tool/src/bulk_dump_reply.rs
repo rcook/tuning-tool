@@ -205,6 +205,7 @@ impl BulkDumpReply {
 mod tests {
     use crate::bulk_dump_reply::BulkDumpReply;
     use crate::consts::BULK_DUMP_REPLY_MESSAGE_SIZE;
+    use crate::evaluate::Evaluate;
     use crate::resources::include_resource_bytes;
     use crate::types::Preset;
     use anyhow::Result;
@@ -215,12 +216,11 @@ mod tests {
             use crate::bulk_dump_reply::BulkDumpReply;
             use crate::bulk_dump_reply::MtsEntries;
             use crate::frequency::Frequency;
-            use crate::key_frequency_mapping::KeyFrequencyMapping;
+            use crate::key_frequency_mapping::compute_symbolic;
             use crate::key_mappings::KeyMappings;
             use crate::keyboard_mapping::KeyboardMapping;
             use crate::resources::{include_resource_bytes, include_resource_str};
             use crate::scl_file::SclFile;
-            use crate::symbolic::evaluate;
             use crate::types::{DeviceId, KeyNumber};
             use std::assert_eq;
 
@@ -239,11 +239,11 @@ mod tests {
             )
             .expect("Must succeed");
 
-            let entries: MtsEntries = KeyFrequencyMapping::compute(scale, &keyboard_mapping)
+            let entries: MtsEntries = compute_symbolic(scale, &keyboard_mapping)
                 .expect("Must succeed")
                 .iter()
                 .map(|mapping| {
-                    Frequency(evaluate(mapping.frequency.clone()))
+                    Frequency(mapping.frequency.as_f64())
                         .to_mts_entry()
                         .expect("Must succeed")
                 })
