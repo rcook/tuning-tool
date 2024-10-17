@@ -44,10 +44,7 @@ pub(crate) struct KeyFrequencyMapping {
 }
 
 impl KeyFrequencyMapping {
-    pub(crate) fn compute(
-        scale: &Scale,
-        keyboard_mapping: &KeyboardMapping,
-    ) -> Result<Vec<KeyFrequencyMapping>> {
+    pub(crate) fn compute(scale: &Scale, keyboard_mapping: &KeyboardMapping) -> Result<Vec<Self>> {
         let start = keyboard_mapping.start_key().to_u8() as usize;
         let end = keyboard_mapping.end_key().to_u8() as usize;
         Ok(Self::compute_all(
@@ -68,7 +65,7 @@ impl KeyFrequencyMapping {
         reference_key: &KeyNumber,
         reference_frequency: &Frequency,
         key_mappings: &KeyMappings,
-    ) -> Result<Vec<Option<KeyFrequencyMapping>>> {
+    ) -> Result<Vec<Option<Self>>> {
         fn calculate_frequency(
             key: i32,
             keys_per_equave: i32,
@@ -153,7 +150,7 @@ impl KeyFrequencyMapping {
                             equave_ratio.clone(),
                             interval,
                         );
-                        let mapping = KeyFrequencyMapping {
+                        let mapping = Self {
                             key: (i as u8).try_into()?,
                             frequency,
                             degree: *degree,
