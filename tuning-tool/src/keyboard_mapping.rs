@@ -25,7 +25,7 @@ use crate::key_mappings::KeyMappings;
 use crate::types::KeyNumber;
 use anyhow::{bail, Result};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) struct KeyboardMapping {
     start_key: KeyNumber,
     end_key: KeyNumber,

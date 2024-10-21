@@ -21,8 +21,8 @@
 //
 
 use crate::evaluation_strategy::Symbolic;
-use crate::kbm_file::KbmFile;
 use crate::key_frequency_mapping::{compute_symbolic, KeyFrequencyMapping};
+use crate::keyboard_mapping_source::KeyboardMappingSource;
 use crate::scl_file::SclFile;
 use crate::sympy::Simplifier;
 use crate::tuning_tool_args::DumpTuningTableFormat;
@@ -34,7 +34,7 @@ use std::path::{Path, PathBuf};
 
 pub(crate) fn dump_tuning_table(
     scl_path: &Path,
-    kbm_path: &Path,
+    keyboard_mapping_source: &KeyboardMappingSource,
     output_path: &Option<PathBuf>,
     format: DumpTuningTableFormat,
     sympy: bool,
@@ -42,7 +42,7 @@ pub(crate) fn dump_tuning_table(
     fn dump(
         out: &mut dyn Write,
         scl_path: &Path,
-        kbm_path: &Path,
+        keyboard_mapping_source: &KeyboardMappingSource,
         mappings: &Vec<KeyFrequencyMapping<Symbolic>>,
         format: DumpTuningTableFormat,
         simplifier: &Option<Simplifier>,
@@ -55,11 +55,7 @@ pub(crate) fn dump_tuning_table(
             }
             DumpTuningTableFormat::Detailed => {
                 writeln!(out, "# Scale file: {path}", path = scl_path.display())?;
-                writeln!(
-                    out,
-                    "# Keyboard mapping file: {path}",
-                    path = kbm_path.display()
-                )?;
+                writeln!(out, "# {keyboard_mapping_source}")?;
 
                 if let Some(simplifier) = simplifier {
                     let inputs = mappings
@@ -86,16 +82,15 @@ pub(crate) fn dump_tuning_table(
     };
 
     let scl_file = SclFile::read(scl_path)?;
-    let kbm_file = KbmFile::read(kbm_path)?;
     let scale = scl_file.scale();
-    let keyboard_mapping = kbm_file.keyboard_mapping();
-    let mappings = compute_symbolic(scale, keyboard_mapping)?;
+    let keyboard_mapping = keyboard_mapping_source.read_keyboard_mapping(scale)?;
+    let mappings = compute_symbolic(scale, &keyboard_mapping)?;
 
     match output_path {
         Some(output_path) => dump(
             &mut File::create_new(output_path)?,
             scl_path,
-            kbm_path,
+            keyboard_mapping_source,
             &mappings,
             format,
             &simplifier,
@@ -103,7 +98,7 @@ pub(crate) fn dump_tuning_table(
         None => dump(
             &mut stdout(),
             scl_path,
-            kbm_path,
+            keyboard_mapping_source,
             &mappings,
             format,
             &simplifier,

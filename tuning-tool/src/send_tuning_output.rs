@@ -20,56 +20,22 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#![allow(clippy::wrong_self_convention)]
+use crate::tuning_tool_args::SendTuningOutputGroup;
+use std::path::PathBuf;
 
-mod approx_eq;
-mod bulk_dump_reply;
-mod checksum_calculator;
-mod cli;
-mod consts;
-mod decode_bulk_dump;
-mod devices;
-mod dump_tuning_table;
-mod evaluate;
-mod evaluation_strategy;
-mod experimental;
-mod frequency;
-mod fs;
-mod hex_dump;
-mod interval;
-mod kbm_file;
-mod key_frequency_mapping;
-mod key_mapping;
-mod key_mappings;
-mod keyboard_mapping;
-mod keyboard_mapping_source;
-mod list_ports;
-mod midi_input_ex;
-mod midi_message_builder;
-mod midi_note;
-mod midi_output_ex;
-mod monitor_port;
-mod mts_entry;
-mod note_change;
-mod note_change_entry;
-mod note_number;
-mod num;
-mod preset_name;
-mod ratio;
-mod read;
-mod resources;
-mod run;
-mod save_tunings;
-mod scale;
-mod scl_file;
-mod semitones;
-mod send_tuning;
-mod send_tuning_output;
-mod sympy;
-mod tuning_tool_args;
-mod types;
+pub(crate) enum SendTuningOutput {
+    OutputPort(String),
+    SyxPath(PathBuf),
+    Stdout,
+}
 
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    crate::run::run()
+impl From<SendTuningOutputGroup> for SendTuningOutput {
+    fn from(value: SendTuningOutputGroup) -> Self {
+        match (value.output_port, value.syx_path) {
+            (Some(output_port), None) => Self::OutputPort(output_port),
+            (None, Some(syx_path)) => Self::SyxPath(syx_path),
+            (None, None) => Self::Stdout,
+            _ => unreachable!(),
+        }
+    }
 }

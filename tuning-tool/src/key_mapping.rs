@@ -22,7 +22,7 @@
 
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum KeyMapping {
     Degree(usize),
     Unmapped,

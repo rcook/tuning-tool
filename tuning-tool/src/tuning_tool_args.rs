@@ -70,11 +70,8 @@ pub(crate) enum Command {
         )]
         scl_path: PathBuf,
 
-        #[arg(
-            help = "Path to .kbm file",
-            value_parser = parse_absolute_path
-        )]
-        kbm_path: PathBuf,
+        #[command(flatten)]
+        keyboard_mapping_source: KeyboardMappingSourceGroup,
 
         #[arg(
             long = "output",
@@ -129,14 +126,11 @@ pub(crate) enum Command {
         )]
         scl_path: PathBuf,
 
-        #[arg(
-            help = "Path to .kbm file",
-            value_parser = parse_absolute_path
-        )]
-        kbm_path: PathBuf,
+        #[command(flatten)]
+        keyboard_mapping_source: KeyboardMappingSourceGroup,
 
         #[command(flatten)]
-        output: SendTuningOutput,
+        output: SendTuningOutputGroup,
 
         #[arg(
             help = "Device ID",
@@ -169,12 +163,12 @@ pub(crate) enum Command {
 
 #[derive(Args, Debug)]
 #[group(required = false, multiple = false)]
-pub(crate) struct SendTuningOutput {
+pub(crate) struct SendTuningOutputGroup {
     #[arg(long = "output", short = 'o', help = "MIDI output port name")]
     pub(crate) output_port: Option<String>,
 
     #[arg(long = "file", short = 'f', help = "Path to SysEx file")]
-    pub(crate) syx_path: Option<String>,
+    pub(crate) syx_path: Option<PathBuf>,
 }
 
 #[derive(Clone, Debug, ValueEnum)]
@@ -183,4 +177,17 @@ pub(crate) enum DumpTuningTableFormat {
     Brief,
     #[clap(name = "detailed")]
     Detailed,
+}
+
+#[derive(Args, Debug)]
+#[group(required = true, multiple = false)]
+pub(crate) struct KeyboardMappingSourceGroup {
+    #[arg(long = "kbm", short = 'k', help = "Path to Scala .kbm file")]
+    pub(crate) kbm_path: Option<PathBuf>,
+
+    #[arg(long = "linear", short = 'l', help = "Linear")]
+    pub(crate) linear: bool,
+
+    #[arg(long = "white", short = 'w', help = "Map scale to white notes")]
+    pub(crate) white_notes: bool,
 }

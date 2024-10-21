@@ -22,7 +22,7 @@
 
 use crate::key_mapping::KeyMapping;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub(crate) enum KeyMappings {
     Linear,
     Custom(Vec<KeyMapping>),

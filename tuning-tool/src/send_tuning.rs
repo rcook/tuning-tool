@@ -23,13 +23,15 @@
 use crate::devices::{get_midi_output_port, make_midi_output};
 use crate::frequency::Frequency;
 use crate::hex_dump::to_hex_dump;
-use crate::kbm_file::KbmFile;
 use crate::key_frequency_mapping::compute_direct;
+use crate::keyboard_mapping::KeyboardMapping;
+use crate::keyboard_mapping_source::KeyboardMappingSource;
 use crate::midi_output_ex::MidiOutputEx;
 use crate::note_change::NoteChange;
 use crate::note_change_entry::NoteChangeEntry;
+use crate::scale::Scale;
 use crate::scl_file::SclFile;
-use crate::tuning_tool_args::SendTuningOutput;
+use crate::send_tuning_output::SendTuningOutput;
 use crate::types::{ChunkSize, DeviceId, MidiValue, Preset};
 use anyhow::Result;
 use midly::live::{LiveEvent, SystemCommon};
@@ -40,10 +42,10 @@ use std::iter::zip;
 use std::path::Path;
 
 fn make_note_change_entries(
-    scl_file: &SclFile,
-    kbm_file: &KbmFile,
+    scale: &Scale,
+    keyboard_mapping: &KeyboardMapping,
 ) -> Result<Vec<(Frequency, NoteChangeEntry)>> {
-    compute_direct(scl_file.scale(), kbm_file.keyboard_mapping())?
+    compute_direct(scale, keyboard_mapping)?
         .iter()
         .enumerate()
         .map(|(i, mapping)| {
@@ -81,16 +83,15 @@ fn make_messages(
 
 pub(crate) fn send_tuning(
     scl_path: &Path,
-    kbm_path: &Path,
+    keyboard_mapping_source: &KeyboardMappingSource,
     output: &SendTuningOutput,
     device_id: DeviceId,
     preset: Preset,
     chunk_size: ChunkSize,
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
-    let kbm_file = KbmFile::read(kbm_path)?;
-
-    let keyboard_mapping = kbm_file.keyboard_mapping();
+    let scale = scl_file.scale();
+    let keyboard_mapping = keyboard_mapping_source.read_keyboard_mapping(scale)?;
     println!(
         "Start MIDI note: {value} (0x{value:02x})",
         value = keyboard_mapping.start_key()
@@ -108,14 +109,14 @@ pub(crate) fn send_tuning(
         value = keyboard_mapping.reference_frequency()
     );
 
-    let data = make_note_change_entries(&scl_file, &kbm_file)?;
+    let data = make_note_change_entries(scale, &keyboard_mapping)?;
     let frequencies = data.iter().map(|x| x.0).collect::<Vec<_>>();
     let entries = data.into_iter().map(|x| x.1).collect::<Vec<_>>();
 
     let messages = make_messages(device_id, preset, &entries, chunk_size)?;
 
-    match (&output.output_port, &output.syx_path) {
-        (Some(output_port), None) => {
+    match output {
+        SendTuningOutput::OutputPort(output_port) => {
             let midi_output = make_midi_output()?;
             let midi_output_port = get_midi_output_port(&midi_output, output_port)?;
             let mut conn = midi_output.connect_ex(&midi_output_port, "tuning-tool")?;
@@ -124,13 +125,13 @@ pub(crate) fn send_tuning(
                 conn.send(&message)?;
             }
         }
-        (None, Some(syx_path)) => {
+        SendTuningOutput::SyxPath(syx_path) => {
             let mut f = File::create_new(syx_path)?;
             for message in messages {
                 f.write_all(&message)?;
             }
         }
-        (None, None) => {
+        SendTuningOutput::Stdout => {
             for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
                 println!(
                     "{i:>3}: {hex} ({frequency:.1} Hz)",
@@ -139,7 +140,6 @@ pub(crate) fn send_tuning(
                 );
             }
         }
-        _ => unreachable!(),
     }
 
     Ok(())
