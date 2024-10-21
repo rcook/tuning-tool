@@ -58,7 +58,6 @@ impl KeyboardMapping {
         })
     }
 
-    #[cfg(test)]
     pub(crate) fn new_full(
         zero_key: KeyNumber,
         reference_key: KeyNumber,
@@ -75,7 +74,6 @@ impl KeyboardMapping {
         )
     }
 
-    #[cfg(test)]
     pub(crate) fn new_full_linear(
         zero_key: KeyNumber,
         reference_key: KeyNumber,

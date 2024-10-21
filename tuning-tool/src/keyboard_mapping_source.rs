@@ -41,31 +41,16 @@ pub(crate) enum KeyboardMappingSource {
 
 impl KeyboardMappingSource {
     pub(crate) fn make_keyboard_mapping(&self, scale: &Scale) -> Result<KeyboardMapping> {
-        fn new_simple_keyboard_mapping(
-            zero_key: KeyNumber,
-            key_mappings: KeyMappings,
-        ) -> Result<KeyboardMapping> {
-            let start_key = KeyNumber::MIN;
-            let end_key = KeyNumber::MAX;
-            let reference_key = zero_key;
-            let reference_frequency = Frequency::CONCERT_A4;
-            KeyboardMapping::new(
-                start_key,
-                end_key,
-                zero_key,
-                reference_key,
-                reference_frequency,
-                key_mappings,
-            )
-        }
-
         match self {
             Self::KbmFile(kbm_path) => {
                 let kbm_file = KbmFile::read(kbm_path)?;
                 Ok(kbm_file.keyboard_mapping().clone())
             }
             Self::Linear => {
-                new_simple_keyboard_mapping(KeyNumber::constant::<69>(), KeyMappings::Linear)
+                let zero_key = KeyNumber::constant::<69>();
+                let reference_key = zero_key;
+                let reference_frequency = Frequency::CONCERT_A4;
+                KeyboardMapping::new_full_linear(zero_key, reference_key, reference_frequency)
             }
             Self::WhiteKeys => {
                 let interval_count = scale.intervals().len();
@@ -74,7 +59,6 @@ impl KeyboardMappingSource {
                 }
 
                 let zero_key = KeyNumber::constant::<69>();
-
                 let mut degree = 0;
                 let key_mappings = KeyMappings::Custom(
                     MidiNote::ALL
@@ -93,7 +77,14 @@ impl KeyboardMappingSource {
                         .collect::<Vec<_>>(),
                 );
 
-                new_simple_keyboard_mapping(zero_key, key_mappings)
+                let reference_key = zero_key;
+                let reference_frequency = Frequency::CONCERT_A4;
+                KeyboardMapping::new_full(
+                    zero_key,
+                    reference_key,
+                    reference_frequency,
+                    key_mappings,
+                )
             }
         }
     }
