@@ -134,7 +134,7 @@ pub(crate) fn send_tuning(
         SendTuningOutput::Stdout => {
             for (i, (message, frequency)) in zip(messages, frequencies).enumerate() {
                 println!(
-                    "{i:>3}: {hex} ({frequency:.1} Hz)",
+                    "(MIDI message {i}): {hex} ({frequency:.1} Hz)",
                     hex = to_hex_dump(&message, None)?,
                     frequency = frequency.0
                 );
