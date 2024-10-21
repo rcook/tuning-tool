@@ -33,14 +33,14 @@ fn main() -> anyhow::Result<()> {
     const MIDI_NOTE_COUNT: usize = 128;
     const MIDI_NOTE_TYPE_NAME: &str = "crate::midi_note::MidiNote";
 
-    fn make_note_name(note_line: &[char], note_number: i8) -> String {
+    fn make_note_info(note_line: &[char], note_number: i8) -> (String, bool) {
         let octave = note_number / 12 - 1;
         let index = note_number.rem(12) as usize;
         let c = note_line[index];
         if c == ' ' {
-            format!("{c}#{octave}", c = note_line[index - 1])
+            (format!("{c}#{octave}", c = note_line[index - 1]), false)
         } else {
-            format!("{c}{octave}")
+            (format!("{c}{octave}"), true)
         }
     }
 
@@ -55,12 +55,12 @@ fn main() -> anyhow::Result<()> {
 
     for i in 0..MIDI_NOTE_COUNT {
         let note_number = i as i8;
-        let note_name = make_note_name(&note_line, note_number);
+        let (note_name, is_natural) = make_note_info(&note_line, note_number);
         let frequency =
             BASE_FREQUENCY * 2f64.powf(((note_number - BASE_NOTE_NUMBER) as f64) / 12f64);
         writeln!(
             f,
-            "  {MIDI_NOTE_TYPE_NAME}::new(crate::note_number::NoteNumber::constant::<{note_number}>(), \"{note_name}\", crate::frequency::Frequency({frequency}f64)),"
+            "  {MIDI_NOTE_TYPE_NAME}::new(crate::note_number::NoteNumber::constant::<{note_number}>(), \"{note_name}\", {is_natural}, crate::frequency::Frequency({frequency}f64)),"
         )?;
     }
 

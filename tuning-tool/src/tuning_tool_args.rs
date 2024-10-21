@@ -188,6 +188,6 @@ pub(crate) struct KeyboardMappingSourceGroup {
     #[arg(long = "linear", short = 'l', help = "Linear")]
     pub(crate) linear: bool,
 
-    #[arg(long = "white", short = 'w', help = "Map scale to white notes")]
-    pub(crate) white_notes: bool,
+    #[arg(long = "white", short = 'w', help = "Map scale to white keys")]
+    pub(crate) white_keys: bool,
 }

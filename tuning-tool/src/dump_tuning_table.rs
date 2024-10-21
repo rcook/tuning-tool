@@ -83,7 +83,7 @@ pub(crate) fn dump_tuning_table(
 
     let scl_file = SclFile::read(scl_path)?;
     let scale = scl_file.scale();
-    let keyboard_mapping = keyboard_mapping_source.read_keyboard_mapping(scale)?;
+    let keyboard_mapping = keyboard_mapping_source.make_keyboard_mapping(scale)?;
     let mappings = compute_symbolic(scale, &keyboard_mapping)?;
 
     match output_path {

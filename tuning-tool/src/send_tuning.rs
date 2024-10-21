@@ -91,7 +91,7 @@ pub(crate) fn send_tuning(
 ) -> Result<()> {
     let scl_file = SclFile::read(scl_path)?;
     let scale = scl_file.scale();
-    let keyboard_mapping = keyboard_mapping_source.read_keyboard_mapping(scale)?;
+    let keyboard_mapping = keyboard_mapping_source.make_keyboard_mapping(scale)?;
     println!(
         "Start MIDI note: {value} (0x{value:02x})",
         value = keyboard_mapping.start_key()

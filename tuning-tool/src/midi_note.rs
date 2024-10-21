@@ -30,6 +30,7 @@ include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));
 pub(crate) struct MidiNote {
     note_number: NoteNumber,
     name: &'static str,
+    is_natural: bool,
     frequency: Frequency,
 }
 
@@ -48,14 +49,25 @@ impl MidiNote {
     }
 
     #[allow(unused)]
+    pub(crate) const fn is_natural(&self) -> bool {
+        self.is_natural
+    }
+
+    #[allow(unused)]
     pub(crate) const fn frequency(&self) -> Frequency {
         self.frequency
     }
 
-    const fn new(note_number: NoteNumber, name: &'static str, frequency: Frequency) -> Self {
+    const fn new(
+        note_number: NoteNumber,
+        name: &'static str,
+        is_natural: bool,
+        frequency: Frequency,
+    ) -> Self {
         Self {
             note_number,
             name,
+            is_natural,
             frequency,
         }
     }

@@ -20,10 +20,15 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::frequency::Frequency;
 use crate::kbm_file::KbmFile;
+use crate::key_mapping::KeyMapping;
+use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
+use crate::midi_note::MidiNote;
 use crate::scale::Scale;
 use crate::tuning_tool_args::KeyboardMappingSourceGroup;
+use crate::types::KeyNumber;
 use anyhow::Result;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::path::PathBuf;
@@ -31,18 +36,71 @@ use std::path::PathBuf;
 pub(crate) enum KeyboardMappingSource {
     KbmFile(PathBuf),
     Linear,
-    WhiteNotes,
+    WhiteKeys,
 }
 
 impl KeyboardMappingSource {
-    pub(crate) fn read_keyboard_mapping(&self, _scale: &Scale) -> Result<KeyboardMapping> {
+    pub(crate) fn make_keyboard_mapping(&self, scale: &Scale) -> Result<KeyboardMapping> {
         match self {
             Self::KbmFile(kbm_path) => {
                 let kbm_file = KbmFile::read(kbm_path)?;
                 Ok(kbm_file.keyboard_mapping().clone())
             }
-            Self::Linear => todo!(),
-            Self::WhiteNotes => todo!(),
+            Self::Linear => {
+                let start_key = KeyNumber::MIN;
+                let end_key = KeyNumber::MAX;
+                let zero_key = KeyNumber::constant::<69>();
+                let reference_key = zero_key;
+                let reference_frequency = Frequency::CONCERT_A4;
+                let key_mappings = KeyMappings::Linear;
+                KeyboardMapping::new(
+                    start_key,
+                    end_key,
+                    zero_key,
+                    reference_key,
+                    reference_frequency,
+                    key_mappings,
+                )
+            }
+            Self::WhiteKeys => {
+                let interval_count = scale.intervals().len();
+                if interval_count != 7 {
+                    todo!("--white not implemented for interval count {interval_count}");
+                }
+
+                let start_key = KeyNumber::MIN;
+                let end_key = KeyNumber::MAX;
+                let zero_key = KeyNumber::constant::<69>();
+                let reference_key = zero_key;
+                let reference_frequency = Frequency::CONCERT_A4;
+
+                let mut degree = 0;
+                let key_mappings = KeyMappings::Custom(
+                    MidiNote::ALL
+                        .iter()
+                        .skip(zero_key.to_u8() as usize)
+                        .take(12)
+                        .map(|n| {
+                            if n.is_natural() {
+                                let key_mapping = KeyMapping::Degree(degree);
+                                degree += 1;
+                                key_mapping
+                            } else {
+                                KeyMapping::Unmapped
+                            }
+                        })
+                        .collect::<Vec<_>>(),
+                );
+
+                KeyboardMapping::new(
+                    start_key,
+                    end_key,
+                    zero_key,
+                    reference_key,
+                    reference_frequency,
+                    key_mappings,
+                )
+            }
         }
     }
 }
@@ -56,17 +114,17 @@ impl Display for KeyboardMappingSource {
                 path = kbm_path.display()
             ),
             Self::Linear => write!(f, "Linear"),
-            Self::WhiteNotes => write!(f, "White notes"),
+            Self::WhiteKeys => write!(f, "White notes"),
         }
     }
 }
 
 impl From<KeyboardMappingSourceGroup> for KeyboardMappingSource {
     fn from(value: KeyboardMappingSourceGroup) -> Self {
-        match (value.kbm_path, value.linear, value.white_notes) {
+        match (value.kbm_path, value.linear, value.white_keys) {
             (Some(kbm_path), false, false) => Self::KbmFile(kbm_path),
             (None, true, false) => Self::Linear,
-            (None, false, true) => Self::WhiteNotes,
+            (None, false, true) => Self::WhiteKeys,
             _ => unreachable!(),
         }
     }
