@@ -41,26 +41,31 @@ pub(crate) enum KeyboardMappingSource {
 
 impl KeyboardMappingSource {
     pub(crate) fn make_keyboard_mapping(&self, scale: &Scale) -> Result<KeyboardMapping> {
+        fn new_simple_keyboard_mapping(
+            zero_key: KeyNumber,
+            key_mappings: KeyMappings,
+        ) -> Result<KeyboardMapping> {
+            let start_key = KeyNumber::MIN;
+            let end_key = KeyNumber::MAX;
+            let reference_key = zero_key;
+            let reference_frequency = Frequency::CONCERT_A4;
+            KeyboardMapping::new(
+                start_key,
+                end_key,
+                zero_key,
+                reference_key,
+                reference_frequency,
+                key_mappings,
+            )
+        }
+
         match self {
             Self::KbmFile(kbm_path) => {
                 let kbm_file = KbmFile::read(kbm_path)?;
                 Ok(kbm_file.keyboard_mapping().clone())
             }
             Self::Linear => {
-                let start_key = KeyNumber::MIN;
-                let end_key = KeyNumber::MAX;
-                let zero_key = KeyNumber::constant::<69>();
-                let reference_key = zero_key;
-                let reference_frequency = Frequency::CONCERT_A4;
-                let key_mappings = KeyMappings::Linear;
-                KeyboardMapping::new(
-                    start_key,
-                    end_key,
-                    zero_key,
-                    reference_key,
-                    reference_frequency,
-                    key_mappings,
-                )
+                new_simple_keyboard_mapping(KeyNumber::constant::<69>(), KeyMappings::Linear)
             }
             Self::WhiteKeys => {
                 let interval_count = scale.intervals().len();
@@ -68,11 +73,7 @@ impl KeyboardMappingSource {
                     todo!("--white not implemented for interval count {interval_count}");
                 }
 
-                let start_key = KeyNumber::MIN;
-                let end_key = KeyNumber::MAX;
                 let zero_key = KeyNumber::constant::<69>();
-                let reference_key = zero_key;
-                let reference_frequency = Frequency::CONCERT_A4;
 
                 let mut degree = 0;
                 let key_mappings = KeyMappings::Custom(
@@ -92,14 +93,7 @@ impl KeyboardMappingSource {
                         .collect::<Vec<_>>(),
                 );
 
-                KeyboardMapping::new(
-                    start_key,
-                    end_key,
-                    zero_key,
-                    reference_key,
-                    reference_frequency,
-                    key_mappings,
-                )
+                new_simple_keyboard_mapping(zero_key, key_mappings)
             }
         }
     }
