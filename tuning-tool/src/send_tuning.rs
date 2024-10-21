@@ -68,17 +68,18 @@ fn make_messages(
     entries: &[NoteChangeEntry],
     chunk_size: ChunkSize,
 ) -> Result<Vec<Vec<u8>>> {
-    let mut messages = Vec::new();
-    for chunk in entries.chunks(chunk_size.to_u8() as usize) {
-        let note_change = NoteChange::new(device_id, preset, chunk)?;
-        let vec = note_change.to_vec()?;
-        let u7_slice = u7::slice_from_int(MidiValue::to_u8_slice(&vec));
-        let event = LiveEvent::Common(SystemCommon::SysEx(u7_slice));
-        let mut buffer = Vec::new();
-        event.write_std(&mut buffer)?;
-        messages.push(buffer);
-    }
-    Ok(messages)
+    entries
+        .chunks(chunk_size.to_u8() as usize)
+        .map(|chunk| {
+            let note_change = NoteChange::new(device_id, preset, chunk)?;
+            let vec = note_change.to_vec()?;
+            let u7_slice = u7::slice_from_int(MidiValue::to_u8_slice(&vec));
+            let event = LiveEvent::Common(SystemCommon::SysEx(u7_slice));
+            let mut message = Vec::new();
+            event.write_std(&mut message)?;
+            Ok(message)
+        })
+        .collect()
 }
 
 pub(crate) fn send_tuning(
