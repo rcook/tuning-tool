@@ -40,13 +40,6 @@ macro_rules! read_u8 {
             .ok_or_else(|| ::anyhow::anyhow!("Failed to read byte"))?;
         b
     }};
-    ($iter: expr, $count: expr) => {{
-        let mut result = Vec::with_capacity($count);
-        for _ in 0..$count {
-            result.push(read_u8!($iter));
-        }
-        result
-    }};
 }
 
 const ENTRIES_LEN: usize = 128;
