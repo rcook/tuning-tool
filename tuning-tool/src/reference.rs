@@ -20,7 +20,9 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::{frequency::Frequency, types::KeyNumber};
+use crate::frequency::Frequency;
+use crate::types::KeyNumber;
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 #[derive(Clone, Debug)]
 pub(crate) struct Reference {
@@ -63,5 +65,17 @@ impl Default for Reference {
             reference_key: zero_key,
             reference_frequency: Frequency::CONCERT_A4,
         }
+    }
+}
+
+impl Display for Reference {
+    fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
+        write!(
+            f,
+            "zero {zero_key}, reference {reference_key} = {reference_frequency:.2} Hz",
+            zero_key = self.zero_key(),
+            reference_key = self.reference_key(),
+            reference_frequency = self.reference_frequency().0
+        )
     }
 }

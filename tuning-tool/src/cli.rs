@@ -20,6 +20,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::frequency::Frequency;
+use crate::reference::Reference;
 use path_absolutize::Absolutize;
 use std::path::PathBuf;
 use std::result::Result as StdResult;
@@ -29,6 +31,29 @@ pub(crate) fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
         .absolutize()
         .map_err(|_| String::from("Invalid path"))
         .map(|p| p.to_path_buf())
+}
+
+pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
+    if s.to_lowercase() == "default" {
+        Ok(Reference::default())
+    } else {
+        let parts = s.split(',').collect::<Vec<_>>();
+        if parts.len() != 3 {
+            return Err(String::from("Invalid reference"));
+        }
+
+        let Ok(zero_key) = parts[0].parse() else {
+            return Err(String::from("Invalid zero key"));
+        };
+        let Ok(reference_key) = parts[1].parse() else {
+            return Err(String::from("Invalid reference key"));
+        };
+        let Ok(reference_value) = parts[2].parse() else {
+            return Err(String::from("Invalid reference frequency"));
+        };
+        let reference_frequency = Frequency(reference_value);
+        Ok(Reference::new(zero_key, reference_key, reference_frequency))
+    }
 }
 
 #[cfg(test)]

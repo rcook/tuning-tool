@@ -34,8 +34,8 @@ use std::path::PathBuf;
 
 pub(crate) enum KeyboardMappingSource {
     KbmFile(PathBuf),
-    Linear,
-    WhiteKeys,
+    Linear(Reference),
+    WhiteKeys(Reference),
 }
 
 impl KeyboardMappingSource {
@@ -45,14 +45,13 @@ impl KeyboardMappingSource {
                 let kbm_file = KbmFile::read(kbm_path)?;
                 Ok(kbm_file.keyboard_mapping().clone())
             }
-            Self::Linear => KeyboardMapping::new_full_linear(&Reference::default()),
-            Self::WhiteKeys => {
+            Self::Linear(reference) => KeyboardMapping::new_full_linear(reference),
+            Self::WhiteKeys(reference) => {
                 let interval_count = scale.intervals().len();
                 if interval_count != 7 {
                     todo!("--white not implemented for interval count {interval_count}");
                 }
 
-                let reference = Reference::default();
                 let mut degree = 0;
                 let key_mappings = KeyMappings::Custom(
                     MidiNote::ALL
@@ -71,7 +70,7 @@ impl KeyboardMappingSource {
                         .collect::<Vec<_>>(),
                 );
 
-                KeyboardMapping::new_full(&reference, key_mappings)
+                KeyboardMapping::new_full(reference, key_mappings)
             }
         }
     }
@@ -85,8 +84,8 @@ impl Display for KeyboardMappingSource {
                 "Keyboard mapping file: {path}",
                 path = kbm_path.display()
             ),
-            Self::Linear => write!(f, "Linear"),
-            Self::WhiteKeys => write!(f, "White notes"),
+            Self::Linear(reference) => write!(f, "Linear ({reference})"),
+            Self::WhiteKeys(reference) => write!(f, "White keys ({reference})"),
         }
     }
 }
@@ -94,9 +93,9 @@ impl Display for KeyboardMappingSource {
 impl From<KeyboardMappingSourceGroup> for KeyboardMappingSource {
     fn from(value: KeyboardMappingSourceGroup) -> Self {
         match (value.kbm_path, value.linear, value.white_keys) {
-            (Some(kbm_path), false, false) => Self::KbmFile(kbm_path),
-            (None, true, false) => Self::Linear,
-            (None, false, true) => Self::WhiteKeys,
+            (Some(kbm_path), None, None) => Self::KbmFile(kbm_path),
+            (None, Some(reference), None) => Self::Linear(reference),
+            (None, None, Some(reference)) => Self::WhiteKeys(reference),
             _ => unreachable!(),
         }
     }

@@ -20,7 +20,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::cli::parse_absolute_path;
+use crate::cli::{parse_absolute_path, parse_reference};
+use crate::reference::Reference;
 use crate::types::{ChunkSize, DeviceId, Preset};
 use clap::{Args, Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
@@ -185,9 +186,15 @@ pub(crate) struct KeyboardMappingSourceGroup {
     #[arg(long = "kbm", short = 'k', help = "Path to Scala .kbm file")]
     pub(crate) kbm_path: Option<PathBuf>,
 
-    #[arg(long = "linear", short = 'l', help = "Linear")]
-    pub(crate) linear: bool,
+    #[arg(long = "linear", short = 'l', help = "Linear", name = "REFERENCE0", value_parser = parse_reference)]
+    pub(crate) linear: Option<Reference>,
 
-    #[arg(long = "white", short = 'w', help = "Map scale to white keys")]
-    pub(crate) white_keys: bool,
+    #[arg(
+        long = "white",
+        short = 'w',
+        help = "Map scale to white keys",
+        name = "REFERENCE1",
+        value_parser = parse_reference
+    )]
+    pub(crate) white_keys: Option<Reference>,
 }
