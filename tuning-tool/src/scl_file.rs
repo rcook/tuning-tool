@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn scala_archive() {
         let extension = Some(OsStr::new("scl"));
-        let files = include_dir!("$CARGO_MANIFEST_DIR/../resources/test/scl")
+        let files = include_dir!("$CARGO_MANIFEST_DIR/../resources/test/scala-archive")
             .files()
             .filter(|f| f.path().extension() == extension)
             .collect::<Vec<_>>();
