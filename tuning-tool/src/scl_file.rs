@@ -172,7 +172,7 @@ mod tests {
             .files()
             .filter(|f| f.path().extension() == extension)
             .collect::<Vec<_>>();
-        assert!(files.len() > 5000);
+        assert_eq!(5233, files.len());
 
         for file in files {
             verify_scl_file!(file);
