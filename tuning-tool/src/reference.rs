@@ -24,7 +24,7 @@ use crate::frequency::Frequency;
 use crate::types::KeyNumber;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Reference {
     zero_key: KeyNumber,
     reference_key: KeyNumber,
@@ -32,7 +32,7 @@ pub(crate) struct Reference {
 }
 
 impl Reference {
-    pub(crate) fn new(
+    pub(crate) const fn new(
         zero_key: KeyNumber,
         reference_key: KeyNumber,
         reference_frequency: Frequency,

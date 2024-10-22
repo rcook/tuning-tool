@@ -47,16 +47,22 @@ pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
     if s.to_lowercase() == "default" {
         Ok(Reference::default())
     } else {
-        let parts = s.split(',').collect::<Vec<_>>();
-        if parts.len() != 3 {
-            return Err(String::from("Invalid reference"));
-        }
-
-        let zero_key = parse_key_number(parts[0])?;
-        let reference_key = parse_key_number(parts[1])?;
-        let Ok(f) = parts[2].parse() else {
-            return Err(String::from("Invalid reference frequency"));
+        let Some((prefix, suffix)) = s.split_once(',') else {
+            return Err(format!("Invalid reference {s}"));
         };
+
+        let zero_key = parse_key_number(prefix)?;
+
+        let Some((prefix, suffix)) = suffix.split_once('=') else {
+            return Err(format!("Invalid reference {s}"));
+        };
+
+        let reference_key = parse_key_number(prefix)?;
+
+        let Ok(f) = suffix.parse() else {
+            return Err(format!("Invalid reference {s}"));
+        };
+
         let reference_frequency = Frequency(f);
         Ok(Reference::new(zero_key, reference_key, reference_frequency))
     }
@@ -64,12 +70,23 @@ pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
 
 #[cfg(test)]
 mod tests {
-    use crate::cli::parse_absolute_path;
+    use crate::cli::{parse_absolute_path, parse_reference};
+    use crate::frequency::Frequency;
+    use crate::reference::Reference;
+    use crate::types::KeyNumber;
+    use rstest::rstest;
 
     #[test]
-    fn basics() {
+    fn parse_absolute_path_basics() {
         assert!(parse_absolute_path("aaa/bbb/ccc")
             .expect("Must succeed")
             .is_absolute());
+    }
+
+    #[rstest]
+    #[case(Reference::new(KeyNumber::constant::<48>(), KeyNumber::constant::<69>(), Frequency(440f64) ), "c3,a4=440")]
+    #[case(Reference::new(KeyNumber::constant::<48>(), KeyNumber::constant::<69>(), Frequency(432f64) ), "c3,69=432")]
+    fn parse_reference_basics(#[case] expected: Reference, #[case] input: &str) {
+        assert_eq!(expected, parse_reference(input).expect("Must succeed"));
     }
 }
