@@ -5,6 +5,7 @@
     "**/build/": true,
     "**/target/": true,
     "**/*.egg-info/": true,
+    "**/*.profraw": true
   },
   "rust-analyzer.showUnlinkedFileNotification": false,
   "rust-analyzer.checkOnSave": true,
