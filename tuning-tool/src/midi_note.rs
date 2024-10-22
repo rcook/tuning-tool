@@ -22,7 +22,10 @@
 
 use crate::frequency::Frequency;
 use crate::note_number::NoteNumber;
+use anyhow::{bail, Error};
 use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::result::Result as StdResult;
+use std::str::FromStr;
 
 include!(concat!(env!("OUT_DIR"), "/midi_note_generated.rs"));
 
@@ -79,12 +82,32 @@ impl Display for MidiNote {
     }
 }
 
+impl FromStr for MidiNote {
+    type Err = Error;
+
+    fn from_str(s: &str) -> StdResult<Self, Self::Err> {
+        if let Ok(value) = s.parse::<NoteNumber>() {
+            return Ok(MidiNote::ALL[value.to_u8() as usize]);
+        }
+
+        let temp = s.to_uppercase();
+        for midi_note in Self::ALL {
+            if temp == midi_note.name() {
+                return Ok(midi_note);
+            }
+        }
+
+        bail!("Invalid MIDI note {s}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use crate::approx_eq::{assert_approx_eq, ApproxEq};
     use crate::midi_note::MidiNote;
     use crate::note_number::NoteNumber;
     use anyhow::Result;
+    use rstest::rstest;
 
     #[test]
     fn basics() -> Result<()> {
@@ -107,5 +130,19 @@ mod tests {
             .frequency()
             .0
             .approx_eq_with_epsilon(440f64, 0.001));
+    }
+
+    #[rstest]
+    #[case(MidiNote::ALL[0], "0")]
+    #[case(MidiNote::ALL[60], "60")]
+    #[case(MidiNote::ALL[69], "69")]
+    #[case(MidiNote::ALL[127], "127")]
+    #[case(MidiNote::ALL[69], "a4")]
+    #[case(MidiNote::ALL[69], "A4")]
+    #[case(MidiNote::ALL[70], "A#4")]
+    #[case(MidiNote::ALL[0], "C-1")]
+    #[case(MidiNote::ALL[12], "C0")]
+    fn from_str(#[case] expected: MidiNote, #[case] input: &str) {
+        assert_eq!(expected, input.parse().expect("Must succeed"));
     }
 }

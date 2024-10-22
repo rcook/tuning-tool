@@ -37,15 +37,8 @@ pub(crate) fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
 
 pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
     fn parse_key_number(s: &str) -> StdResult<KeyNumber, String> {
-        if let Ok(key_number) = s.parse() {
-            return Ok(key_number);
-        }
-
-        let temp = s.to_uppercase();
-        for midi_note in MidiNote::ALL {
-            if temp == midi_note.name() {
-                return Ok(KeyNumber::from_u8_lossy(midi_note.note_number().to_u8()));
-            }
+        if let Ok(midi_note) = s.parse::<MidiNote>() {
+            return Ok(KeyNumber::from_u8_lossy(midi_note.note_number().to_u8()));
         }
 
         Err(format!("Invalid key {s}"))
