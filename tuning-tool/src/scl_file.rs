@@ -130,20 +130,18 @@ mod tests {
     use include_dir::include_dir;
     use std::ffi::OsStr;
 
-    macro_rules! verify_scl {
-        ($path: expr) => {{
-            use crate::resources::include_resource_str;
-            use crate::scl_file::SclFile;
-            use std::{assert, panic};
+    macro_rules! verify_scl_files {
+        ($dir: expr, $count: expr) => {{
+            let extension = Some(OsStr::new("scl"));
+            let files = $dir
+                .files()
+                .filter(|f| f.path().extension() == extension)
+                .collect::<Vec<_>>();
+            assert_eq!($count, files.len());
 
-            let s = include_resource_str!($path);
-
-            let Ok(scl_file) = s.parse::<SclFile>() else {
-                panic!("Failed to parse .scl file {path}", path = $path);
-            };
-
-            let file_name = scl_file.file_name();
-            assert!(file_name.is_some() || file_name.is_none());
+            for file in files {
+                verify_scl_file!(file);
+            }
         }};
     }
 
@@ -165,18 +163,51 @@ mod tests {
         }};
     }
 
+    macro_rules! verify_scl {
+        ($path: expr) => {{
+            use crate::resources::include_resource_str;
+            use crate::scl_file::SclFile;
+            use std::{assert, panic};
+
+            let s = include_resource_str!($path);
+
+            let Ok(scl_file) = s.parse::<SclFile>() else {
+                panic!("Failed to parse .scl file {path}", path = $path);
+            };
+
+            let file_name = scl_file.file_name();
+            assert!(file_name.is_some() || file_name.is_none());
+        }};
+    }
+
     #[test]
     fn scala_archive() {
-        let extension = Some(OsStr::new("scl"));
-        let files = include_dir!("$CARGO_MANIFEST_DIR/../resources/test/scala-archive")
-            .files()
-            .filter(|f| f.path().extension() == extension)
-            .collect::<Vec<_>>();
-        assert_eq!(5233, files.len());
+        verify_scl_files!(
+            include_dir!("$CARGO_MANIFEST_DIR/../resources/test/scala-archive"),
+            5233
+        );
+    }
 
-        for file in files {
-            verify_scl_file!(file);
-        }
+    #[test]
+    fn sevish_tunings_pack() {
+        verify_scl_files!(
+            include_dir!("$CARGO_MANIFEST_DIR/../resources/test/sevish-tunings-pack/eikosany"),
+            21
+        );
+        verify_scl_files!(
+            include_dir!("$CARGO_MANIFEST_DIR/../resources/test/sevish-tunings-pack/no-octaves"),
+            22
+        );
+        verify_scl_files!(
+            include_dir!(
+                "$CARGO_MANIFEST_DIR/../resources/test/sevish-tunings-pack/regular-temperaments"
+            ),
+            21
+        );
+        verify_scl_files!(
+            include_dir!("$CARGO_MANIFEST_DIR/../resources/test/sevish-tunings-pack/world-scales"),
+            26
+        );
     }
 
     #[test]
