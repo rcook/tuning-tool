@@ -96,6 +96,7 @@ impl From<KeyboardMappingSourceGroup> for KeyboardMappingSource {
             (Some(kbm_path), None, None) => Self::KbmFile(kbm_path),
             (None, Some(reference), None) => Self::Linear(reference),
             (None, None, Some(reference)) => Self::WhiteKeys(reference),
+            (None, None, None) => Self::Linear(Reference::default()),
             _ => unreachable!(),
         }
     }

@@ -181,7 +181,7 @@ pub(crate) enum DumpTuningTableFormat {
 }
 
 #[derive(Args, Debug)]
-#[group(required = true, multiple = false)]
+#[group(required = false, multiple = false)]
 pub(crate) struct KeyboardMappingSourceGroup {
     #[arg(long = "kbm", short = 'k', help = "Path to Scala .kbm file")]
     pub(crate) kbm_path: Option<PathBuf>,

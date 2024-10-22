@@ -21,7 +21,9 @@
 //
 
 use crate::frequency::Frequency;
+use crate::midi_note::MidiNote;
 use crate::reference::Reference;
+use crate::types::KeyNumber;
 use path_absolutize::Absolutize;
 use std::path::PathBuf;
 use std::result::Result as StdResult;
@@ -34,6 +36,21 @@ pub(crate) fn parse_absolute_path(s: &str) -> StdResult<PathBuf, String> {
 }
 
 pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
+    fn parse_key_number(s: &str) -> StdResult<KeyNumber, String> {
+        if let Ok(key_number) = s.parse() {
+            return Ok(key_number);
+        }
+
+        let temp = s.to_uppercase();
+        for midi_note in MidiNote::ALL {
+            if temp == midi_note.name() {
+                return Ok(KeyNumber::from_u8_lossy(midi_note.note_number().to_u8()));
+            }
+        }
+
+        Err(format!("Invalid key {s}"))
+    }
+
     if s.to_lowercase() == "default" {
         Ok(Reference::default())
     } else {
@@ -42,16 +59,12 @@ pub(crate) fn parse_reference(s: &str) -> StdResult<Reference, String> {
             return Err(String::from("Invalid reference"));
         }
 
-        let Ok(zero_key) = parts[0].parse() else {
-            return Err(String::from("Invalid zero key"));
-        };
-        let Ok(reference_key) = parts[1].parse() else {
-            return Err(String::from("Invalid reference key"));
-        };
-        let Ok(reference_value) = parts[2].parse() else {
+        let zero_key = parse_key_number(parts[0])?;
+        let reference_key = parse_key_number(parts[1])?;
+        let Ok(f) = parts[2].parse() else {
             return Err(String::from("Invalid reference frequency"));
         };
-        let reference_frequency = Frequency(reference_value);
+        let reference_frequency = Frequency(f);
         Ok(Reference::new(zero_key, reference_key, reference_frequency))
     }
 }
