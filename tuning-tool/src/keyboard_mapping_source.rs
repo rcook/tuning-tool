@@ -20,15 +20,14 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-use crate::frequency::Frequency;
 use crate::kbm_file::KbmFile;
 use crate::key_mapping::KeyMapping;
 use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
 use crate::midi_note::MidiNote;
+use crate::reference::Reference;
 use crate::scale::Scale;
 use crate::tuning_tool_args::KeyboardMappingSourceGroup;
-use crate::types::KeyNumber;
 use anyhow::Result;
 use std::fmt::{Display, Formatter, Result as FmtResult};
 use std::path::PathBuf;
@@ -46,24 +45,19 @@ impl KeyboardMappingSource {
                 let kbm_file = KbmFile::read(kbm_path)?;
                 Ok(kbm_file.keyboard_mapping().clone())
             }
-            Self::Linear => {
-                let zero_key = KeyNumber::constant::<69>();
-                let reference_key = zero_key;
-                let reference_frequency = Frequency::CONCERT_A4;
-                KeyboardMapping::new_full_linear(zero_key, reference_key, reference_frequency)
-            }
+            Self::Linear => KeyboardMapping::new_full_linear(&Reference::default()),
             Self::WhiteKeys => {
                 let interval_count = scale.intervals().len();
                 if interval_count != 7 {
                     todo!("--white not implemented for interval count {interval_count}");
                 }
 
-                let zero_key = KeyNumber::constant::<69>();
+                let reference = Reference::default();
                 let mut degree = 0;
                 let key_mappings = KeyMappings::Custom(
                     MidiNote::ALL
                         .iter()
-                        .skip(zero_key.to_u8() as usize)
+                        .skip(reference.zero_key().to_u8() as usize)
                         .take(12)
                         .map(|n| {
                             if n.is_natural() {
@@ -77,14 +71,7 @@ impl KeyboardMappingSource {
                         .collect::<Vec<_>>(),
                 );
 
-                let reference_key = zero_key;
-                let reference_frequency = Frequency::CONCERT_A4;
-                KeyboardMapping::new_full(
-                    zero_key,
-                    reference_key,
-                    reference_frequency,
-                    key_mappings,
-                )
+                KeyboardMapping::new_full(&reference, key_mappings)
             }
         }
     }

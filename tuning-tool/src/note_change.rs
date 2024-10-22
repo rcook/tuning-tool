@@ -100,6 +100,7 @@ mod tests {
     use crate::keyboard_mapping::KeyboardMapping;
     use crate::note_change::NoteChange;
     use crate::note_change_entry::NoteChangeEntry;
+    use crate::reference::Reference;
     use crate::scale::Scale;
     use crate::types::{DeviceId, KeyNumber, MidiValue, Preset};
     use anyhow::Result;
@@ -147,9 +148,7 @@ mod tests {
         let keyboard_mapping = KeyboardMapping::new(
             KeyNumber::ZERO,
             KeyNumber::MAX,
-            KeyNumber::ZERO,
-            KeyNumber::ZERO,
-            Frequency::MIN,
+            &Reference::new(KeyNumber::ZERO, KeyNumber::ZERO, Frequency::MIN),
             KeyMappings::Linear,
         )?;
 

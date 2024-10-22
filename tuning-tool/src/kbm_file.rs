@@ -25,6 +25,7 @@ use crate::fs::read_to_string_lossy;
 use crate::key_mapping::KeyMapping;
 use crate::key_mappings::KeyMappings;
 use crate::keyboard_mapping::KeyboardMapping;
+use crate::reference::Reference;
 use crate::types::KeyNumber;
 use anyhow::bail;
 use anyhow::{Error, Result};
@@ -158,14 +159,8 @@ impl FromStr for KbmFile {
             KeyMappings::Custom(key_mappings)
         };
 
-        let keyboard_mapping = KeyboardMapping::new(
-            start_key,
-            end_key,
-            zero_key,
-            reference_key,
-            reference_frequency,
-            key_mappings,
-        )?;
+        let reference = Reference::new(zero_key, reference_key, reference_frequency);
+        let keyboard_mapping = KeyboardMapping::new(start_key, end_key, &reference, key_mappings)?;
 
         Ok(Self {
             _size: size,

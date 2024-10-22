@@ -20,57 +20,48 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#![allow(clippy::wrong_self_convention)]
+use crate::{frequency::Frequency, types::KeyNumber};
 
-mod approx_eq;
-mod bulk_dump_reply;
-mod checksum_calculator;
-mod cli;
-mod consts;
-mod decode_bulk_dump;
-mod devices;
-mod dump_tuning_table;
-mod evaluate;
-mod evaluation_strategy;
-mod experimental;
-mod frequency;
-mod fs;
-mod hex_dump;
-mod interval;
-mod kbm_file;
-mod key_frequency_mapping;
-mod key_mapping;
-mod key_mappings;
-mod keyboard_mapping;
-mod keyboard_mapping_source;
-mod list_ports;
-mod midi_input_ex;
-mod midi_message_builder;
-mod midi_note;
-mod midi_output_ex;
-mod monitor_port;
-mod mts_entry;
-mod note_change;
-mod note_change_entry;
-mod note_number;
-mod num;
-mod preset_name;
-mod ratio;
-mod read;
-mod reference;
-mod resources;
-mod run;
-mod save_tunings;
-mod scale;
-mod scl_file;
-mod semitones;
-mod send_tuning;
-mod send_tuning_output;
-mod sympy;
-mod tuning_tool_args;
-mod types;
+#[derive(Clone, Debug)]
+pub(crate) struct Reference {
+    zero_key: KeyNumber,
+    reference_key: KeyNumber,
+    reference_frequency: Frequency,
+}
 
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    crate::run::run()
+impl Reference {
+    pub(crate) fn new(
+        zero_key: KeyNumber,
+        reference_key: KeyNumber,
+        reference_frequency: Frequency,
+    ) -> Self {
+        Self {
+            zero_key,
+            reference_key,
+            reference_frequency,
+        }
+    }
+
+    pub(crate) fn zero_key(&self) -> KeyNumber {
+        self.zero_key
+    }
+
+    pub(crate) fn reference_key(&self) -> KeyNumber {
+        self.reference_key
+    }
+
+    pub(crate) fn reference_frequency(&self) -> Frequency {
+        self.reference_frequency
+    }
+}
+
+impl Default for Reference {
+    fn default() -> Self {
+        let zero_key = KeyNumber::constant::<69>();
+        Self {
+            zero_key,
+            reference_key: zero_key,
+            reference_frequency: Frequency::CONCERT_A4,
+        }
+    }
 }

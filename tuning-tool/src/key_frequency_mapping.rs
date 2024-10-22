@@ -63,9 +63,9 @@ impl<E: EvaluationStrategy> KeyFrequencyMapping<E> {
         let end = keyboard_mapping.end_key().to_u8() as usize;
         Ok(Self::compute_all(
             scale,
-            keyboard_mapping.zero_key(),
-            keyboard_mapping.reference_key(),
-            E::new_frequency(keyboard_mapping.reference_frequency().0),
+            &keyboard_mapping.reference().zero_key(),
+            &keyboard_mapping.reference().reference_key(),
+            E::new_frequency(keyboard_mapping.reference().reference_frequency().0),
             keyboard_mapping.key_mappings(),
         )?
         .drain(start..=end)
@@ -257,6 +257,7 @@ mod tests {
     use crate::key_mapping::KeyMapping;
     use crate::key_mappings::KeyMappings;
     use crate::keyboard_mapping::KeyboardMapping;
+    use crate::reference::Reference;
     use crate::resources::{include_resource_str, parse_scala_tuning_dump};
     use crate::scale::Scale;
     use crate::scl_file::SclFile;
@@ -364,9 +365,11 @@ mod tests {
             KeyboardMapping::new(
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
-                KeyNumber::constant::<69>(),
-                KeyNumber::constant::<60>(),
-                Frequency(400f64),
+                &Reference::new(
+                    KeyNumber::constant::<69>(),
+                    KeyNumber::constant::<60>(),
+                    Frequency(400f64)
+                ),
                 KeyMappings::Custom(vec![
                     KeyMapping::Degree(0),
                     KeyMapping::Degree(3),
@@ -393,9 +396,11 @@ mod tests {
             KeyboardMapping::new(
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
-                KeyNumber::constant::<57>(),
-                KeyNumber::constant::<60>(),
-                Frequency(400f64),
+                &Reference::new(
+                    KeyNumber::constant::<57>(),
+                    KeyNumber::constant::<60>(),
+                    Frequency(400f64)
+                ),
                 KeyMappings::Custom(vec![
                     KeyMapping::Degree(0),
                     KeyMapping::Degree(3),
@@ -422,9 +427,11 @@ mod tests {
             KeyboardMapping::new(
                 KeyNumber::constant::<1>(),
                 KeyNumber::constant::<3>(),
-                KeyNumber::constant::<69>(),
-                KeyNumber::constant::<60>(),
-                Frequency(400f64),
+                &Reference::new(
+                    KeyNumber::constant::<69>(),
+                    KeyNumber::constant::<60>(),
+                    Frequency(400f64)
+                ),
                 KeyMappings::Custom(vec![
                     KeyMapping::Degree(0),
                     KeyMapping::Degree(3),
@@ -448,11 +455,7 @@ mod tests {
         verify_frequencies!(
             "bohlen-p-expected-frequencies.txt",
             &BOHLEN_P,
-            KeyboardMapping::new_full_linear(
-                KeyNumber::constant::<69>(),
-                KeyNumber::constant::<69>(),
-                Frequency::CONCERT_A4,
-            )
+            KeyboardMapping::new_full_linear(&Reference::default())
         );
     }
 
@@ -461,11 +464,11 @@ mod tests {
         verify_frequencies!(
             "24edo2-432-expected-frequencies.txt",
             &SCALE_24EDO2,
-            KeyboardMapping::new_full_linear(
+            KeyboardMapping::new_full_linear(&Reference::new(
                 KeyNumber::constant::<69>(),
                 KeyNumber::constant::<69>(),
-                Frequency(432f64),
-            )
+                Frequency(432f64)
+            ))
         );
     }
 
@@ -474,11 +477,7 @@ mod tests {
         verify_frequencies!(
             "12edo2-expected-frequencies.txt",
             &SCALE_12EDO2,
-            KeyboardMapping::new_full_linear(
-                KeyNumber::constant::<69>(),
-                KeyNumber::constant::<69>(),
-                Frequency::CONCERT_A4,
-            )
+            KeyboardMapping::new_full_linear(&Reference::default())
         );
     }
 
@@ -487,7 +486,11 @@ mod tests {
         verify_frequencies!(
             "carlos-super-zero-expected-frequencies.txt",
             &CARLOS_SUPER,
-            KeyboardMapping::new_full_linear(KeyNumber::ZERO, KeyNumber::ZERO, Frequency::MIN)
+            KeyboardMapping::new_full_linear(&Reference::new(
+                KeyNumber::ZERO,
+                KeyNumber::ZERO,
+                Frequency::MIN
+            ))
         );
     }
 
@@ -496,11 +499,7 @@ mod tests {
         verify_frequencies!(
             "carlos-super-69-expected-frequencies.txt",
             &CARLOS_SUPER,
-            KeyboardMapping::new_full_linear(
-                KeyNumber::constant::<69>(),
-                KeyNumber::constant::<69>(),
-                Frequency::CONCERT_A4,
-            )
+            KeyboardMapping::new_full_linear(&Reference::default())
         );
     }
 
@@ -514,9 +513,11 @@ mod tests {
         let keyboard_mapping = KeyboardMapping::new(
             KeyNumber::ZERO,
             KeyNumber::MAX,
-            KeyNumber::constant::<69>(),
-            KeyNumber::constant::<60>(),
-            Frequency(400f64),
+            &Reference::new(
+                KeyNumber::constant::<69>(),
+                KeyNumber::constant::<60>(),
+                Frequency(400f64),
+            ),
             KeyMappings::Custom(vec![
                 KeyMapping::Degree(0),
                 KeyMapping::Degree(3),

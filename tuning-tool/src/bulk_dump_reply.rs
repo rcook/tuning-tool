@@ -212,6 +212,7 @@ mod tests {
             use crate::key_frequency_mapping::compute_symbolic;
             use crate::key_mappings::KeyMappings;
             use crate::keyboard_mapping::KeyboardMapping;
+            use crate::reference::Reference;
             use crate::resources::{include_resource_bytes, include_resource_str};
             use crate::scl_file::SclFile;
             use crate::types::{DeviceId, KeyNumber};
@@ -225,9 +226,7 @@ mod tests {
             let keyboard_mapping = KeyboardMapping::new(
                 KeyNumber::ZERO,
                 KeyNumber::MAX,
-                $reference_key,
-                $reference_key,
-                $reference_frequency,
+                &Reference::new($reference_key, $reference_key, $reference_frequency),
                 KeyMappings::Linear,
             )
             .expect("Must succeed");
