@@ -186,13 +186,18 @@ pub(crate) struct KeyboardMappingSourceGroup {
     #[arg(long = "kbm", short = 'k', help = "Path to Scala .kbm file")]
     pub(crate) kbm_path: Option<PathBuf>,
 
-    #[arg(long = "linear", short = 'l', help = "Linear", name = "REFERENCE0", value_parser = parse_reference)]
+    #[arg(
+        long = "linear",
+        short = 'l',
+        help = "Linear [reference in format <ZERO_KEY>,<REF_KEY>=<REF_FREQ>]",
+        name = "REFERENCE0",
+        value_parser = parse_reference)]
     pub(crate) linear: Option<Reference>,
 
     #[arg(
         long = "white",
         short = 'w',
-        help = "Map scale to white keys",
+        help = "Map scale to white keys [reference in format <ZERO_KEY>,<REF_KEY>=<REF_FREQ>]",
         name = "REFERENCE1",
         value_parser = parse_reference
     )]
