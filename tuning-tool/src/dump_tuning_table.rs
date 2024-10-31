@@ -24,7 +24,7 @@ use crate::evaluation_strategy::Symbolic;
 use crate::key_frequency_mapping::{compute_symbolic, KeyFrequencyMapping};
 use crate::keyboard_mapping_source::KeyboardMappingSource;
 use crate::scl_file::SclFile;
-use crate::sympy::Simplifier;
+use crate::sympy::Sympy;
 use crate::tuning_tool_args::DumpTuningTableFormat;
 use anyhow::Result;
 use std::fs::File;
@@ -45,7 +45,7 @@ pub(crate) fn dump_tuning_table(
         keyboard_mapping_source: &KeyboardMappingSource,
         mappings: &Vec<KeyFrequencyMapping<Symbolic>>,
         format: DumpTuningTableFormat,
-        simplifier: &Option<Simplifier>,
+        sympy: &Option<Sympy>,
     ) -> Result<()> {
         match format {
             DumpTuningTableFormat::Brief => {
@@ -57,12 +57,12 @@ pub(crate) fn dump_tuning_table(
                 writeln!(out, "# Scale file: {path}", path = scl_path.display())?;
                 writeln!(out, "# {keyboard_mapping_source}")?;
 
-                if let Some(simplifier) = simplifier {
+                if let Some(sympy) = sympy {
                     let inputs = mappings
                         .iter()
                         .map(|m| m.frequency().to_string())
                         .collect::<Vec<_>>();
-                    let exprs = simplifier.simplify_vec(&inputs)?;
+                    let exprs = sympy.simplify_vec(&inputs)?;
                     for (mapping, expr) in zip(mappings, exprs) {
                         writeln!(out, "{mapping:<95}  {expr}", mapping = mapping.to_string())?;
                     }
@@ -76,8 +76,8 @@ pub(crate) fn dump_tuning_table(
         Ok(())
     }
 
-    let simplifier = match sympy {
-        true => Some(Simplifier::new()?),
+    let sympy = match sympy {
+        true => Some(Sympy::new()?),
         false => None,
     };
 
@@ -93,7 +93,7 @@ pub(crate) fn dump_tuning_table(
             keyboard_mapping_source,
             &mappings,
             format,
-            &simplifier,
+            &sympy,
         )?,
         None => dump(
             &mut stdout(),
@@ -101,7 +101,7 @@ pub(crate) fn dump_tuning_table(
             keyboard_mapping_source,
             &mappings,
             format,
-            &simplifier,
+            &sympy,
         )?,
     }
 

@@ -29,11 +29,11 @@ use which::which;
 
 const PYTHON_FILE_NAME: &str = "python3";
 
-pub(crate) struct Simplifier {
+pub(crate) struct Sympy {
     python: Python,
 }
 
-impl Simplifier {
+impl Sympy {
     pub(crate) fn new() -> Result<Self> {
         let python = Python::new()?;
 
