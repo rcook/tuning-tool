@@ -20,14 +20,8 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+use crate::python::Python;
 use anyhow::{bail, Result};
-use std::io::Write;
-use std::path::PathBuf;
-use std::process::Command;
-use tempfile::NamedTempFile;
-use which::which;
-
-const PYTHON_FILE_NAME: &str = "python3";
 
 pub(crate) struct Sympy {
     python: Python,
@@ -35,12 +29,12 @@ pub(crate) struct Sympy {
 
 impl Sympy {
     pub(crate) fn new() -> Result<Self> {
-        let python = Python::new()?;
+        let python = Python::new(&None)?;
 
         if python.exec("import sympy").is_err() {
             bail!(
                 "sympy not installed for Python at {python_path}",
-                python_path = python.python_path.display()
+                python_path = python.python_path().display()
             );
         }
 
@@ -74,31 +68,5 @@ impl Sympy {
         }
 
         Ok(lines)
-    }
-}
-
-struct Python {
-    python_path: PathBuf,
-}
-
-impl Python {
-    fn new() -> Result<Self> {
-        let Ok(python_path) = which(PYTHON_FILE_NAME) else {
-            bail!("Cannot find Python binary {PYTHON_FILE_NAME}");
-        };
-        Ok(Self { python_path })
-    }
-
-    fn exec(&self, s: &str) -> Result<String> {
-        let mut file = NamedTempFile::with_suffix(".py")?;
-        writeln!(file, "{}", s)?;
-        let path = file.into_temp_path();
-
-        let output = Command::new(&self.python_path).arg(&path).output()?;
-        if !output.status.success() {
-            bail!("Python script failed");
-        }
-
-        Ok(String::from_utf8(output.stdout)?)
     }
 }

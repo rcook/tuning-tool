@@ -20,58 +20,42 @@
 // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
-#![allow(clippy::wrong_self_convention)]
+use anyhow::{bail, Result};
+use std::io::Write;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+use tempfile::NamedTempFile;
+use which::which;
 
-mod approx_eq;
-mod bulk_dump_reply;
-mod checksum_calculator;
-mod cli;
-mod consts;
-mod decode_bulk_dump;
-mod devices;
-mod dump_tuning_table;
-mod evaluate;
-mod evaluation_strategy;
-mod experimental;
-mod frequency;
-mod fs;
-mod hex_dump;
-mod interval;
-mod kbm_file;
-mod key_frequency_mapping;
-mod key_mapping;
-mod key_mappings;
-mod keyboard_mapping;
-mod keyboard_mapping_source;
-mod list_ports;
-mod midi_input_ex;
-mod midi_message_builder;
-mod midi_note;
-mod midi_output_ex;
-mod monitor_port;
-mod mts_entry;
-mod note_change;
-mod note_change_entry;
-mod note_number;
-mod num;
-mod preset_name;
-mod python;
-mod ratio;
-mod read;
-mod reference;
-mod resources;
-mod run;
-mod save_tunings;
-mod scale;
-mod scl_file;
-mod semitones;
-mod send_tuning;
-mod send_tuning_output;
-mod sympy;
-mod tuning_tool_args;
-mod types;
+const PYTHON_FILE_NAME: &str = "python3";
 
-fn main() -> anyhow::Result<()> {
-    env_logger::init();
-    crate::run::run()
+pub(crate) struct Python {
+    python_path: PathBuf,
+}
+
+impl Python {
+    pub(crate) fn new(python_file_name: &Option<String>) -> Result<Self> {
+        let python_file_name = python_file_name.as_deref().unwrap_or(PYTHON_FILE_NAME);
+        let Ok(python_path) = which(python_file_name) else {
+            bail!("Cannot find Python binary {python_file_name}");
+        };
+        Ok(Self { python_path })
+    }
+
+    pub(crate) fn python_path(&self) -> &Path {
+        &self.python_path
+    }
+
+    pub(crate) fn exec(&self, s: &str) -> Result<String> {
+        let mut file = NamedTempFile::with_suffix(".py")?;
+        writeln!(file, "{}", s)?;
+        let path = file.into_temp_path();
+
+        let output = Command::new(&self.python_path).arg(&path).output()?;
+        if !output.status.success() {
+            bail!("Python script failed");
+        }
+
+        Ok(String::from_utf8(output.stdout)?)
+    }
 }
