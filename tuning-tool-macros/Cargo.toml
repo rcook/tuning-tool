@@ -13,7 +13,7 @@ version = "0.0.3"
 [dependencies]
 proc-macro2 = "1.0.87"
 quote = "1.0.37"
-syn = "2.0.79"
+syn = "2.0.86"
 
 [lib]
 proc-macro = true
