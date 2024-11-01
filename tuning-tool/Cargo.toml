@@ -11,7 +11,7 @@ repository = "https://github.com/rcook/tuning-tool.git"
 version = "0.0.3"
 
 [dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.91"
 clap = { version = "4.5.20", features = ["derive"] }
 env_logger = "0.11.5"
 include_dir = "0.7.4"
@@ -28,4 +28,4 @@ tuning-tool-macros = { path = "../tuning-tool-macros" }
 which = "6.0.3"
 
 [build-dependencies]
-anyhow = "1.0.89"
+anyhow = "1.0.91"
