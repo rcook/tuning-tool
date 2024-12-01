@@ -22,7 +22,7 @@ num = "0.4.3"
 path-absolutize = "3.1.1"
 rstest = "0.23.0"
 rust_decimal = "1.36.0"
-tempfile = "3.13.0"
+tempfile = "3.14.0"
 tuning-tool-lib = { path = "../tuning-tool-lib" }
 tuning-tool-macros = { path = "../tuning-tool-macros" }
 which = "7.0.0"
