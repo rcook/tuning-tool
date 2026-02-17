@@ -11,9 +11,9 @@ repository = "https://github.com/rcook/tuning-tool.git"
 version = "0.0.3"
 
 [dependencies]
-proc-macro2 = "1.0.89"
-quote = "1.0.37"
-syn = "2.0.87"
+proc-macro2 = "1.0.106"
+quote = "1.0.44"
+syn = "2.0.116"
 
 [lib]
 proc-macro = true
