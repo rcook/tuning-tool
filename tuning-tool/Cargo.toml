@@ -25,7 +25,7 @@ rust_decimal = "1.40.0"
 tempfile = "3.26.0"
 tuning-tool-lib = { path = "../tuning-tool-lib" }
 tuning-tool-macros = { path = "../tuning-tool-macros" }
-which = "8.0.0"
+which = "8.0.2"
 
 [build-dependencies]
 anyhow = "1.0.102"
